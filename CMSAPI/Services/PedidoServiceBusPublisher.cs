@@ -45,8 +45,8 @@ namespace CMSAPI.Services
                 clientenome = pedido.Clientenome,
                 clienteemail = pedido.Clienteemail,
                 valorpedido = pedido.Valorpedido,
-                status = pedido.Statusatual.ToString().ToLower(),
-                descricao = $"Pedido {pedido.Statusatual.ToString().ToLower()} no CMSX"
+                status = pedido.Statusatual?.ToLower() ?? string.Empty,
+                descricao = $"Pedido {pedido.Statusatual?.ToLower() ?? string.Empty} no CMSX"
             };
             var json = JsonSerializer.Serialize(mensagem);
             var message = new ServiceBusMessage(json);

@@ -24,7 +24,7 @@ public class LojaController(
             return BadRequest(new { message = "slug é obrigatório." });
 
         var app = lojaRepo.ResolveAplicacao(slug);
-        if (app == null)
+        if (app == null || string.IsNullOrEmpty(app.Aplicacaoid))
             return NotFound(new { message = $"Site '{slug}' não encontrado." });
 
         var token = lojaRepo.GetActiveTokenForApp(app.Aplicacaoid);
