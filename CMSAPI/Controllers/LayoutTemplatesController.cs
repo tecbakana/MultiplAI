@@ -18,19 +18,19 @@ namespace CMSAPI.Controllers
         private bool IsAdmin() => User.FindFirstValue("acessoTotal") == "True";
 
         [HttpGet]
-        public IActionResult Get() => Ok(_repo.Lista());
+        public  async Task<IActionResult> Get() => Ok(await _repo.ListaAsync());
 
         [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        public  async Task<IActionResult> Get(string id)
         {
-            var t = _repo.BuscaPorId(id);
+            var t = await _repo.BuscaPorIdAsync(id);
             return t == null ? NotFound() : Ok(t);
         }
 
         [HttpGet("padrao")]
-        public IActionResult GetPadrao([FromQuery] string tipo = "home")
+        public  async Task<IActionResult> GetPadrao([FromQuery] string tipo = "home")
         {
-            var t = _repo.BuscaPadrao(tipo);
+            var t = await _repo.BuscaPadraoAsync(tipo);
             return t == null ? NotFound() : Ok(t);
         }
 
@@ -44,7 +44,7 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] SalvarTemplateDto dto)
+        public  async Task<IActionResult> Post([FromBody] SalvarTemplateDto dto)
         {
             if (!IsAdmin()) return Forbid();
 
@@ -52,7 +52,7 @@ namespace CMSAPI.Controllers
             catch { return BadRequest(new { erro = "Layout JSON inválido." }); }
 
             if (dto.Padrao)
-                _repo.DesmarcarPadraoDoTipo(dto.Tipo, null);
+                await _repo.DesmarcarPadraoDoTipoAsync(dto.Tipo, null);
 
             var item = new LayoutTemplate
             {
@@ -64,37 +64,37 @@ namespace CMSAPI.Controllers
                 Padrao       = dto.Padrao,
                 Datainclusao = DateTime.UtcNow
             };
-            _repo.Criar(item);
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] SalvarTemplateDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] SalvarTemplateDto dto)
         {
             if (!IsAdmin()) return Forbid();
 
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
 
             if (dto.Padrao)
-                _repo.DesmarcarPadraoDoTipo(dto.Tipo, id);
+                await _repo.DesmarcarPadraoDoTipoAsync(dto.Tipo, id);
 
             item.Nome      = dto.Nome;
             item.Descricao = dto.Descricao;
             item.Tipo      = dto.Tipo;
             item.Layout    = dto.Layout;
             item.Padrao    = dto.Padrao;
-            _repo.Atualizar(item);
+            await _repo.AtualizarAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            _repo.Remover(item);
+            await _repo.RemoverAsync(item);
             return Ok();
         }
     }

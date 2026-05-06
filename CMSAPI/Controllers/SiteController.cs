@@ -20,25 +20,25 @@ namespace CMSAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("slug/{slug}")]
-        public IActionResult GetBySlug(string slug)
+        public  async Task<IActionResult> GetBySlug(string slug)
         {
-            var app = _repo.BuscaPorSlug(slug);
+            var app = await _repo.BuscaPorSlugAsync(slug);
             return app == null
                 ? NotFound(new { erro = $"Site '{slug}' não encontrado." })
-                : BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
+                : await BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
         }
 
         [Authorize]
         [HttpGet("preview/{aplicacaoid}")]
-        public IActionResult GetPreview(string aplicacaoid)
+        public  async Task<IActionResult> GetPreview(string aplicacaoid)
         {
-            var app = _aplicacaoRepo.BuscaPorId(aplicacaoid);
-            return app == null ? NotFound() : BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
+            var app = await _aplicacaoRepo.BuscaPorIdAsync(aplicacaoid);
+            return app == null ? NotFound() : await BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
         }
 
-        private IActionResult BuildSiteData(string aplicacaoid, string? nome, string? url, string? header)
+        private  async Task<IActionResult> BuildSiteData(string aplicacaoid, string? nome, string? url, string? header)
         {
-            var areas = _repo.ListaAreas(aplicacaoid);
+            var areas = await _repo.ListaAreasAsync(aplicacaoid);
 
             var areasResult = areas.Select(area =>
             {
@@ -58,7 +58,10 @@ namespace CMSAPI.Controllers
                             blocos.Add(new { tipo, config = JsonSerializer.Deserialize<object>(configRaw), coluna, dados });
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                       throw new Exception($"Erro ao processar layout da área '{area.Areaid}'. Verifique se o JSON está correto.");
+                    }
                 }
                 return new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos };
             }).ToList();
@@ -66,7 +69,7 @@ namespace CMSAPI.Controllers
             return Ok(new { Aplicacaoid = aplicacaoid, Nome = nome, Url = url, Header = header, areas = areasResult });
         }
 
-        private object? EnriquecerBloco(string tipo, JsonElement config, string aplicacaoid)
+        private async Task<object?> EnriquecerBloco(string tipo, JsonElement config, string aplicacaoid)
         {
             switch (tipo)
             {
@@ -74,21 +77,21 @@ namespace CMSAPI.Controllers
                 {
                     var areaid = Str(config, "areaid");
                     if (string.IsNullOrEmpty(areaid)) return null;
-                    return _repo.ListaConteudosPorArea(areaid, Int(config, "limite", 6))
+                    return (await _repo.ListaConteudosPorAreaAsync(areaid, Int(config, "limite", 6)))
                         .Select(c => new { c.Conteudoid, c.Titulo, c.Texto, c.Autor, c.Datainclusao })
                         .ToList();
                 }
                 case "lista-produtos":
                 {
                     var catid = Str(config, "cateriaid");
-                    return _repo.ListaProdutos(aplicacaoid, catid, Int(config, "limite", 8))
+                    return (await _repo.ListaProdutosAsync(aplicacaoid, catid, Int(config, "limite", 8)))
                         .Select(p => new { p.Produtoid, p.Nome, p.Descricacurta, p.Valor, p.Imagem })
                         .ToList();
                 }
                 case "categorias":
                 {
                     var pai = Str(config, "cateriaidpai");
-                    return _repo.ListaCategorias(aplicacaoid, pai)
+                    return (await _repo.ListaCategoriasAsync(aplicacaoid, pai))
                         .Select(c => new { c.Cateriaid, c.Nome, c.Descricao })
                         .ToList();
                 }
@@ -96,7 +99,7 @@ namespace CMSAPI.Controllers
                 {
                     var formularioid = Str(config, "formularioid");
                     if (string.IsNullOrEmpty(formularioid)) return null;
-                    return _repo.ListaFaqsAtivos(formularioid)
+                    return (await _repo.ListaFaqsAtivosAsync(formularioid))
                         .Select(f => new { f.Faqid, f.Pergunta, f.Resposta })
                         .ToList();
                 }
@@ -104,12 +107,12 @@ namespace CMSAPI.Controllers
                 {
                     var formularioid = Str(config, "formularioid");
                     if (string.IsNullOrEmpty(formularioid)) return null;
-                    var f = _repo.BuscaFormulario(formularioid);
+                    var f = await _repo.BuscaFormularioAsync(formularioid);
                     return f == null ? null : new { f.Formularioid, f.Nome, f.Valor };
                 }
                 case "menu-navegacao":
                 {
-                    return _repo.ListaAreasMenu(aplicacaoid)
+                    return (await _repo.ListaAreasMenuAsync(aplicacaoid))
                         .Select(a => new { a.Areaid, a.Nome, a.Url })
                         .ToList();
                 }

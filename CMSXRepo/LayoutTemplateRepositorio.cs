@@ -8,40 +8,40 @@ public class LayoutTemplateRepositorio : BaseRepositorio, ILayoutTemplateReposit
 {
     public LayoutTemplateRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<LayoutTemplate> Lista() =>
-        _db.LayoutTemplates.AsNoTracking().OrderBy(t => t.Nome).ToList();
+    public async Task<IEnumerable<LayoutTemplate>> ListaAsync() =>
+        await _db.LayoutTemplates.AsNoTracking().OrderBy(t => t.Nome).ToListAsync();
 
-    public LayoutTemplate? BuscaPorId(string id) =>
-        _db.LayoutTemplates.AsNoTracking().FirstOrDefault(t => t.Templateid == id);
+    public async Task<LayoutTemplate?> BuscaPorIdAsync(string id) =>
+        await _db.LayoutTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Templateid == id);
 
-    public LayoutTemplate? BuscaPadrao(string tipo) =>
-        _db.LayoutTemplates.AsNoTracking().FirstOrDefault(t => t.Tipo == tipo && t.Padrao);
+    public async Task<LayoutTemplate?> BuscaPadraoAsync(string tipo) =>
+        await _db.LayoutTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Tipo == tipo && t.Padrao);
 
-    public void DesmarcarPadraoDoTipo(string tipo, string? excluirId)
+    public async Task DesmarcarPadraoDoTipoAsync(string tipo, string? excluirId)
     {
         var anteriores = string.IsNullOrEmpty(excluirId)
-            ? _db.LayoutTemplates.Where(t => t.Tipo == tipo && t.Padrao).ToList()
-            : _db.LayoutTemplates.Where(t => t.Tipo == tipo && t.Padrao && t.Templateid != excluirId).ToList();
+            ? await _db.LayoutTemplates.Where(t => t.Tipo == tipo && t.Padrao).ToListAsync()
+            : await _db.LayoutTemplates.Where(t => t.Tipo == tipo && t.Padrao && t.Templateid != excluirId).ToListAsync();
 
         foreach (var t in anteriores)
             t.Padrao = false;
     }
 
-    public void Criar(LayoutTemplate template)
+    public async Task CriarAsync(LayoutTemplate template)
     {
         _db.LayoutTemplates.Add(template);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(LayoutTemplate template)
+    public async Task AtualizarAsync(LayoutTemplate template)
     {
         _db.LayoutTemplates.Update(template);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(LayoutTemplate template)
+    public async Task RemoverAsync(LayoutTemplate template)
     {
         _db.LayoutTemplates.Remove(template);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

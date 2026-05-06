@@ -7,28 +7,28 @@ public record ArvoreAtributos(IEnumerable<Atributo> Atributos, IEnumerable<Opcao
 public interface IProdutosRepositorio
 {
     // Produto
-    IEnumerable<Produto> Lista(string? aplicacaoid);
-    Produto? BuscaPorId(string id);
-    void Criar(Produto produto);
-    void Atualizar(Produto produto);
-    void Remover(Produto produto);
+    Task<IEnumerable<Produto>> ListaAsync(string? aplicacaoid);
+    Task<Produto?> BuscaPorIdAsync(string id);
+    Task CriarAsync(Produto produto);
+    Task AtualizarAsync(Produto produto);
+    Task RemoverAsync(Produto produto);
 
     // Atributos
-    ArvoreAtributos BuscaArvoreComOpcoes(string produtoid);
-    Atributo? BuscaAtributo(Guid id);
-    void CriarAtributo(Atributo atributo);
-    void AtualizarAtributo(Atributo atributo);
-    void RemoverAtributoComDescendentes(Guid id);
+    Task<ArvoreAtributos> BuscaArvoreComOpcoesAsync(string produtoid);
+    Task<Atributo?> BuscaAtributoAsync(Guid id);
+    Task CriarAtributoAsync(Atributo atributo);
+    Task AtualizarAtributoAsync(Atributo atributo);
+    Task RemoverAtributoComDescendentesAsync(Guid id);
 
     // Opcoes
-    Opcao? BuscaOpcao(string opcaoid, Guid atributoid);
-    void CriarOpcao(Opcao opcao);
-    void AtualizarOpcao(Opcao opcao);
-    void RemoverOpcao(Opcao opcao);
+    Task<Opcao?> BuscaOpcaoAsync(string opcaoid, Guid atributoid);
+    Task CriarOpcaoAsync(Opcao opcao);
+    Task AtualizarOpcaoAsync(Opcao opcao);
+    Task RemoverOpcaoAsync(Opcao opcao);
 
     // Imagens
-    IEnumerable<Imagem> ListaImagensPorProduto(string produtoid);
-    Imagem? BuscaImagem(string imagemid, string produtoid);
-    void CriarImagem(Imagem imagem);
-    void RemoverImagem(Imagem imagem);
+    Task<IEnumerable<Imagem>> ListaImagensPorProdutoAsync(string produtoid);
+    Task<Imagem?> BuscaImagemAsync(string imagemid, string produtoid);
+    Task CriarImagemAsync(Imagem imagem);
+    Task RemoverImagemAsync(Imagem imagem);
 }

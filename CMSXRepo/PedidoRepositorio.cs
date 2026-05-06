@@ -21,8 +21,8 @@ public class PedidoRepositorio : BaseRepositorio, IPedidoRepositorio
         return await query.OrderByDescending(p => p.Datainclusao).ToListAsync();
     }
 
-    public Pedido? BuscaPorId(Guid id) =>
-        _db.Pedidos.FirstOrDefault(p => p.Pedidoid == id);
+    public async Task<Pedido?> BuscaPorIdAsync(Guid id) =>
+        await _db.Pedidos.FirstOrDefaultAsync(p => p.Pedidoid == id);
 
     public async Task<IEnumerable<Statuspedido>> ListaTimelineAsync(Guid pedidoid) =>
         await _db.Statuspedidos

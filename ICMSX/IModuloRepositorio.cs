@@ -4,7 +4,7 @@ namespace ICMSX;
 
 public interface IModuloRepositorio
 {
-    IEnumerable<Modulo> ListaTodos();
-    IEnumerable<Modulo> ListaPorAplicacao(string aplicacaoid);
-    IEnumerable<Modulo> ListaPorUsuario(string usuarioid);
+    Task<IEnumerable<Modulo>> ListaTodosAsync();
+    Task<IEnumerable<Modulo>> ListaPorAplicacaoAsync(string aplicacaoid);
+    Task<IEnumerable<Modulo>> ListaPorUsuarioAsync(string usuarioid);
 }

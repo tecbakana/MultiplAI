@@ -8,25 +8,25 @@ public class PublicTokenRepositorio : BaseRepositorio, IPublicTokenRepositorio
 {
     public PublicTokenRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<PublicToken> Lista(string aplicacaoid) =>
-        _db.PublicTokens
+    public async Task<IEnumerable<PublicToken>> ListaAsync(string aplicacaoid) =>
+        await _db.PublicTokens
             .AsNoTracking()
             .Where(t => t.Aplicacaoid == aplicacaoid)
             .OrderByDescending(t => t.Datainclusao)
-            .ToList();
+            .ToListAsync();
 
-    public PublicToken? BuscaPorId(Guid id) =>
-        _db.PublicTokens.FirstOrDefault(t => t.PublicTokenId == id);
+    public async Task<PublicToken?> BuscaPorIdAsync(Guid id) =>
+        await _db.PublicTokens.FirstOrDefaultAsync(t => t.PublicTokenId == id);
 
-    public void Criar(PublicToken token)
+    public async Task CriarAsync(PublicToken token)
     {
         _db.PublicTokens.Add(token);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Revogar(PublicToken token)
+    public async Task RevogarAsync(PublicToken token)
     {
         token.Ativo = false;
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

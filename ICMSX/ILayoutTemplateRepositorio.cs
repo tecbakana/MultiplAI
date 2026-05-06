@@ -4,11 +4,11 @@ namespace ICMSX;
 
 public interface ILayoutTemplateRepositorio
 {
-    IEnumerable<LayoutTemplate> Lista();
-    LayoutTemplate? BuscaPorId(string id);
-    LayoutTemplate? BuscaPadrao(string tipo);
-    void DesmarcarPadraoDoTipo(string tipo, string? excluirId);
-    void Criar(LayoutTemplate template);
-    void Atualizar(LayoutTemplate template);
-    void Remover(LayoutTemplate template);
+    Task<IEnumerable<LayoutTemplate>> ListaAsync();
+    Task<LayoutTemplate?> BuscaPorIdAsync(string id);
+    Task<LayoutTemplate?> BuscaPadraoAsync(string tipo);
+    Task DesmarcarPadraoDoTipoAsync(string tipo, string? excluirId);
+    Task CriarAsync(LayoutTemplate template);
+    Task AtualizarAsync(LayoutTemplate template);
+    Task RemoverAsync(LayoutTemplate template);
 }

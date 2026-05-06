@@ -4,9 +4,9 @@ namespace ICMSX;
 
 public interface IVinculoModuloUsuarioRepositorio
 {
-    IEnumerable<object> Lista(string? aplicacaoid, string? usuarioid);
-    bool ExisteVinculo(string usuarioid, string moduloid);
-    void Criar(Relmodulousuario rel);
-    Relmodulousuario? BuscaPorRelacaoid(string relacaoid);
-    void Remover(Relmodulousuario rel);
+    Task<IEnumerable<object>> ListaAsync(string? aplicacaoid, string? usuarioid);
+    Task<bool> ExisteVinculoAsync(string usuarioid, string moduloid);
+    Task CriarAsync(Relmodulousuario rel);
+    Task<Relmodulousuario?> BuscaPorRelacaoidAsync(string relacaoid);
+    Task RemoverAsync(Relmodulousuario rel);
 }

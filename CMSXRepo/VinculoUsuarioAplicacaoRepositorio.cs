@@ -8,7 +8,7 @@ public class VinculoUsuarioAplicacaoRepositorio : BaseRepositorio, IVinculoUsuar
 {
     public VinculoUsuarioAplicacaoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<object> Lista(string? aplicacaoid, string? usuarioid)
+    public async Task<IEnumerable<object>> ListaAsync(string? aplicacaoid, string? usuarioid)
     {
         var q = _db.Relusuarioaplicacaos.AsNoTracking().AsQueryable();
 
@@ -18,30 +18,37 @@ public class VinculoUsuarioAplicacaoRepositorio : BaseRepositorio, IVinculoUsuar
         if (!string.IsNullOrEmpty(usuarioid))
             q = q.Where(r => r.Usuarioid == usuarioid);
 
-        return q
+        var rels = await q
             .Join(_db.Usuarios.AsNoTracking(), r => r.Usuarioid, u => u.Userid,
                 (r, u) => new { r.Relacaoid, r.Aplicacaoid, r.Usuarioid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo })
-            .AsEnumerable()
-            .Join(_db.Aplicacaos.AsNoTracking().AsEnumerable(), r => r.Aplicacaoid, a => a.Aplicacaoid,
-                (r, a) => (object)new { r.Relacaoid, r.Usuarioid, r.Nome, r.Sobrenome, r.Apelido, r.Ativo, r.Aplicacaoid, AppNome = a.Nome })
+            .ToListAsync();
+
+        var appIds = rels.Select(r => r.Aplicacaoid).Distinct().ToList();
+        var apps = await _db.Aplicacaos.AsNoTracking()
+            .Where(a => appIds.Contains(a.Aplicacaoid))
+            .Select(a => new { a.Aplicacaoid, a.Nome })
+            .ToListAsync();
+
+        return rels.Join(apps, r => r.Aplicacaoid, a => a.Aplicacaoid,
+            (r, a) => (object)new { r.Relacaoid, r.Usuarioid, r.Nome, r.Sobrenome, r.Apelido, r.Ativo, r.Aplicacaoid, AppNome = a.Nome })
             .ToList();
     }
 
-    public bool ExisteVinculo(string usuarioid, string aplicacaoid) =>
-        _db.Relusuarioaplicacaos.Any(r => r.Usuarioid == usuarioid && r.Aplicacaoid == aplicacaoid);
+    public async Task<bool> ExisteVinculoAsync(string usuarioid, string aplicacaoid) =>
+        await _db.Relusuarioaplicacaos.AnyAsync(r => r.Usuarioid == usuarioid && r.Aplicacaoid == aplicacaoid);
 
-    public void Criar(Relusuarioaplicacao rel)
+    public async Task CriarAsync(Relusuarioaplicacao rel)
     {
         _db.Relusuarioaplicacaos.Add(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public Relusuarioaplicacao? BuscaPorRelacaoid(string relacaoid) =>
-        _db.Relusuarioaplicacaos.FirstOrDefault(r => r.Relacaoid == relacaoid);
+    public async Task<Relusuarioaplicacao?> BuscaPorRelacaoidAsync(string relacaoid) =>
+        await _db.Relusuarioaplicacaos.FirstOrDefaultAsync(r => r.Relacaoid == relacaoid);
 
-    public void Remover(Relusuarioaplicacao rel)
+    public async Task RemoverAsync(Relusuarioaplicacao rel)
     {
         _db.Relusuarioaplicacaos.Remove(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

@@ -48,7 +48,7 @@ public class PedidosController : Controller
     public async Task<IActionResult> GetTimeline(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var pedido = _repo.BuscaPorId(id);
+        var pedido = await _repo.BuscaPorIdAsync(id);
         if (pedido is null) return NotFound();
         if (!acessoTotal && pedido.Aplicacaoid != claimAppId) return Forbid();
 
@@ -137,7 +137,7 @@ public class PedidosController : Controller
     public async Task<IActionResult> Reenviar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var pedido = _repo.BuscaPorId(id);
+        var pedido = await _repo.BuscaPorIdAsync(id);
         if (pedido is null) return NotFound();
         if (!acessoTotal && pedido.Aplicacaoid != claimAppId) return Forbid();
         if (pedido.Statusatual != "erro_envio" && pedido.Statusatual != "aguardando_envio")

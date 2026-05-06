@@ -4,14 +4,14 @@ namespace ICMSX;
 
 public interface IGrupoRepositorio
 {
-    IEnumerable<Grupo> Lista();
-    Grupo? BuscaPorId(string id);
-    IEnumerable<object> UsuariosPorGrupo(string grupoid);
-    bool ExisteVinculoUsuario(string grupoid, string usuarioid);
-    void Criar(Grupo grupo);
-    void Atualizar(Grupo grupo);
-    void RemoverComVinculos(Grupo grupo);
-    void AdicionarUsuario(Relusuariogrupo rel);
-    Relusuariogrupo? BuscaVinculoPorRelacaoid(string relacaoid);
-    void RemoverVinculoUsuario(Relusuariogrupo rel);
+    Task<IEnumerable<Grupo>> ListaAsync();
+    Task<Grupo?> BuscaPorIdAsync(string id);
+    Task<IEnumerable<object>> UsuariosPorGrupoAsync(string grupoid);
+    Task<bool> ExisteVinculoUsuarioAsync(string grupoid, string usuarioid);
+    Task CriarAsync(Grupo grupo);
+    Task AtualizarAsync(Grupo grupo);
+    Task RemoverComVinculosAsync(Grupo grupo);
+    Task AdicionarUsuarioAsync(Relusuariogrupo rel);
+    Task<Relusuariogrupo?> BuscaVinculoPorRelacaoidAsync(string relacaoid);
+    Task RemoverVinculoUsuarioAsync(Relusuariogrupo rel);
 }

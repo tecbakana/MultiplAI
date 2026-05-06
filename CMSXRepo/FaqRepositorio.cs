@@ -8,68 +8,68 @@ public class FaqRepositorio : BaseRepositorio, IFaqRepositorio
 {
     public FaqRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Caterium> ListaCategoriasPorApp(string aplicacaoid) =>
-        _db.Cateria.AsNoTracking()
+    public async Task<IEnumerable<Caterium>> ListaCategoriasPorAppAsync(string aplicacaoid) =>
+        await _db.Cateria.AsNoTracking()
             .Where(c => c.Aplicacaoid == aplicacaoid)
-            .ToList();
+            .ToListAsync();
 
-    public IEnumerable<Formulario> ListaFormulariosComCategoria(string aplicacaoid)
+    public async Task<IEnumerable<Formulario>> ListaFormulariosComCategoriaAsync(string aplicacaoid)
     {
-        var areasIds = _db.Areas.AsNoTracking()
+        var areasIds = await _db.Areas.AsNoTracking()
             .Where(a => a.Aplicacaoid == aplicacaoid)
             .Select(a => a.Areaid)
-            .ToHashSet();
+            .ToListAsync();
 
-        return _db.Formularios.AsNoTracking()
+        return await _db.Formularios.AsNoTracking()
             .Where(f => f.Categoriaid != null && f.Areaid != null && areasIds.Contains(f.Areaid))
-            .ToList();
+            .ToListAsync();
     }
 
-    public IEnumerable<Faq> ListaFaqsAtivos(IEnumerable<string> formularioIds)
+    public async Task<IEnumerable<Faq>> ListaFaqsAtivosAsync(IEnumerable<string> formularioIds)
     {
         var ids = formularioIds.ToList();
-        return _db.Faqs.AsNoTracking()
+        return await _db.Faqs.AsNoTracking()
             .Where(faq => faq.Ativo && ids.Contains(faq.Formularioid))
             .OrderBy(faq => faq.Ordem)
-            .ToList();
+            .ToListAsync();
     }
 
-    public IEnumerable<Faq> ListaPorFormulario(string formularioid) =>
-        _db.Faqs.AsNoTracking()
+    public async Task<IEnumerable<Faq>> ListaPorFormularioAsync(string formularioid) =>
+        await _db.Faqs.AsNoTracking()
             .Where(f => f.Formularioid == formularioid)
             .OrderBy(f => f.Ordem)
-            .ToList();
+            .ToListAsync();
 
-    public Faq? BuscaPorId(string id) =>
-        _db.Faqs.FirstOrDefault(f => f.Faqid == id);
+    public async Task<Faq?> BuscaPorIdAsync(string id) =>
+        await _db.Faqs.FirstOrDefaultAsync(f => f.Faqid == id);
 
-    public bool TemAcesso(string? formularioid, string? claimAppId)
+    public async Task<bool> TemAcessoAsync(string? formularioid, string? claimAppId)
     {
         if (string.IsNullOrEmpty(formularioid)) return false;
-        return _db.Formularios.AsNoTracking()
+        return await _db.Formularios.AsNoTracking()
             .Where(f => f.Formularioid == formularioid)
             .Join(_db.Areas.AsNoTracking(), f => f.Areaid, a => a.Areaid, (f, a) => a)
-            .Any(a => a.Aplicacaoid == claimAppId);
+            .AnyAsync(a => a.Aplicacaoid == claimAppId);
     }
 
-    public void Criar(Faq item)
+    public async Task CriarAsync(Faq item)
     {
         _db.Faqs.Add(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Faq item)
+    public async Task AtualizarAsync(Faq item)
     {
         _db.Faqs.Update(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Faq item)
+    public async Task RemoverAsync(Faq item)
     {
         _db.Faqs.Remove(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public Formularionew? BuscaRespostaInbox(int idform) =>
-        _db.Formularionews.FirstOrDefault(f => f.Idform == idform);
+    public async Task<Formularionew?> BuscaRespostaInboxAsync(int idform) =>
+        await _db.Formularionews.FirstOrDefaultAsync(f => f.Idform == idform);
 }

@@ -4,10 +4,10 @@ namespace ICMSX;
 
 public interface IConteudoRepositorio
 {
-    IEnumerable<Conteudo> Lista(string? aplicacaoid, string? areaid, string? cateriaid);
-    Conteudo? BuscaPorId(string id);
-    string? AplicacaoidDaArea(string? areaid);
-    void Criar(Conteudo item);
-    void Atualizar(Conteudo item);
-    void Remover(Conteudo item);
+    Task<IEnumerable<Conteudo>> ListaAsync(string? aplicacaoid, string? areaid, string? cateriaid);
+    Task<Conteudo?> BuscaPorIdAsync(string id);
+    Task<string?> AplicacaoidDaAreaAsync(string? areaid);
+    Task CriarAsync(Conteudo item);
+    Task AtualizarAsync(Conteudo item);
+    Task RemoverAsync(Conteudo item);
 }

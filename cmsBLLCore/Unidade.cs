@@ -7,9 +7,9 @@ namespace CMSXBLL
 {
     public class Unidade
     {
-        public Guid unidadeId { get; set; }
-        public string nome { get; set; }
-        public string sigla { get; set; }
+        public Guid UnidadeId { get; set; }
+        public string? Nome { get; set; }
+        public string? Sigla { get; set; }
 
         public static Unidade ObterNovaUnidade()
         {

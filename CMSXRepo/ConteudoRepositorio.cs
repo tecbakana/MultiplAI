@@ -8,17 +8,17 @@ public class ConteudoRepositorio : BaseRepositorio, IConteudoRepositorio
 {
     public ConteudoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Conteudo> Lista(string? aplicacaoid, string? areaid, string? cateriaid)
+    public async Task<IEnumerable<Conteudo>> ListaAsync(string? aplicacaoid, string? areaid, string? cateriaid)
     {
         var q = _db.Conteudos.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrEmpty(aplicacaoid))
         {
-            var areasIds = _db.Areas
+            var areasIds = await _db.Areas
                 .AsNoTracking()
                 .Where(a => a.Aplicacaoid == aplicacaoid)
                 .Select(a => a.Areaid)
-                .ToHashSet();
+                .ToListAsync();
             q = q.Where(c => c.Areaid != null && areasIds.Contains(c.Areaid));
         }
 
@@ -28,36 +28,36 @@ public class ConteudoRepositorio : BaseRepositorio, IConteudoRepositorio
         if (!string.IsNullOrEmpty(cateriaid))
             q = q.Where(c => c.Cateriaid == cateriaid);
 
-        return q.OrderByDescending(c => c.Datainclusao).ToList();
+        return await q.OrderByDescending(c => c.Datainclusao).ToListAsync();
     }
 
-    public Conteudo? BuscaPorId(string id) =>
-        _db.Conteudos.AsNoTracking().FirstOrDefault(c => c.Conteudoid == id);
+    public async Task<Conteudo?> BuscaPorIdAsync(string id) =>
+        await _db.Conteudos.AsNoTracking().FirstOrDefaultAsync(c => c.Conteudoid == id);
 
-    public string? AplicacaoidDaArea(string? areaid)
+    public async Task<string?> AplicacaoidDaAreaAsync(string? areaid)
     {
         if (string.IsNullOrEmpty(areaid)) return null;
-        return _db.Areas.AsNoTracking()
+        return await _db.Areas.AsNoTracking()
             .Where(a => a.Areaid == areaid)
             .Select(a => a.Aplicacaoid)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
     }
 
-    public void Criar(Conteudo item)
+    public async Task CriarAsync(Conteudo item)
     {
         _db.Conteudos.Add(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Conteudo item)
+    public async Task AtualizarAsync(Conteudo item)
     {
         _db.Conteudos.Update(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Conteudo item)
+    public async Task RemoverAsync(Conteudo item)
     {
         _db.Conteudos.Remove(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

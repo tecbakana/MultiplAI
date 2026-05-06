@@ -8,29 +8,29 @@ public class AreasRepositorio : BaseRepositorio, IAreasRepositorio
 {
     public AreasRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Area> Lista(string? aplicacaoid) =>
+    public async Task<IEnumerable<Area>> ListaAsync(string? aplicacaoid) =>
         string.IsNullOrEmpty(aplicacaoid)
-            ? _db.Areas.AsNoTracking().OrderBy(a => a.Posicao).ToList()
-            : _db.Areas.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).OrderBy(a => a.Posicao).ToList();
+            ? await _db.Areas.AsNoTracking().OrderBy(a => a.Posicao).ToListAsync()
+            : await _db.Areas.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).OrderBy(a => a.Posicao).ToListAsync();
 
-    public Area? BuscaPorId(string id) =>
-        _db.Areas.AsNoTracking().FirstOrDefault(a => a.Areaid == id);
+    public async Task<Area?> BuscaPorIdAsync(string id) =>
+        await _db.Areas.AsNoTracking().FirstOrDefaultAsync(a => a.Areaid == id);
 
-    public void Criar(Area area)
+    public async Task CriarAsync(Area area)
     {
         _db.Areas.Add(area);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Area area)
+    public async Task AtualizarAsync(Area area)
     {
         _db.Areas.Update(area);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Area area)
+    public async Task RemoverAsync(Area area)
     {
         _db.Areas.Remove(area);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

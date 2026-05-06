@@ -14,18 +14,18 @@ namespace CMSAPI.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult Get([FromQuery] string? aplicacaoid = null)
+        public  async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null)
         {
             var acessoTotal = User.FindFirstValue("acessoTotal") == "True";
             var claimAppId  = User.FindFirstValue("aplicacaoid");
 
             if (acessoTotal && string.IsNullOrEmpty(aplicacaoid))
-                return Ok(_repo.TotaisGlobais());
+                return Ok(await _repo.TotaisGlobaisAsync());
 
             var filtroId = acessoTotal ? aplicacaoid : claimAppId;
             if (string.IsNullOrEmpty(filtroId)) return Forbid();
 
-            return Ok(_repo.TotaisPorAplicacao(filtroId));
+            return Ok(await _repo.TotaisPorAplicacaoAsync(filtroId));
         }
     }
 }

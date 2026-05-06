@@ -20,11 +20,11 @@ namespace CMSAPI.Controllers
         // ── Definições de formulário ─────────────────────────────────────────
 
         [HttpGet("defs")]
-        public IEnumerable<object> GetDefs([FromQuery] string? areaid = null, [FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<object>> GetDefs([FromQuery] string? areaid = null, [FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
             var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
-            return _repo.ListaDefs(filtroApp, areaid)
+            return (await _repo.ListaDefsAsync(filtroApp, areaid))
                 .Select(f => new { f.Formularioid, f.Nome, f.Valor, f.Ativo, f.Datainclusao, f.Areaid, f.Categoriaid });
         }
 
@@ -37,12 +37,12 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("defs")]
-        public IActionResult PostDef([FromBody] FormularioDefDto dto)
+        public  async Task<IActionResult> PostDef([FromBody] FormularioDefDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
             if (!acessoTotal && !string.IsNullOrEmpty(dto.Areaid))
             {
-                var appId = _repo.AplicacaoidDaArea(dto.Areaid);
+                var appId = await _repo.AplicacaoidDaAreaAsync(dto.Areaid);
                 if (appId != claimAppId) return Forbid();
             }
 
@@ -56,41 +56,41 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _repo.CriarDef(item);
+            await _repo.CriarDefAsync(item);
             return Ok(item);
         }
 
         [HttpPut("defs/{id}")]
-        public IActionResult PutDef(string id, [FromBody] FormularioDefDto dto)
+        public  async Task<IActionResult> PutDef(string id, [FromBody] FormularioDefDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaDefPorId(id);
+            var item = await _repo.BuscaDefPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var appId = _repo.AplicacaoidDaArea(item.Areaid);
+                var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
                 if (appId != claimAppId) return Forbid();
             }
             item.Nome       = dto.Nome ?? item.Nome;
             item.Valor      = dto.Valor;
             item.Areaid     = dto.Areaid;
             item.Categoriaid = dto.Categoriaid;
-            _repo.AtualizarDef(item);
+            await _repo.AtualizarDefAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("defs/{id}")]
-        public IActionResult DeleteDef(string id)
+        public  async Task<IActionResult> DeleteDef(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaDefPorId(id);
+            var item = await _repo.BuscaDefPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var appId = _repo.AplicacaoidDaArea(item.Areaid);
+                var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
                 if (appId != claimAppId) return Forbid();
             }
-            _repo.RemoverDef(item);
+            await _repo.RemoverDefAsync(item);
             return Ok();
         }
 
@@ -98,9 +98,9 @@ namespace CMSAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("{formularioid}/submit")]
-        public IActionResult Submit(string formularioid, [FromBody] Dictionary<string, string> campos)
+        public  async Task<IActionResult> Submit(string formularioid, [FromBody] Dictionary<string, string> campos)
         {
-            var formulario = _repo.BuscaFormularioPorId(formularioid);
+            var formulario = await _repo.BuscaFormularioPorIdAsync(formularioid);
             if (formulario == null) return NotFound();
 
             var item = new Formularionew
@@ -112,48 +112,48 @@ namespace CMSAPI.Controllers
                 Telefone     = campos.GetValueOrDefault("telefone") ?? campos.GetValueOrDefault("Telefone"),
                 Ativo        = 1
             };
-            _repo.Submeter(item);
+            await _repo.SubmeterAsync(item);
             return Ok();
         }
 
         // ── Respostas ────────────────────────────────────────────────────────
 
         [HttpGet("respostas")]
-        public IEnumerable<Formularionew> GetRespostas([FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<Formularionew>> GetRespostas([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
             var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
-            return _repo.ListaRespostas(filtroApp);
+            return await _repo.ListaRespostasAsync(filtroApp);
         }
 
         [HttpPatch("respostas/{id}/ativo")]
-        public IActionResult PatchAtivo(int id, [FromBody] int ativo)
+        public  async Task<IActionResult> PatchAtivo(int id, [FromBody] int ativo)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaRespostaPorId(id);
+            var item = await _repo.BuscaRespostaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var appId = _repo.AplicacaoidDaResposta(item.Formularioid);
+                var appId = await _repo.AplicacaoidDaRespostaAsync(item.Formularioid);
                 if (appId != claimAppId) return Forbid();
             }
             item.Ativo = ativo;
-            _repo.AtualizarRespostaAtivo(item);
+            await _repo.AtualizarRespostaAtivoAsync(item);
             return Ok();
         }
 
         [HttpDelete("respostas/{id}")]
-        public IActionResult DeleteResposta(int id)
+        public  async Task<IActionResult> DeleteResposta(int id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaRespostaPorId(id);
+            var item = await _repo.BuscaRespostaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var appId = _repo.AplicacaoidDaResposta(item.Formularioid);
+                var appId = await _repo.AplicacaoidDaRespostaAsync(item.Formularioid);
                 if (appId != claimAppId) return Forbid();
             }
-            _repo.RemoverResposta(item);
+            await _repo.RemoverRespostaAsync(item);
             return Ok();
         }
     }

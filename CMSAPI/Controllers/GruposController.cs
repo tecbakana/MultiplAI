@@ -17,17 +17,17 @@ namespace CMSAPI.Controllers
         private bool IsAdmin() => User.FindFirstValue("acessoTotal") == "True";
 
         [HttpGet]
-        public IActionResult Get()
+        public  async Task<IActionResult> Get()
         {
             if (!IsAdmin()) return Forbid();
-            return Ok(_repo.Lista());
+            return Ok(await _repo.ListaAsync());
         }
 
         [HttpGet("{id}/usuarios")]
-        public IActionResult GetUsuarios(string id)
+        public  async Task<IActionResult> GetUsuarios(string id)
         {
             if (!IsAdmin()) return Forbid();
-            return Ok(_repo.UsuariosPorGrupo(id));
+            return Ok(await _repo.UsuariosPorGrupoAsync(id));
         }
 
         public class NovoGrupoDto
@@ -38,7 +38,7 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] NovoGrupoDto dto)
+        public  async Task<IActionResult> Post([FromBody] NovoGrupoDto dto)
         {
             if (!IsAdmin()) return Forbid();
             var item = new Grupo
@@ -48,41 +48,41 @@ namespace CMSAPI.Controllers
                 Descricao   = dto.Descricao,
                 Acessototal = dto.Acessototal
             };
-            _repo.Criar(item);
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] NovoGrupoDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] NovoGrupoDto dto)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
             item.Nome        = dto.Nome;
             item.Descricao   = dto.Descricao;
             item.Acessototal = dto.Acessototal;
-            _repo.Atualizar(item);
+            await _repo.AtualizarAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            _repo.RemoverComVinculos(item);
+            await _repo.RemoverComVinculosAsync(item);
             return Ok();
         }
 
         [HttpPost("{id}/usuarios")]
-        public IActionResult AddUsuario(string id, [FromBody] string usuarioid)
+        public  async Task<IActionResult> AddUsuario(string id, [FromBody] string usuarioid)
         {
             if (!IsAdmin()) return Forbid();
-            if (_repo.ExisteVinculoUsuario(id, usuarioid))
+            if (await _repo.ExisteVinculoUsuarioAsync(id, usuarioid))
                 return BadRequest(new { message = "Usuário já pertence a este grupo." });
 
-            _repo.AdicionarUsuario(new Relusuariogrupo
+            await _repo.AdicionarUsuarioAsync(new Relusuariogrupo
             {
                 Relacaoid = Guid.NewGuid().ToString(),
                 Grupoid   = id,
@@ -92,12 +92,12 @@ namespace CMSAPI.Controllers
         }
 
         [HttpDelete("{id}/usuarios/{relacaoid}")]
-        public IActionResult RemoveUsuario(string id, string relacaoid)
+        public  async Task<IActionResult> RemoveUsuario(string id, string relacaoid)
         {
             if (!IsAdmin()) return Forbid();
-            var rel = _repo.BuscaVinculoPorRelacaoid(relacaoid);
+            var rel = await _repo.BuscaVinculoPorRelacaoidAsync(relacaoid);
             if (rel == null) return NotFound();
-            _repo.RemoverVinculoUsuario(rel);
+            await _repo.RemoverVinculoUsuarioAsync(rel);
             return Ok();
         }
     }

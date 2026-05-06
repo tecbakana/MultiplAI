@@ -8,54 +8,54 @@ public class GrupoRepositorio : BaseRepositorio, IGrupoRepositorio
 {
     public GrupoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Grupo> Lista() =>
-        _db.Grupos.AsNoTracking().OrderBy(g => g.Nome).ToList();
+    public async Task<IEnumerable<Grupo>> ListaAsync() =>
+        await _db.Grupos.AsNoTracking().OrderBy(g => g.Nome).ToListAsync();
 
-    public Grupo? BuscaPorId(string id) =>
-        _db.Grupos.AsNoTracking().FirstOrDefault(g => g.Grupoid == id);
+    public async Task<Grupo?> BuscaPorIdAsync(string id) =>
+        await _db.Grupos.AsNoTracking().FirstOrDefaultAsync(g => g.Grupoid == id);
 
-    public IEnumerable<object> UsuariosPorGrupo(string grupoid) =>
-        _db.Relusuariogrupos.AsNoTracking()
+    public async Task<IEnumerable<object>> UsuariosPorGrupoAsync(string grupoid) =>
+        await _db.Relusuariogrupos.AsNoTracking()
             .Where(r => r.Grupoid == grupoid)
             .Join(_db.Usuarios.AsNoTracking(), r => r.Usuarioid, u => u.Userid,
                 (r, u) => (object)new { r.Relacaoid, u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo })
-            .ToList();
+            .ToListAsync();
 
-    public bool ExisteVinculoUsuario(string grupoid, string usuarioid) =>
-        _db.Relusuariogrupos.Any(r => r.Grupoid == grupoid && r.Usuarioid == usuarioid);
+    public async Task<bool> ExisteVinculoUsuarioAsync(string grupoid, string usuarioid) =>
+        await _db.Relusuariogrupos.AnyAsync(r => r.Grupoid == grupoid && r.Usuarioid == usuarioid);
 
-    public void Criar(Grupo grupo)
+    public async Task CriarAsync(Grupo grupo)
     {
         _db.Grupos.Add(grupo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Grupo grupo)
+    public async Task AtualizarAsync(Grupo grupo)
     {
         _db.Grupos.Update(grupo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverComVinculos(Grupo grupo)
+    public async Task RemoverComVinculosAsync(Grupo grupo)
     {
-        var vinculos = _db.Relusuariogrupos.Where(r => r.Grupoid == grupo.Grupoid).ToList();
+        var vinculos = await _db.Relusuariogrupos.Where(r => r.Grupoid == grupo.Grupoid).ToListAsync();
         _db.Relusuariogrupos.RemoveRange(vinculos);
         _db.Grupos.Remove(grupo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void AdicionarUsuario(Relusuariogrupo rel)
+    public async Task AdicionarUsuarioAsync(Relusuariogrupo rel)
     {
         _db.Relusuariogrupos.Add(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public Relusuariogrupo? BuscaVinculoPorRelacaoid(string relacaoid) =>
-        _db.Relusuariogrupos.FirstOrDefault(r => r.Relacaoid == relacaoid);
+    public async Task<Relusuariogrupo?> BuscaVinculoPorRelacaoidAsync(string relacaoid) =>
+        await _db.Relusuariogrupos.FirstOrDefaultAsync(r => r.Relacaoid == relacaoid);
 
-    public void RemoverVinculoUsuario(Relusuariogrupo rel)
+    public async Task RemoverVinculoUsuarioAsync(Relusuariogrupo rel)
     {
         _db.Relusuariogrupos.Remove(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

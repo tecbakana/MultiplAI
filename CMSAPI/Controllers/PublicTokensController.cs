@@ -24,14 +24,14 @@ public class PublicTokensController : Controller
          User.FindFirstValue("aplicacaoid"));
 
     [HttpGet]
-    public IActionResult Get([FromQuery] string? aplicacaoid = null)
+    public  async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
 
         if (string.IsNullOrEmpty(appId)) return Forbid();
 
-        var lista = _repo.Lista(appId).Select(t => new
+        var lista = (await _repo.ListaAsync(appId)).Select(t => new
         {
             t.PublicTokenId,
             t.Token,
@@ -50,7 +50,7 @@ public class PublicTokensController : Controller
     }
 
     [HttpPost]
-    public IActionResult Gerar([FromBody] GerarTokenDto dto)
+    public  async Task<IActionResult> Gerar([FromBody] GerarTokenDto dto)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(dto?.Aplicacaoid) ? dto.Aplicacaoid : claimAppId;
@@ -67,22 +67,21 @@ public class PublicTokensController : Controller
             Datavencimento = dto?.Datavencimento
         };
 
-        _repo.Criar(token);
+        await _repo.CriarAsync(token);
 
         return Ok(new { token.PublicTokenId, token.Token, token.Datainclusao });
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Revogar(Guid id)
+    public  async Task<IActionResult> Revogar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
 
-        var token = _repo.BuscaPorId(id);
+        var token = await _repo.BuscaPorIdAsync(id);
         if (token == null) return NotFound();
         if (!acessoTotal && token.Aplicacaoid != claimAppId) return Forbid();
 
-        _repo.Revogar(token);
-
+        await _repo.RevogarAsync(token);
         return Ok();
     }
 

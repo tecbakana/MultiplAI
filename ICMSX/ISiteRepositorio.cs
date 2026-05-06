@@ -6,12 +6,12 @@ public record ProdutoPublico(string Produtoid, string? Nome, string? Descricacur
 
 public interface ISiteRepositorio
 {
-    Aplicacao? BuscaPorSlug(string slug);
-    IEnumerable<Area> ListaAreas(string aplicacaoid);
-    IEnumerable<Conteudo> ListaConteudosPorArea(string areaid, int limite);
-    IEnumerable<ProdutoPublico> ListaProdutos(string aplicacaoid, string? cateriaid, int limite);
-    IEnumerable<Caterium> ListaCategorias(string aplicacaoid, string? cateriaidpai);
-    IEnumerable<Faq> ListaFaqsAtivos(string formularioid);
-    Formulario? BuscaFormulario(string formularioid);
-    IEnumerable<Area> ListaAreasMenu(string aplicacaoid);
+    Task<Aplicacao?> BuscaPorSlugAsync(string slug);
+    Task<IEnumerable<Area>> ListaAreasAsync(string aplicacaoid);
+    Task<IEnumerable<Conteudo>> ListaConteudosPorAreaAsync(string areaid, int limite);
+    Task<IEnumerable<ProdutoPublico>> ListaProdutosAsync(string aplicacaoid, string? cateriaid, int limite);
+    Task<IEnumerable<Caterium>> ListaCategoriasAsync(string aplicacaoid, string? cateriaidpai);
+    Task<IEnumerable<Faq>> ListaFaqsAtivosAsync(string formularioid);
+    Task<Formulario?> BuscaFormularioAsync(string formularioid);
+    Task<IEnumerable<Area>> ListaAreasMenuAsync(string aplicacaoid);
 }

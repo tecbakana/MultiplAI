@@ -8,75 +8,75 @@ public class AcessoRepositorio : BaseRepositorio, IAcessoRepositorio
 {
     public AcessoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public bool ApelidoDisponivel(string apelido) =>
-        !_db.Usuarios.Any(u => u.Apelido == apelido);
+    public async Task<bool> ApelidoDisponivelAsync(string apelido) =>
+        !await _db.Usuarios.AnyAsync(u => u.Apelido == apelido);
 
-    public bool UrlDisponivel(string url) =>
-        !_db.Aplicacaos.Any(a => a.Url == url);
+    public async Task<bool> UrlDisponivelAsync(string url) =>
+        !await _db.Aplicacaos.AnyAsync(a => a.Url == url);
 
-    public void CriarConta(Usuario usuario, Aplicacao aplicacao, Relusuarioaplicacao relacao)
+    public async Task CriarContaAsync(Usuario usuario, Aplicacao aplicacao, Relusuarioaplicacao relacao)
     {
         _db.Usuarios.Add(usuario);
         _db.Aplicacaos.Add(aplicacao);
         _db.Relusuarioaplicacaos.Add(relacao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public LoginResultado? Login(string apelido, string senha)
+    public async Task<LoginResultado?> LoginAsync(string apelido, string senha)
     {
-        var user = _db.Usuarios.AsNoTracking()
-            .FirstOrDefault(u => u.Apelido == apelido && u.Senha == senha && u.Ativo == (byte)1);
+        var user = await _db.Usuarios.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Apelido == apelido && u.Senha == senha && u.Ativo == (byte)1);
         if (user == null) return null;
 
-        var grupos = _db.Relusuariogrupos.AsNoTracking()
+        var grupos = await _db.Relusuariogrupos.AsNoTracking()
             .Where(r => r.Usuarioid == user.Userid)
             .Join(_db.Grupos.AsNoTracking(), r => r.Grupoid, g => g.Grupoid, (r, g) => g)
-            .ToList();
+            .ToListAsync();
 
         bool acessoTotal = grupos.Any(g => g.Acessototal);
         var nomesGrupos  = grupos.Select(g => g.Nome ?? "").ToList();
 
-        var aplicacaoid = _db.Relusuarioaplicacaos.AsNoTracking()
+        var aplicacaoid = await _db.Relusuarioaplicacaos.AsNoTracking()
             .Where(r => r.Usuarioid == user.Userid)
             .Select(r => r.Aplicacaoid)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
-        var app    = _db.Aplicacaos.AsNoTracking().FirstOrDefault(a => a.Aplicacaoid == aplicacaoid);
+        var app    = await _db.Aplicacaos.AsNoTracking().FirstOrDefaultAsync(a => a.Aplicacaoid == aplicacaoid);
         bool isDemo = app?.IsDemo ?? false;
 
         return new LoginResultado(user, acessoTotal, nomesGrupos, aplicacaoid, isDemo);
     }
 
-    public DemoLoginResultado? DemoLogin()
+    public async Task<DemoLoginResultado?> DemoLoginAsync()
     {
-        var user = _db.Usuarios.AsNoTracking()
-            .FirstOrDefault(u => u.Apelido == "demo" && u.Ativo == (byte)1);
+        var user = await _db.Usuarios.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Apelido == "demo" && u.Ativo == (byte)1);
         if (user == null) return null;
 
-        var aplicacaoid = _db.Relusuarioaplicacaos.AsNoTracking()
+        var aplicacaoid = await _db.Relusuarioaplicacaos.AsNoTracking()
             .Where(r => r.Usuarioid == user.Userid)
             .Select(r => r.Aplicacaoid)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
         if (aplicacaoid == null) return null;
 
         return new DemoLoginResultado(user, aplicacaoid);
     }
 
-    public void ResetarTenantDemo(string aplicacaoid)
+    public async Task ResetarTenantDemoAsync(string aplicacaoid)
     {
-        var areas = _db.Areas.Where(a => a.Aplicacaoid == aplicacaoid).ToList();
+        var areas = await _db.Areas.Where(a => a.Aplicacaoid == aplicacaoid).ToListAsync();
         foreach (var area in areas)
             area.Layout = "{\"blocos\":[]}";
 
         var areaIds   = areas.Select(a => a.Areaid).ToList();
-        var conteudos = _db.Conteudos.Where(c => areaIds.Contains(c.Areaid)).ToList();
+        var conteudos = await _db.Conteudos.Where(c => areaIds.Contains(c.Areaid)).ToListAsync();
         _db.Conteudos.RemoveRange(conteudos);
 
         var hoje    = DateOnly.FromDateTime(DateTime.UtcNow);
-        var usoHoje = _db.IaUsos.Where(u => u.Aplicacaoid == aplicacaoid && u.Data == hoje).ToList();
+        var usoHoje = await _db.IaUsos.Where(u => u.Aplicacaoid == aplicacaoid && u.Data == hoje).ToListAsync();
         _db.IaUsos.RemoveRange(usoHoje);
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

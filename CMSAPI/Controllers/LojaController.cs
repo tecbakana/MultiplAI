@@ -18,16 +18,16 @@ public class LojaController(
 {
 
     [HttpGet("resolve")]
-    public IActionResult Resolve([FromQuery] string slug)
+    public  async Task<IActionResult> Resolve([FromQuery] string slug)
     {
         if (string.IsNullOrEmpty(slug))
             return BadRequest(new { message = "slug é obrigatório." });
 
-        var app = lojaRepo.ResolveAplicacao(slug);
+        var app = await lojaRepo.ResolveAplicacaoAsync(slug);
         if (app == null || string.IsNullOrEmpty(app.Aplicacaoid))
             return NotFound(new { message = $"Site '{slug}' não encontrado." });
 
-        var token = lojaRepo.GetActiveTokenForApp(app.Aplicacaoid);
+        var token = await lojaRepo.GetActiveTokenForAppAsync(app.Aplicacaoid);
         if (token == null)
             return NotFound(new { message = "Loja não disponível." });
 
@@ -64,8 +64,8 @@ public class LojaController(
         dynamic connProps = new System.Dynamic.ExpandoObject();
         connProps.banco = "SqlServer";
         connProps.parms = 3;
-        clienteLojaRepo.MakeConnection(connProps);
-        clienteLojaRepo.CriaClienteLoja(new ClienteLoja
+        await clienteLojaRepo.MakeConnectionAsync(connProps);
+        await clienteLojaRepo.CriaClienteLojaAsync(new ClienteLoja
         {
             Aplicacaoid        = req.Aplicacaoid,
             SalematicClienteId = auth.ClienteId
@@ -150,7 +150,7 @@ public class LojaController(
 
     [Authorize(AuthenticationSchemes = "Salematic")]
     [HttpGet("meus-pedidos")]
-    public IActionResult MeusPedidos()
+    public  async Task<IActionResult> MeusPedidos()
     {
         var clienteEmail = User.FindFirst("email")?.Value
                     ?? User.FindFirst(ClaimTypes.Email)?.Value;
@@ -158,7 +158,7 @@ public class LojaController(
         if (string.IsNullOrEmpty(clienteEmail))
             return Unauthorized(new { message = "Email nao encontrado" });
 
-        var pedidos = lojaRepo.ListaPedidosPorCliente(clienteEmail)
+        var pedidos = (await lojaRepo.ListaPedidosPorClienteAsync(clienteEmail))
             .Select(p => new {
                 p.Pedidoid,
                 p.Aplicacaoid,

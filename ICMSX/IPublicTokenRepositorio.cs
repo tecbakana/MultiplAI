@@ -4,8 +4,8 @@ namespace ICMSX;
 
 public interface IPublicTokenRepositorio
 {
-    IEnumerable<PublicToken> Lista(string aplicacaoid);
-    PublicToken? BuscaPorId(Guid id);
-    void Criar(PublicToken token);
-    void Revogar(PublicToken token);
+    Task<IEnumerable<PublicToken>> ListaAsync(string aplicacaoid);
+    Task<PublicToken?> BuscaPorIdAsync(Guid id);
+    Task CriarAsync(PublicToken token);
+    Task RevogarAsync(PublicToken token);
 }

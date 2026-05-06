@@ -12,8 +12,8 @@ namespace CMSAPI.Controllers
         public RelusuarioaplicacaoController(IVinculoUsuarioAplicacaoRepositorio repo) { _repo = repo; }
 
         [HttpGet]
-        public IActionResult Get([FromQuery] string? aplicacaoid = null, [FromQuery] string? usuarioid = null) =>
-            Ok(_repo.Lista(aplicacaoid, usuarioid));
+        public async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null, [FromQuery] string? usuarioid = null) =>
+            Ok(await _repo.ListaAsync(aplicacaoid, usuarioid));
 
         public class NovoVinculoDto
         {
@@ -22,9 +22,9 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] NovoVinculoDto dto)
+        public async Task<IActionResult> Post([FromBody] NovoVinculoDto dto)
         {
-            if (_repo.ExisteVinculo(dto.Usuarioid, dto.Aplicacaoid))
+            if (await _repo.ExisteVinculoAsync(dto.Usuarioid, dto.Aplicacaoid))
                 return BadRequest(new { message = "Vínculo já existe." });
 
             var rel = new Relusuarioaplicacao
@@ -33,16 +33,16 @@ namespace CMSAPI.Controllers
                 Usuarioid   = dto.Usuarioid,
                 Aplicacaoid = dto.Aplicacaoid
             };
-            _repo.Criar(rel);
+            await _repo.CriarAsync(rel);
             return Ok(rel);
         }
 
         [HttpDelete("{relacaoid}")]
-        public IActionResult Delete(string relacaoid)
+        public async Task<IActionResult> Delete(string relacaoid)
         {
-            var rel = _repo.BuscaPorRelacaoid(relacaoid);
+            var rel = await _repo.BuscaPorRelacaoidAsync(relacaoid);
             if (rel == null) return NotFound();
-            _repo.Remover(rel);
+            await _repo.RemoverAsync(rel);
             return Ok();
         }
     }

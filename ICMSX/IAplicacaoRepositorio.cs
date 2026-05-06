@@ -4,11 +4,11 @@ namespace ICMSX;
 
 public interface IAplicacaoRepositorio
 {
-    IEnumerable<Aplicacao> Lista(string? aplicacaoid);
-    Aplicacao? BuscaPorId(string id);
-    LayoutTemplate? BuscaTemplatePadrao();
-    void Criar(Aplicacao aplicacao, Area homeArea);
-    void Atualizar(Aplicacao aplicacao);
-    void AlterarStatus(Aplicacao aplicacao, bool ativo);
-    void Remover(Aplicacao aplicacao);
+    Task<IEnumerable<Aplicacao>> ListaAsync(string? aplicacaoid);
+    Task<Aplicacao?> BuscaPorIdAsync(string id);
+    Task<LayoutTemplate?> BuscaTemplatePadraoAsync();
+    Task CriarAsync(Aplicacao aplicacao, Area homeArea);
+    Task AtualizarAsync(Aplicacao aplicacao);
+    Task AlterarStatusAsync(Aplicacao aplicacao, bool ativo);
+    Task RemoverAsync(Aplicacao aplicacao);
 }

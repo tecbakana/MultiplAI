@@ -5,18 +5,18 @@ namespace ICMSX;
 public interface IFaqRepositorio
 {
     // ── Wiki pública ─────────────────────────────────────────────────────────
-    IEnumerable<Caterium> ListaCategoriasPorApp(string aplicacaoid);
-    IEnumerable<Formulario> ListaFormulariosComCategoria(string aplicacaoid);
-    IEnumerable<Faq> ListaFaqsAtivos(IEnumerable<string> formularioIds);
+    Task<IEnumerable<Caterium>> ListaCategoriasPorAppAsync(string aplicacaoid);
+    Task<IEnumerable<Formulario>> ListaFormulariosComCategoriaAsync(string aplicacaoid);
+    Task<IEnumerable<Faq>> ListaFaqsAtivosAsync(IEnumerable<string> formularioIds);
 
     // ── CRUD ─────────────────────────────────────────────────────────────────
-    IEnumerable<Faq> ListaPorFormulario(string formularioid);
-    Faq? BuscaPorId(string id);
-    bool TemAcesso(string? formularioid, string? claimAppId);
-    void Criar(Faq item);
-    void Atualizar(Faq item);
-    void Remover(Faq item);
+    Task<IEnumerable<Faq>> ListaPorFormularioAsync(string formularioid);
+    Task<Faq?> BuscaPorIdAsync(string id);
+    Task<bool> TemAcessoAsync(string? formularioid, string? claimAppId);
+    Task CriarAsync(Faq item);
+    Task AtualizarAsync(Faq item);
+    Task RemoverAsync(Faq item);
 
     // ── Promoção de resposta inbox → FAQ ─────────────────────────────────────
-    Formularionew? BuscaRespostaInbox(int idform);
+    Task<Formularionew?> BuscaRespostaInboxAsync(int idform);
 }

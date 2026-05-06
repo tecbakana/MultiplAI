@@ -8,18 +8,18 @@ public class PageBuilderRepositorio : BaseRepositorio, IPageBuilderRepositorio
 {
     public PageBuilderRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<DictBloco> ListaBlocos() =>
-        _db.DictBlocos.AsNoTracking().OrderBy(b => b.Nome).ToList();
+    public async Task<IEnumerable<DictBloco>> ListaBlocosAsync() =>
+        await _db.DictBlocos.AsNoTracking().OrderBy(b => b.Nome).ToListAsync();
 
-    public IEnumerable<string> ListaTiposBlocos() =>
-        _db.DictBlocos.AsNoTracking().Select(b => b.Tipobloco).ToList();
+    public async Task<IEnumerable<string>> ListaTiposBlocosAsync() =>
+        await _db.DictBlocos.AsNoTracking().Select(b => b.Tipobloco).ToListAsync();
 
-    public IaConfig? BuscaConfig(string aplicacaoid) =>
-        _db.IaConfigs.AsNoTracking().FirstOrDefault(c => c.Aplicacaoid == aplicacaoid);
+    public async Task<IaConfig?> BuscaConfigAsync(string aplicacaoid) =>
+        await _db.IaConfigs.AsNoTracking().FirstOrDefaultAsync(c => c.Aplicacaoid == aplicacaoid);
 
-    public void SalvarConfig(string aplicacaoid, string? provedor, string? modelo, int? limiteDiario, string? apikey)
+    public async Task SalvarConfigAsync(string aplicacaoid, string? provedor, string? modelo, int? limiteDiario, string? apikey)
     {
-        var config = _db.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == aplicacaoid);
+        var config = await _db.IaConfigs.FirstOrDefaultAsync(c => c.Aplicacaoid == aplicacaoid);
         if (config == null)
         {
             config = new IaConfig { Aplicacaoid = aplicacaoid };
@@ -33,36 +33,36 @@ public class PageBuilderRepositorio : BaseRepositorio, IPageBuilderRepositorio
         if (!string.IsNullOrWhiteSpace(apikey))
             config.Apikey = apikey;
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverApiKey(string aplicacaoid)
+    public async Task RemoverApiKeyAsync(string aplicacaoid)
     {
-        var config = _db.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == aplicacaoid);
+        var config = await _db.IaConfigs.FirstOrDefaultAsync(c => c.Aplicacaoid == aplicacaoid);
         if (config != null)
         {
             config.Apikey = null;
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
     }
 
-    public int BuscaUsoHoje(string aplicacaoid, DateOnly data) =>
-        _db.IaUsos.AsNoTracking()
+    public async Task<int> BuscaUsoHojeAsync(string aplicacaoid, DateOnly data) =>
+        await _db.IaUsos.AsNoTracking()
             .Where(u => u.Aplicacaoid == aplicacaoid && u.Data == data)
             .Select(u => u.Contador)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
-    public IaCache? BuscaCache(string hash, DateTime agora) =>
-        _db.IaCaches.AsNoTracking()
-            .FirstOrDefault(c => c.Hash == hash && c.Datavencimento > agora);
+    public async Task<IaCache?> BuscaCacheAsync(string hash, DateTime agora) =>
+        await _db.IaCaches.AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Hash == hash && c.Datavencimento > agora);
 
-    public void RegistrarGeracao(IaCache cache, string? aplicacaoid, DateOnly? data, bool incrementarUso)
+    public async Task RegistrarGeracaoAsync(IaCache cache, string? aplicacaoid, DateOnly? data, bool incrementarUso)
     {
         _db.IaCaches.Add(cache);
 
         if (incrementarUso && aplicacaoid != null && data.HasValue)
         {
-            var uso = _db.IaUsos.FirstOrDefault(u => u.Aplicacaoid == aplicacaoid && u.Data == data.Value);
+            var uso = await _db.IaUsos.FirstOrDefaultAsync(u => u.Aplicacaoid == aplicacaoid && u.Data == data.Value);
             if (uso == null)
                 _db.IaUsos.Add(new IaUso
                 {
@@ -75,6 +75,6 @@ public class PageBuilderRepositorio : BaseRepositorio, IPageBuilderRepositorio
                 uso.Contador++;
         }
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

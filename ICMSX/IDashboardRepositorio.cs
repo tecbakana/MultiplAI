@@ -10,6 +10,6 @@ public record DashboardTotais(
 
 public interface IDashboardRepositorio
 {
-    DashboardTotais TotaisGlobais();
-    DashboardTotais TotaisPorAplicacao(string aplicacaoid);
+    Task<DashboardTotais> TotaisGlobaisAsync();
+    Task<DashboardTotais> TotaisPorAplicacaoAsync(string aplicacaoid);
 }

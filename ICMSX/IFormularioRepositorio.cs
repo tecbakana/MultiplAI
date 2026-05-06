@@ -5,21 +5,21 @@ namespace ICMSX;
 public interface IFormularioRepositorio
 {
     // ── Definições ──────────────────────────────────────────────────────────
-    IEnumerable<Formulario> ListaDefs(string? aplicacaoid, string? areaid);
-    Formulario? BuscaDefPorId(string id);
-    string? AplicacaoidDaArea(string? areaid);
-    void CriarDef(Formulario item);
-    void AtualizarDef(Formulario item);
-    void RemoverDef(Formulario item);
+    Task<IEnumerable<Formulario>> ListaDefsAsync(string? aplicacaoid, string? areaid);
+    Task<Formulario?> BuscaDefPorIdAsync(string id);
+    Task<string?> AplicacaoidDaAreaAsync(string? areaid);
+    Task CriarDefAsync(Formulario item);
+    Task AtualizarDefAsync(Formulario item);
+    Task RemoverDefAsync(Formulario item);
 
     // ── Submissões públicas ─────────────────────────────────────────────────
-    Formulario? BuscaFormularioPorId(string formularioid);
-    void Submeter(Formularionew item);
+    Task<Formulario?> BuscaFormularioPorIdAsync(string formularioid);
+    Task SubmeterAsync(Formularionew item);
 
     // ── Respostas (inbox) ────────────────────────────────────────────────────
-    IEnumerable<Formularionew> ListaRespostas(string? aplicacaoid);
-    Formularionew? BuscaRespostaPorId(int id);
-    string? AplicacaoidDaResposta(string? formularioid);
-    void AtualizarRespostaAtivo(Formularionew item);
-    void RemoverResposta(Formularionew item);
+    Task<IEnumerable<Formularionew>> ListaRespostasAsync(string? aplicacaoid);
+    Task<Formularionew?> BuscaRespostaPorIdAsync(int id);
+    Task<string?> AplicacaoidDaRespostaAsync(string? formularioid);
+    Task AtualizarRespostaAtivoAsync(Formularionew item);
+    Task RemoverRespostaAsync(Formularionew item);
 }

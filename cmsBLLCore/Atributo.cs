@@ -10,8 +10,8 @@ namespace CMSXBLL
         #region PROPRIEDADES
         public int AtributoId { get; set; }
         public Guid ProdutoId { get; set; }
-        public string Descricao { get; set; }
-        public string Nome { get; set; }
+        public string? Descricao { get; set; }
+        public string? Nome { get; set; }
 
         #endregion
 

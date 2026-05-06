@@ -20,19 +20,19 @@ namespace CMSAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("wiki/{aplicacaoid}")]
-        public IActionResult GetWiki(string aplicacaoid)
+        public  async Task<IActionResult> GetWiki(string aplicacaoid)
         {
-            var categorias = _repo.ListaCategoriasPorApp(aplicacaoid)
+            var categorias = (await _repo.ListaCategoriasPorAppAsync(aplicacaoid))
                 .Select(c => (Cateriaid: c.Cateriaid!, c.Nome, c.Cateriaidpai))
                 .ToList();
 
-            var formularios = _repo.ListaFormulariosComCategoria(aplicacaoid)
+            var formularios = (await _repo.ListaFormulariosComCategoriaAsync(aplicacaoid))
                 .Select(f => (Formularioid: f.Formularioid!, f.Nome, f.Categoriaid))
                 .ToList();
 
             var formularioIds = formularios.Select(f => f.Formularioid).ToList();
 
-            var faqs = _repo.ListaFaqsAtivos(formularioIds)
+            var faqs = (await _repo.ListaFaqsAtivosAsync(formularioIds))
                 .Select(faq => new FaqWiki(faq.Faqid, faq.Formularioid, faq.Pergunta, faq.Resposta, faq.Ordem))
                 .ToList();
 
@@ -73,12 +73,12 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpGet("{formularioid}")]
-        public IActionResult GetByFormulario(string formularioid)
+        public  async Task<IActionResult> GetByFormulario(string formularioid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            if (!acessoTotal && !_repo.TemAcesso(formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(formularioid, claimAppId)) return Forbid();
 
-            return Ok(_repo.ListaPorFormulario(formularioid));
+            return Ok(await _repo.ListaPorFormularioAsync(formularioid));
         }
 
         public class FaqDto
@@ -90,10 +90,10 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpPost("{formularioid}")]
-        public IActionResult Post(string formularioid, [FromBody] FaqDto dto)
+        public  async Task<IActionResult> Post(string formularioid, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            if (!acessoTotal && !_repo.TemAcesso(formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(formularioid, claimAppId)) return Forbid();
 
             var item = new Faq
             {
@@ -105,50 +105,50 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _repo.Criar(item);
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
 
         [Authorize]
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] FaqDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(item.Formularioid, claimAppId)) return Forbid();
 
             item.Pergunta = dto.Pergunta ?? item.Pergunta;
             item.Resposta = dto.Resposta ?? item.Resposta;
             item.Ordem    = dto.Ordem;
-            _repo.Atualizar(item);
+            await _repo.AtualizarAsync(item);
             return Ok(item);
         }
 
         [Authorize]
         [HttpPatch("{id}/ativo")]
-        public IActionResult PatchAtivo(string id, [FromBody] bool ativo)
+        public  async Task<IActionResult> PatchAtivo(string id, [FromBody] bool ativo)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(item.Formularioid, claimAppId)) return Forbid();
 
             item.Ativo = ativo;
-            _repo.Atualizar(item);
+            await _repo.AtualizarAsync(item);
             return Ok();
         }
 
         [Authorize]
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _repo.BuscaPorId(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(item.Formularioid, claimAppId)) return Forbid();
 
-            _repo.Remover(item);
+            await _repo.RemoverAsync(item);
             return Ok();
         }
 
@@ -156,12 +156,12 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpPost("promover/{idform}")]
-        public IActionResult Promover(int idform, [FromBody] FaqDto dto)
+        public  async Task<IActionResult> Promover(int idform, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var resposta = _repo.BuscaRespostaInbox(idform);
+            var resposta = await _repo.BuscaRespostaInboxAsync(idform);
             if (resposta == null) return NotFound();
-            if (!acessoTotal && !_repo.TemAcesso(resposta.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !await _repo.TemAcessoAsync(resposta.Formularioid, claimAppId)) return Forbid();
 
             var item = new Faq
             {
@@ -173,7 +173,7 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _repo.Criar(item);
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
     }

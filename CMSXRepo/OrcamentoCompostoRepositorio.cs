@@ -8,45 +8,45 @@ public class OrcamentoCompostoRepositorio : BaseRepositorio, IOrcamentoCompostoR
 {
     public OrcamentoCompostoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<OrcamentoDetalheComposto> ListarAtuais(Guid orcamentoid) =>
-        _db.OrcamentoDetalheCompostos
+    public async Task<IEnumerable<OrcamentoDetalheComposto>> ListarAtuaisAsync(Guid orcamentoid) =>
+        await _db.OrcamentoDetalheCompostos
             .Include(d => d.Selecoes)
             .Where(d => d.Orcamentoid == orcamentoid && d.Atual)
-            .ToList();
+            .ToListAsync();
 
-    public Produto? BuscarProduto(string produtoid) =>
-        _db.Produtos.FirstOrDefault(p => p.Produtoid == produtoid);
+    public async Task<Produto?> BuscarProdutoAsync(string produtoid) =>
+        await _db.Produtos.FirstOrDefaultAsync(p => p.Produtoid == produtoid);
 
-    public IEnumerable<Opcao> BuscarOpcoes(IEnumerable<string> opcaoIds)
+    public async Task<IEnumerable<Opcao>> BuscarOpcoesAsync(IEnumerable<string> opcaoIds)
     {
         var ids = opcaoIds.ToList();
-        return _db.Opcaos.Where(o => ids.Contains(o.Opcaoid)).ToList();
+        return await _db.Opcaos.Where(o => ids.Contains(o.Opcaoid)).ToListAsync();
     }
 
-    public IEnumerable<Atributo> BuscarAtributos(IEnumerable<Guid> atributoIds)
+    public async Task<IEnumerable<Atributo>> BuscarAtributosAsync(IEnumerable<Guid> atributoIds)
     {
         var ids = atributoIds.ToList();
-        return _db.Atributos.Where(a => ids.Contains(a.Atributoid)).ToList();
+        return await _db.Atributos.Where(a => ids.Contains(a.Atributoid)).ToListAsync();
     }
 
-    public void Criar(OrcamentoDetalheComposto detalhe, IEnumerable<Selecao> selecoes)
+    public async Task CriarAsync(OrcamentoDetalheComposto detalhe, IEnumerable<Selecao> selecoes)
     {
         _db.OrcamentoDetalheCompostos.Add(detalhe);
         _db.Selecaos.AddRange(selecoes);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverPorOrcamento(Guid orcamentoid)
+    public async Task RemoverPorOrcamentoAsync(Guid orcamentoid)
     {
-        var detalhes = _db.OrcamentoDetalheCompostos
+        var detalhes = await _db.OrcamentoDetalheCompostos
             .Include(d => d.Selecoes)
             .Where(d => d.Orcamentoid == orcamentoid)
-            .ToList();
+            .ToListAsync();
 
         foreach (var d in detalhes)
             _db.Selecaos.RemoveRange(d.Selecoes);
 
         _db.OrcamentoDetalheCompostos.RemoveRange(detalhes);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

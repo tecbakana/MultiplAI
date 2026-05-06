@@ -34,18 +34,18 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("signup")]
-        public IActionResult Signup([FromBody] SignupRequest req)
+        public async Task<IActionResult> Signup([FromBody] SignupRequest req)
         {
-            if (!_repo.ApelidoDisponivel(req.Apelido))
+            if (!await _repo.ApelidoDisponivelAsync(req.Apelido))
                 return BadRequest(new { message = "Login já está em uso." });
 
-            if (!_repo.UrlDisponivel(req.AppUrl))
+            if (!await _repo.UrlDisponivelAsync(req.AppUrl))
                 return BadRequest(new { message = "URL da aplicação já está em uso." });
 
             var userId = Guid.NewGuid().ToString();
             var appId  = Guid.NewGuid().ToString();
 
-            _repo.CriarConta(
+            await _repo.CriarContaAsync(
                 new Usuario
                 {
                     Userid       = userId,
@@ -78,9 +78,9 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest req)
+        public  async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
-            var resultado = _repo.Login(req.Apelido, req.Senha);
+            var resultado = await _repo.LoginAsync(req.Apelido, req.Senha);
             if (resultado == null)
                 return Unauthorized(new { message = "Login ou senha inválidos" });
 
@@ -110,13 +110,13 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("demo-login")]
-        public IActionResult DemoLogin()
+        public  async Task<IActionResult> DemoLogin()
         {
-            var resultado = _repo.DemoLogin();
+            var resultado = await _repo.DemoLoginAsync();
             if (resultado == null)
                 return NotFound(new { message = "Tenant demo não configurado. Execute cmsxDB.tenant_demo.sql." });
 
-            _repo.ResetarTenantDemo(resultado.Aplicacaoid);
+            await _repo.ResetarTenantDemoAsync(resultado.Aplicacaoid);
 
             var claims = new[]
             {

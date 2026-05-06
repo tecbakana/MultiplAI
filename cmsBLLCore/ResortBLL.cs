@@ -5,23 +5,23 @@ using System.Text;
 
 namespace CMSXBLL
 {
-    public class ResortBLL
+    public class ResortBll
     {
         #region PROPRIEDADES
         public Guid ResortId { get; set; }
         public int idMkt { get; set; }
         public int idTabrot { get; set; }
-        public string Descricao { get; set; }
-        public string Titulo { get; set; }
-        public string Texto { get; set; }
-        public string Acomodacoes { get; set; }
-        public string Regime { get; set; }
+        public string? Descricao { get; set; }
+        public string? Titulo { get; set; }
+        public string? Texto { get; set; }
+        public string? Acomodacoes { get; set; }
+        public string? Regime { get; set; }
         #endregion
 
         #region METODOS
-        public static ResortBLL ObterNovoResort()
+        public static ResortBll ObterNovoResort()
         {
-            return new ResortBLL();
+            return new ResortBll();
         }
         #endregion
     }

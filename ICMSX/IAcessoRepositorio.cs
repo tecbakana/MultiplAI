@@ -15,11 +15,11 @@ public record DemoLoginResultado(
 
 public interface IAcessoRepositorio
 {
-    bool ApelidoDisponivel(string apelido);
-    bool UrlDisponivel(string url);
-    void CriarConta(Usuario usuario, Aplicacao aplicacao, Relusuarioaplicacao relacao);
+    Task<bool> ApelidoDisponivelAsync(string apelido);
+    Task<bool> UrlDisponivelAsync(string url);
+    Task CriarContaAsync(Usuario usuario, Aplicacao aplicacao, Relusuarioaplicacao relacao);
 
-    LoginResultado? Login(string apelido, string senha);
-    DemoLoginResultado? DemoLogin();
-    void ResetarTenantDemo(string aplicacaoid);
+    Task<LoginResultado?> LoginAsync(string apelido, string senha);
+    Task<DemoLoginResultado?> DemoLoginAsync();
+    Task ResetarTenantDemoAsync(string aplicacaoid);
 }

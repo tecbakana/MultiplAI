@@ -45,86 +45,88 @@ public abstract class AplicacaoRepositorioTestsBase
     };
 
     [Fact]
-    public void Lista_RetornaVazia_QuandoTenantNaoExiste()
+    public async Task Lista_RetornaVazia_QuandoTenantNaoExiste()
     {
         using var ctx = _ctxFactory();
-        Repo(ctx).Lista(Guid.NewGuid().ToString("N")).Should().BeEmpty();
+        (await Repo(ctx).ListaAsync(Guid.NewGuid().ToString("N")))
+        .Should().BeEmpty();
+
     }
 
     [Fact]
-    public void Criar_E_BuscaPorId_RetornaAplicacao()
+    public async Task Criar_E_BuscaPorId_RetornaAplicacao()
     {
         using var ctx = _ctxFactory();
         var app       = NovaAplicacao();
-        Repo(ctx).Criar(app, NovaAreaHome(app.Aplicacaoid!));
+        await Repo(ctx).CriarAsync(app, NovaAreaHome(app.Aplicacaoid!));
 
         using var ctx2 = _ctxFactory();
-        Repo(ctx2).BuscaPorId(app.Aplicacaoid!)
+        (await Repo(ctx2).BuscaPorIdAsync(app.Aplicacaoid!))
             .Should().NotBeNull()
             .And.Match<Aplicacao>(a => a.Aplicacaoid == app.Aplicacaoid);
     }
 
     [Fact]
-    public void Lista_FiltraPorTenant()
+    public async Task Lista_FiltraPorTenant()
     {
         using var ctx = _ctxFactory();
         var app1      = NovaAplicacao();
         var app2      = NovaAplicacao();
-        Repo(ctx).Criar(app1, NovaAreaHome(app1.Aplicacaoid!));
-        Repo(ctx).Criar(app2, NovaAreaHome(app2.Aplicacaoid!));
+        await Repo(ctx).CriarAsync(app1, NovaAreaHome(app1.Aplicacaoid!));
+        await Repo(ctx).CriarAsync(app2, NovaAreaHome(app2.Aplicacaoid!));
 
         using var ctx2 = _ctxFactory();
-        var resultado  = Repo(ctx2).Lista(app1.Aplicacaoid);
-
+        var resultado  = await Repo(ctx2).ListaAsync(app1.Aplicacaoid);
         resultado.Should().ContainSingle(a => a.Aplicacaoid == app1.Aplicacaoid);
         resultado.Should().NotContain(a => a.Aplicacaoid == app2.Aplicacaoid);
     }
 
     [Fact]
-    public void Atualizar_PersisteMudancas()
+    public async Task Atualizar_PersisteMudancas()
     {
         using var ctx = _ctxFactory();
         var app       = NovaAplicacao();
-        Repo(ctx).Criar(app, NovaAreaHome(app.Aplicacaoid!));
+        await Repo(ctx).CriarAsync(app, NovaAreaHome(app.Aplicacaoid!));
 
         using var ctx2 = _ctxFactory();
-        var salvo      = Repo(ctx2).BuscaPorId(app.Aplicacaoid!)!;
-        salvo.Nome     = "Nome Alterado";
-        Repo(ctx2).Atualizar(salvo);
+        var salvo      = await Repo(ctx2).BuscaPorIdAsync(app.Aplicacaoid!)!;
+       
+        if(salvo != null)
+            salvo.Nome     = "Nome Alterado";
+
+        await Repo(ctx2).AtualizarAsync(salvo);
 
         using var ctx3 = _ctxFactory();
-        Repo(ctx3).BuscaPorId(app.Aplicacaoid!)!.Nome.Should().Be("Nome Alterado");
+        (await Repo(ctx3).BuscaPorIdAsync(app.Aplicacaoid!))!.Nome.Should().Be("Nome Alterado");
     }
 
     [Fact]
-    public void AlterarStatus_DesativaAplicacao()
+    public async Task AlterarStatus_DesativaAplicacao()
     {
         using var ctx = _ctxFactory();
         var app       = NovaAplicacao();
-        Repo(ctx).Criar(app, NovaAreaHome(app.Aplicacaoid!));
-
+        await Repo(ctx).CriarAsync(app, NovaAreaHome(app.Aplicacaoid!));
         using var ctx2 = _ctxFactory();
-        var salvo      = Repo(ctx2).BuscaPorId(app.Aplicacaoid!)!;
-        Repo(ctx2).AlterarStatus(salvo, false);
+        var salvo      = (await Repo(ctx2).ListaAsync(app.Aplicacaoid!)!).First();
+        await Repo(ctx2).AlterarStatusAsync(salvo, false);
 
         using var ctx3  = _ctxFactory();
-        var resultado   = Repo(ctx3).BuscaPorId(app.Aplicacaoid!)!;
+        var resultado   = await Repo(ctx3).BuscaPorIdAsync(app.Aplicacaoid!)!;
         resultado.Isactive.Should().Be(false);
         resultado.Datafinal.Should().NotBeNull();
     }
 
     [Fact]
-    public void Remover_ExcluiAplicacao()
+    public async Task Remover_ExcluiAplicacao()
     {
         using var ctx = _ctxFactory();
         var app       = NovaAplicacao();
-        Repo(ctx).Criar(app, NovaAreaHome(app.Aplicacaoid!));
-
+        await Repo(ctx).CriarAsync(app, NovaAreaHome(app.Aplicacaoid!));    
         using var ctx2 = _ctxFactory();
-        var salvo      = Repo(ctx2).BuscaPorId(app.Aplicacaoid!)!;
-        Repo(ctx2).Remover(salvo);
+        var salvo      = await Repo(ctx2).BuscaPorIdAsync(app.Aplicacaoid!)!;
+        await Repo(ctx2).RemoverAsync(salvo);
 
         using var ctx3 = _ctxFactory();
-        Repo(ctx3).BuscaPorId(app.Aplicacaoid!).Should().BeNull();
+        (await Repo(ctx3).BuscaPorIdAsync(app.Aplicacaoid!)).Should().BeNull();
     }
 }

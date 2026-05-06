@@ -8,29 +8,29 @@ public class CategoriaRepositorio : BaseRepositorio, ICategoriaRepositorio
 {
     public CategoriaRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Caterium> Lista(string? aplicacaoid) =>
+    public async Task<IEnumerable<Caterium>> ListaAsync(string? aplicacaoid) =>
         string.IsNullOrEmpty(aplicacaoid)
-            ? _db.Cateria.AsNoTracking().OrderBy(c => c.Nome).ToList()
-            : _db.Cateria.AsNoTracking().Where(c => c.Aplicacaoid == aplicacaoid).OrderBy(c => c.Nome).ToList();
+            ? await _db.Cateria.AsNoTracking().OrderBy(c => c.Nome).ToListAsync()
+            : await _db.Cateria.AsNoTracking().Where(c => c.Aplicacaoid == aplicacaoid).OrderBy(c => c.Nome).ToListAsync();
 
-    public Caterium? BuscaPorId(string id) =>
-        _db.Cateria.AsNoTracking().FirstOrDefault(c => c.Cateriaid == id);
+    public async Task<Caterium?> BuscaPorIdAsync(string id) =>
+        await _db.Cateria.AsNoTracking().FirstOrDefaultAsync(c => c.Cateriaid == id);
 
-    public void Criar(Caterium item)
+    public async Task CriarAsync(Caterium item)
     {
         _db.Cateria.Add(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Caterium item)
+    public async Task AtualizarAsync(Caterium item)
     {
         _db.Cateria.Update(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Caterium item)
+    public async Task RemoverAsync(Caterium item)
     {
         _db.Cateria.Remove(item);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

@@ -4,9 +4,9 @@ namespace ICMSX;
 
 public interface ICategoriaRepositorio
 {
-    IEnumerable<Caterium> Lista(string? aplicacaoid);
-    Caterium? BuscaPorId(string id);
-    void Criar(Caterium item);
-    void Atualizar(Caterium item);
-    void Remover(Caterium item);
+    Task<IEnumerable<Caterium>> ListaAsync(string? aplicacaoid);
+    Task<Caterium?> BuscaPorIdAsync(string id);
+    Task CriarAsync(Caterium item);
+    Task AtualizarAsync(Caterium item);
+    Task RemoverAsync(Caterium item);
 }

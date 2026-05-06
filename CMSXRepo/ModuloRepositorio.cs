@@ -8,20 +8,20 @@ public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
 {
     public ModuloRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Modulo> ListaTodos() =>
-        _db.Modulos.AsNoTracking().OrderBy(m => m.Posicao).ToList();
+    public async Task<IEnumerable<Modulo>> ListaTodosAsync() =>
+        await _db.Modulos.AsNoTracking().OrderBy(m => m.Posicao).ToListAsync();
 
-    public IEnumerable<Modulo> ListaPorAplicacao(string aplicacaoid) =>
-        _db.Relmoduloaplicacaos.AsNoTracking()
+    public async Task<IEnumerable<Modulo>> ListaPorAplicacaoAsync(string aplicacaoid) =>
+        await _db.Relmoduloaplicacaos.AsNoTracking()
             .Where(r => r.Aplicacaoid == aplicacaoid)
             .Join(_db.Modulos.AsNoTracking(), r => r.Moduloid, m => m.Moduloid, (r, m) => m)
             .OrderBy(m => m.Posicao)
-            .ToList();
+            .ToListAsync();
 
-    public IEnumerable<Modulo> ListaPorUsuario(string usuarioid) =>
-        _db.Relmodulousuarios.AsNoTracking()
+    public async Task<IEnumerable<Modulo>> ListaPorUsuarioAsync(string usuarioid) =>
+        await _db.Relmodulousuarios.AsNoTracking()
             .Where(r => r.Usuarioid == usuarioid)
             .Join(_db.Modulos.AsNoTracking(), r => r.Moduloid, m => m.Moduloid, (r, m) => m)
             .OrderBy(m => m.Posicao)
-            .ToList();
+            .ToListAsync();
 }

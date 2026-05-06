@@ -8,41 +8,41 @@ public class ProdutosRepositorio : BaseRepositorio, IProdutosRepositorio
 {
     public ProdutosRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Produto> Lista(string? aplicacaoid)
+    public async Task<IEnumerable<Produto>> ListaAsync(string? aplicacaoid)
     {
         var q = _db.Produtos.AsNoTracking().AsQueryable();
         if (!string.IsNullOrEmpty(aplicacaoid))
             q = q.Where(p => p.Aplicacaoid == aplicacaoid);
-        return q.OrderBy(p => p.Nome).ToList();
+        return await q.OrderBy(p => p.Nome).ToListAsync();
     }
 
-    public Produto? BuscaPorId(string id) =>
-        _db.Produtos.AsNoTracking().FirstOrDefault(p => p.Produtoid == id);
+    public async Task<Produto?> BuscaPorIdAsync(string id) =>
+        await _db.Produtos.AsNoTracking().FirstOrDefaultAsync(p => p.Produtoid == id);
 
-    public void Criar(Produto produto)
+    public async Task CriarAsync(Produto produto)
     {
         _db.Produtos.Add(produto);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Produto produto)
+    public async Task AtualizarAsync(Produto produto)
     {
         _db.Produtos.Update(produto);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Produto produto)
+    public async Task RemoverAsync(Produto produto)
     {
         _db.Produtos.Remove(produto);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public ArvoreAtributos BuscaArvoreComOpcoes(string produtoid)
+    public async Task<ArvoreAtributos> BuscaArvoreComOpcoesAsync(string produtoid)
     {
-        var todos = _db.Atributos
+        var todos = await _db.Atributos
             .AsNoTracking()
             .Where(a => a.Produtoid == produtoid)
-            .ToList();
+            .ToListAsync();
 
         var idsConhecidos = todos.Select(a => a.Atributoid).ToHashSet();
         bool achouMais;
@@ -50,10 +50,10 @@ public class ProdutosRepositorio : BaseRepositorio, IProdutosRepositorio
         {
             achouMais = false;
             var idsLista = idsConhecidos.ToList();
-            var novos = _db.Atributos
+            var novos = (await _db.Atributos
                 .AsNoTracking()
                 .Where(a => a.ParentAtributoId.HasValue && idsLista.Contains(a.ParentAtributoId.Value))
-                .ToList()
+                .ToListAsync())
                 .Where(a => !idsConhecidos.Contains(a.Atributoid))
                 .ToList();
             if (novos.Count > 0)
@@ -65,30 +65,30 @@ public class ProdutosRepositorio : BaseRepositorio, IProdutosRepositorio
         } while (achouMais);
 
         var idsParaOpcoes = idsConhecidos.ToList();
-        var opcoes = _db.Opcaos
+        var opcoes = await _db.Opcaos
             .AsNoTracking()
             .Where(o => idsParaOpcoes.Contains(o.Atributoid))
-            .ToList();
+            .ToListAsync();
 
         return new ArvoreAtributos(todos, opcoes);
     }
 
-    public Atributo? BuscaAtributo(Guid id) =>
-        _db.Atributos.AsNoTracking().FirstOrDefault(a => a.Atributoid == id);
+    public async Task<Atributo?> BuscaAtributoAsync(Guid id) =>
+        await _db.Atributos.AsNoTracking().FirstOrDefaultAsync(a => a.Atributoid == id);
 
-    public void CriarAtributo(Atributo atributo)
+    public async Task CriarAtributoAsync(Atributo atributo)
     {
         _db.Atributos.Add(atributo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void AtualizarAtributo(Atributo atributo)
+    public async Task AtualizarAtributoAsync(Atributo atributo)
     {
         _db.Atributos.Update(atributo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverAtributoComDescendentes(Guid id)
+    public async Task RemoverAtributoComDescendentesAsync(Guid id)
     {
         var todosIds = new List<Guid> { id };
         var queue = new Queue<Guid>();
@@ -96,56 +96,56 @@ public class ProdutosRepositorio : BaseRepositorio, IProdutosRepositorio
         while (queue.Count > 0)
         {
             var pid = queue.Dequeue();
-            var filhos = _db.Atributos
+            var filhos = await _db.Atributos
                 .Where(x => x.ParentAtributoId == pid)
                 .Select(x => x.Atributoid)
-                .ToList();
+                .ToListAsync();
             foreach (var fid in filhos) { todosIds.Add(fid); queue.Enqueue(fid); }
         }
 
-        _db.Opcaos.RemoveRange(_db.Opcaos.Where(o => todosIds.Contains(o.Atributoid)).ToList());
-        _db.Atributos.RemoveRange(_db.Atributos.Where(x => todosIds.Contains(x.Atributoid)).ToList());
-        _db.SaveChanges();
+        _db.Opcaos.RemoveRange(await _db.Opcaos.Where(o => todosIds.Contains(o.Atributoid)).ToListAsync());
+        _db.Atributos.RemoveRange(await _db.Atributos.Where(x => todosIds.Contains(x.Atributoid)).ToListAsync());
+        await _db.SaveChangesAsync();
     }
 
-    public Opcao? BuscaOpcao(string opcaoid, Guid atributoid) =>
-        _db.Opcaos.AsNoTracking().FirstOrDefault(x => x.Opcaoid == opcaoid && x.Atributoid == atributoid);
+    public async Task<Opcao?> BuscaOpcaoAsync(string opcaoid, Guid atributoid) =>
+        await _db.Opcaos.AsNoTracking().FirstOrDefaultAsync(x => x.Opcaoid == opcaoid && x.Atributoid == atributoid);
 
-    public void CriarOpcao(Opcao opcao)
+    public async Task CriarOpcaoAsync(Opcao opcao)
     {
         _db.Opcaos.Add(opcao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void AtualizarOpcao(Opcao opcao)
+    public async Task AtualizarOpcaoAsync(Opcao opcao)
     {
         _db.Opcaos.Update(opcao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverOpcao(Opcao opcao)
+    public async Task RemoverOpcaoAsync(Opcao opcao)
     {
         _db.Opcaos.Remove(opcao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public IEnumerable<Imagem> ListaImagensPorProduto(string produtoid) =>
-        _db.Imagems.AsNoTracking()
+    public async Task<IEnumerable<Imagem>> ListaImagensPorProdutoAsync(string produtoid) =>
+        await _db.Imagems.AsNoTracking()
             .Where(i => i.Parentid == produtoid && i.Tipoid == "produto")
-            .ToList();
+            .ToListAsync();
 
-    public Imagem? BuscaImagem(string imagemid, string produtoid) =>
-        _db.Imagems.AsNoTracking().FirstOrDefault(i => i.Imagemid == imagemid && i.Parentid == produtoid);
+    public async Task<Imagem?> BuscaImagemAsync(string imagemid, string produtoid) =>
+        await _db.Imagems.AsNoTracking().FirstOrDefaultAsync(i => i.Imagemid == imagemid && i.Parentid == produtoid);
 
-    public void CriarImagem(Imagem imagem)
+    public async Task CriarImagemAsync(Imagem imagem)
     {
         _db.Imagems.Add(imagem);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void RemoverImagem(Imagem imagem)
+    public async Task RemoverImagemAsync(Imagem imagem)
     {
         _db.Imagems.Remove(imagem);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

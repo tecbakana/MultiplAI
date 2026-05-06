@@ -8,22 +8,20 @@ public class VinculoModuloUsuarioRepositorio : BaseRepositorio, IVinculoModuloUs
 {
     public VinculoModuloUsuarioRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<object> Lista(string? aplicacaoid, string? usuarioid)
+    public async Task<IEnumerable<object>> ListaAsync(string? aplicacaoid, string? usuarioid)
     {
-        IEnumerable<string?> usuarioIds = !string.IsNullOrEmpty(aplicacaoid)
-            ? _db.Relusuarioaplicacaos.AsNoTracking()
+        List<string?> usuarioIds = !string.IsNullOrEmpty(aplicacaoid)
+            ? await _db.Relusuarioaplicacaos.AsNoTracking()
                 .Where(r => r.Aplicacaoid == aplicacaoid)
                 .Select(r => r.Usuarioid)
-                .ToList()
-            : _db.Usuarios.AsNoTracking().Select(u => u.Userid).ToList();
+                .ToListAsync()
+            : await _db.Usuarios.AsNoTracking().Select(u => u.Userid).ToListAsync();
 
         if (!string.IsNullOrEmpty(usuarioid))
-            usuarioIds = usuarioIds.Where(id => id == usuarioid);
+            usuarioIds = usuarioIds.Where(id => id == usuarioid).ToList();
 
-        var usuarioIdList = usuarioIds.ToList();
-
-        return _db.Relmodulousuarios.AsNoTracking()
-            .Where(r => usuarioIdList.Contains(r.Usuarioid))
+        return await _db.Relmodulousuarios.AsNoTracking()
+            .Where(r => usuarioIds.Contains(r.Usuarioid))
             .Join(_db.Usuarios.AsNoTracking(), r => r.Usuarioid, u => u.Userid,
                 (r, u) => new { r.Relacaoid, r.Moduloid, r.Usuarioid, nomeUsuario = u.Nome + " " + u.Sobrenome, apelido = u.Apelido })
             .Join(_db.Modulos.AsNoTracking(), x => x.Moduloid, m => m.Moduloid,
@@ -33,24 +31,24 @@ public class VinculoModuloUsuarioRepositorio : BaseRepositorio, IVinculoModuloUs
                     x.nomeUsuario, x.apelido,
                     nomeModulo = m.Nome, urlModulo = m.Url
                 })
-            .ToList();
+            .ToListAsync();
     }
 
-    public bool ExisteVinculo(string usuarioid, string moduloid) =>
-        _db.Relmodulousuarios.Any(r => r.Usuarioid == usuarioid && r.Moduloid == moduloid);
+    public async Task<bool> ExisteVinculoAsync(string usuarioid, string moduloid) =>
+        await _db.Relmodulousuarios.AnyAsync(r => r.Usuarioid == usuarioid && r.Moduloid == moduloid);
 
-    public void Criar(Relmodulousuario rel)
+    public async Task CriarAsync(Relmodulousuario rel)
     {
         _db.Relmodulousuarios.Add(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public Relmodulousuario? BuscaPorRelacaoid(string relacaoid) =>
-        _db.Relmodulousuarios.FirstOrDefault(r => r.Relacaoid == relacaoid);
+    public async Task<Relmodulousuario?> BuscaPorRelacaoidAsync(string relacaoid) =>
+        await _db.Relmodulousuarios.FirstOrDefaultAsync(r => r.Relacaoid == relacaoid);
 
-    public void Remover(Relmodulousuario rel)
+    public async Task RemoverAsync(Relmodulousuario rel)
     {
         _db.Relmodulousuarios.Remove(rel);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

@@ -54,21 +54,21 @@ namespace CMSAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("blocos")]
-        public IActionResult GetBlocos() =>
-            Ok(_pbRepo.ListaBlocos().OrderBy(b => b.Nome).ToArray());
+        public  async Task<IActionResult> GetBlocos() =>
+            Ok((await _pbRepo.ListaBlocosAsync()).OrderBy(b => b.Nome).ToArray());
 
         // ── Resumo de layouts salvos ─────────────────────────────────────────
 
         [Authorize]
         [HttpGet("layouts-resumo")]
-        public IActionResult GetLayoutsResumo([FromQuery] string? aplicacaoid = null)
+        public  async Task<IActionResult> GetLayoutsResumo([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
             var resolvedAppId = acessoTotal
                 ? (string.IsNullOrEmpty(aplicacaoid) ? null : aplicacaoid)
                 : claimAppId;
 
-            var areas = _areasRepo.Lista(resolvedAppId)
+            var areas = (await _areasRepo.ListaAsync(resolvedAppId))
                 .Where(a => a.Layout != null && a.Layout != "{\"blocos\":[]}")
                 .Select(a => {
                     int qtd = 0;
@@ -82,10 +82,10 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpGet("layout/{areaid}")]
-        public IActionResult GetLayout(string areaid)
+        public  async Task<IActionResult> GetLayout(string areaid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _areasRepo.BuscaPorId(areaid);
+            var area = await _areasRepo.BuscaPorIdAsync(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
@@ -94,15 +94,15 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpPut("layout/{areaid}")]
-        public IActionResult SaveLayout(string areaid, [FromBody] JsonElement payload)
+        public  async Task<IActionResult> SaveLayout(string areaid, [FromBody] JsonElement payload)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _areasRepo.BuscaPorId(areaid);
+            var area = await _areasRepo.BuscaPorIdAsync(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
             area.Layout = payload.GetRawText();
-            _areasRepo.Atualizar(area);
+            await _areasRepo.AtualizarAsync(area);
             return Ok();
         }
 
@@ -110,24 +110,24 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpGet("contexto-ia")]
-        public IActionResult GetContextoIA()
+        public  async Task<IActionResult> GetContextoIA()
         {
             var (acessoTotal, claimAppId) = UserContext();
             var resolvedAppId = acessoTotal ? null : claimAppId;
 
-            var blocos = _pbRepo.ListaBlocos()
+            var blocos = (await _pbRepo.ListaBlocosAsync())
                 .Select(b => new { b.Tipobloco, b.Nome, b.Descricao, b.SchemaConfig })
                 .ToList();
 
-            var areas = _areasRepo.Lista(resolvedAppId)
+            var areas = (await _areasRepo.ListaAsync(resolvedAppId))
                 .Select(a => new { a.Areaid, a.Nome })
                 .ToList();
 
-            var formularios = _formRepo.ListaDefs(resolvedAppId, null)
+            var formularios = (await _formRepo.ListaDefsAsync(resolvedAppId, null))
                 .Select(f => new { f.Formularioid, f.Nome })
                 .ToList();
 
-            var categorias = _catRepo.Lista(resolvedAppId)
+            var categorias = (await _catRepo.ListaAsync(resolvedAppId))
                 .Select(c => new { c.Cateriaid, c.Nome, c.Cateriaidpai })
                 .ToList();
 
@@ -138,15 +138,15 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpGet("ia-config")]
-        public IActionResult GetIaConfig()
+        public  async Task<IActionResult> GetIaConfig()
         {
             var (_, claimAppId) = UserContext();
             if (claimAppId == null) return BadRequest();
 
-            var config = _pbRepo.BuscaConfig(claimAppId);
+            var config = await _pbRepo.BuscaConfigAsync(claimAppId);
             var limitePadrao = _config.GetValue<int>("AgentIA:LimiteDiarioPadrao", 20);
             var hoje = DateOnly.FromDateTime(DateTime.Today);
-            var usoHoje = _pbRepo.BuscaUsoHoje(claimAppId, hoje);
+            var usoHoje = await _pbRepo.BuscaUsoHojeAsync(claimAppId, hoje);
 
             return Ok(new
             {
@@ -168,19 +168,19 @@ namespace CMSAPI.Controllers
 
         [Authorize]
         [HttpPut("ia-config")]
-        public IActionResult SaveIaConfig([FromBody] IaConfigDto dto)
+        public  async Task<IActionResult> SaveIaConfig([FromBody] IaConfigDto dto)
         {
             var (_, claimAppId) = UserContext();
             if (claimAppId == null) return BadRequest();
 
-            _pbRepo.SalvarConfig(claimAppId, dto.Provedor, dto.Modelo, dto.LimiteDiario, dto.Apikey);
+            await _pbRepo.SalvarConfigAsync(claimAppId, dto.Provedor, dto.Modelo, dto.LimiteDiario, dto.Apikey);
             return Ok();
         }
 
         [Authorize]
         [HttpGet("unsplash-status")]
-        public IActionResult GetUnsplashStatus() =>
-            Ok(new { ativo = !string.IsNullOrWhiteSpace(_config["Unsplash:AccessKey"]) });
+        public  async Task<IActionResult> GetUnsplashStatus() =>
+            await Task.FromResult(Ok(new { ativo = !string.IsNullOrWhiteSpace(_config["Unsplash:AccessKey"]) }));
 
         // ── Extração de paleta de cores via IA ──────────────────────────────
 
@@ -196,7 +196,7 @@ namespace CMSAPI.Controllers
         public async Task<IActionResult> ExtrairPaleta([FromBody] ExtrairPaletaDto dto)
         {
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
+            var iaConfig = claimAppId != null ? await _pbRepo.BuscaConfigAsync(claimAppId) : null;
 
             var prompt = @"Analise esta imagem e extraia uma paleta de 5 cores que representem bem o estilo visual.
 Retorne APENAS um JSON válido, sem texto adicional:
@@ -233,10 +233,10 @@ Regras:
 
         [Authorize]
         [HttpDelete("ia-config/apikey")]
-        public IActionResult RemoverApiKey()
+        public  async Task<IActionResult> RemoverApiKey()
         {
             var (_, claimAppId) = UserContext();
-            if (claimAppId != null) _pbRepo.RemoverApiKey(claimAppId);
+            if (claimAppId != null) await _pbRepo.RemoverApiKeyAsync(claimAppId);
             return Ok();
         }
 
@@ -249,7 +249,7 @@ Regras:
             var (acessoTotal, claimAppId) = UserContext();
             var resolvedAppId = acessoTotal ? null : claimAppId;
 
-            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
+            var iaConfig = claimAppId != null ? await _pbRepo.BuscaConfigAsync(claimAppId) : null;
             var temChavePropria = !string.IsNullOrWhiteSpace(iaConfig?.Apikey);
 
             if (!acessoTotal && !temChavePropria && claimAppId != null)
@@ -257,12 +257,12 @@ Regras:
                 var limitePadrao = _config.GetValue<int>("AgentIA:LimiteDiarioPadrao", 20);
                 var limite = iaConfig?.LimiteDiario ?? limitePadrao;
                 var hoje = DateOnly.FromDateTime(DateTime.Today);
-                var usoHoje = _pbRepo.BuscaUsoHoje(claimAppId, hoje);
+                var usoHoje = await _pbRepo.BuscaUsoHojeAsync(claimAppId, hoje);
                 if (usoHoje >= limite)
                     return StatusCode(429, $"Limite diário de {limite} gerações atingido. Configure sua própria chave de IA nas configurações.");
             }
 
-            var blocos = _pbRepo.ListaBlocos()
+            var blocos = (await _pbRepo.ListaBlocosAsync())
                 .Select(b => new {
                     b.Tipobloco, b.Nome, b.Descricao,
                     campos = b.SchemaConfig != null
@@ -271,19 +271,19 @@ Regras:
                 })
                 .ToList();
 
-            var areas = _areasRepo.Lista(resolvedAppId)
+            var areas = (await _areasRepo.ListaAsync(resolvedAppId))
                 .Select(a => new { a.Areaid, a.Nome })
                 .ToList();
 
-            var formularios = _formRepo.ListaDefs(resolvedAppId, null)
+            var formularios = (await _formRepo.ListaDefsAsync(resolvedAppId, null))
                 .Select(f => new { f.Formularioid, f.Nome })
                 .ToList();
 
-            var categorias = _catRepo.Lista(resolvedAppId)
+            var categorias = (await _catRepo.ListaAsync(resolvedAppId))
                 .Select(c => new { c.Cateriaid, c.Nome })
                 .ToList();
 
-            var tenantApp = claimAppId != null ? _aplicacaoRepo.BuscaPorId(claimAppId) : null;
+            var tenantApp = claimAppId != null ? await _aplicacaoRepo.BuscaPorIdAsync(claimAppId) : null;
             var tenantPerfil = new
             {
                 nome_empresa  = tenantApp?.Nome ?? "aguardando informação",
@@ -297,7 +297,7 @@ Regras:
             };
 
             var areaNome = dto.Areaid != null
-                ? _areasRepo.BuscaPorId(dto.Areaid)?.Nome
+                ? (await _areasRepo.BuscaPorIdAsync(dto.Areaid))?.Nome
                 : null;
             var contextoArea = areaNome != null ? $" para a área \"{areaNome}\"" : "";
 
@@ -372,7 +372,7 @@ Regras importantes:
 
             var provedorEfetivo = dto.Provedor ?? iaConfig?.Provedor;
             var hashKey = ComputeHash($"{provedorEfetivo}:{prompt}");
-            var cached = _pbRepo.BuscaCache(hashKey, DateTime.UtcNow);
+            var cached = await _pbRepo.BuscaCacheAsync(hashKey, DateTime.UtcNow);
             if (cached != null)
                 return Ok(new { layout = cached.Resultado, provedor = "cache" });
 
@@ -395,7 +395,7 @@ Regras importantes:
                     Datainclusao   = DateTime.UtcNow,
                     Datavencimento = DateTime.UtcNow.AddHours(ttl)
                 };
-                _pbRepo.RegistrarGeracao(novoCache, claimAppId, hoje, incrementarUso);
+                await _pbRepo.RegistrarGeracaoAsync(novoCache, claimAppId, hoje, incrementarUso);
 
                 return Ok(new { layout = layoutJson, provedor = agente.Provedor });
             }
@@ -532,10 +532,10 @@ Regras importantes:
 
         [Authorize]
         [HttpPut("area-version/{areaid}")]
-        public IActionResult AtualizarAreaVersion(string areaid, [FromBody] AreaVersionDto dto)
+        public  async Task<IActionResult> AtualizarAreaVersion(string areaid, [FromBody] AreaVersionDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _areasRepo.BuscaPorId(areaid);
+            var area = await _areasRepo.BuscaPorIdAsync(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
@@ -543,7 +543,7 @@ Regras importantes:
                 return BadRequest("Versão inválida. Use 'v1' ou 'v2'.");
 
             area.PageBuilderVersion = dto.Version;
-            _areasRepo.Atualizar(area);
+            await _areasRepo.AtualizarAsync(area);
             return Ok();
         }
 
@@ -564,9 +564,9 @@ Regras importantes:
                 return BadRequest("Arquivo de imagem obrigatório.");
 
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
+            var iaConfig = claimAppId != null ? await _pbRepo.BuscaConfigAsync(claimAppId) : null;
 
-            var tiposDisponiveis = _pbRepo.ListaTiposBlocos().ToHashSet();
+            var tiposDisponiveis = (await _pbRepo.ListaTiposBlocosAsync()).ToHashSet();
             var tiposJson = string.Join(", ", tiposDisponiveis.OrderBy(t => t));
 
             var prompt = $@"Analise este rascunho/wireframe de página web e identifique os blocos de conteúdo e suas posições em um grid de 12 colunas.
@@ -663,7 +663,7 @@ Retorne APENAS um JSON válido, sem texto adicional:
                 return BadRequest("Arquivo de wireframe obrigatório.");
 
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
+            var iaConfig = claimAppId != null ? await _pbRepo.BuscaConfigAsync(claimAppId) : null;
 
             string? urlFundo = null;
             if (dto.ImagemFundo != null && dto.ImagemFundo.Length > 0)
@@ -690,7 +690,7 @@ Retorne APENAS um JSON válido, sem texto adicional:
                 }
             }
 
-            var tiposDisponiveis = _pbRepo.ListaTiposBlocos().ToHashSet();
+            var tiposDisponiveis = (await _pbRepo.ListaTiposBlocosAsync()).ToHashSet();
             var tiposJson = string.Join(", ", tiposDisponiveis.OrderBy(t => t));
 
             var prompt = $@"Analise este rascunho/wireframe de página web e identifique os blocos de conteúdo e suas posições em um grid de 12 colunas.

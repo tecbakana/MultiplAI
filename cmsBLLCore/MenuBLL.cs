@@ -6,13 +6,11 @@ using System.Data;
 
 namespace CMSXBLL
 {
-    public class MenuBLL
+    public class MenuBll
     {
-        Guid menuId { get; set; }
-
-        public static MenuBLL ObterNovoMenu()
+        public static MenuBll ObterNovoMenu()
         {
-            return new MenuBLL();
+            return new MenuBll();
         }
     }
 }

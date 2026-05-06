@@ -18,18 +18,18 @@ namespace CMSAPI.Controllers
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
 
         [HttpGet]
-        public IEnumerable<object> Get([FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<object>> Get([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
 
             if (acessoTotal)
             {
                 if (!string.IsNullOrEmpty(aplicacaoid))
-                    return _repo.ListaPorAplicacao(aplicacaoid);
-                return _repo.ListaTodos();
+                    return await _repo.ListaPorAplicacaoAsync(aplicacaoid);
+                return await _repo.ListaTodosAsync();
             }
 
-            return _repo.ListaPorAplicacao(claimAppId!);
+            return await _repo.ListaPorAplicacaoAsync(claimAppId!);
         }
 
         public class NovoUsuarioDto
@@ -41,7 +41,7 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] NovoUsuarioDto dto)
+        public async Task<IActionResult> Post([FromBody] NovoUsuarioDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
 
@@ -67,7 +67,7 @@ namespace CMSAPI.Controllers
                 };
             }
 
-            _repo.Criar(usuario, vinculo);
+            await _repo.CriarAsync(usuario, vinculo);
             return Ok(usuario);
         }
 
@@ -81,13 +81,13 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] EditarUsuarioDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] EditarUsuarioDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var user = _repo.BuscaPorId(id);
+            var user = await _repo.BuscaPorIdAsync(id);
             if (user == null) return NotFound();
 
-            if (!acessoTotal && !_repo.PertenceAplicacao(id, claimAppId!))
+            if (!acessoTotal && !await _repo.PertenceAplicacaoAsync(id, claimAppId!))
                 return Forbid();
 
             user.Nome      = dto.Nome;
@@ -96,21 +96,21 @@ namespace CMSAPI.Controllers
             user.Ativo     = dto.Ativo;
             if (!string.IsNullOrWhiteSpace(dto.Senha))
                 user.Senha = dto.Senha;
-            _repo.Atualizar(user);
+            await _repo.AtualizarAsync(user);
             return Ok(user);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var user = _repo.BuscaPorId(id);
+            var user = await _repo.BuscaPorIdAsync(id);
             if (user == null) return NotFound();
 
-            if (!acessoTotal && !_repo.PertenceAplicacao(id, claimAppId!))
+            if (!acessoTotal && !await _repo.PertenceAplicacaoAsync(id, claimAppId!))
                 return Forbid();
 
-            _repo.Remover(user);
+            await _repo.RemoverAsync(user);
             return Ok();
         }
     }

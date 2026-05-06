@@ -19,16 +19,16 @@ public class LojaPublicaController(
 {
     [AllowAnonymous]
     [HttpGet("resolve")]
-    public IActionResult Resolve([FromQuery] string slug)
+    public async Task<IActionResult> Resolve([FromQuery] string slug)
     {
         if (string.IsNullOrEmpty(slug))
             return BadRequest(new { message = "slug é obrigatório." });
 
-        var app = lojaRepo.ResolveAplicacao(slug);
+        var app = await lojaRepo.ResolveAplicacaoAsync(slug);
         if (app == null)
             return NotFound(new { message = $"Site '{slug}' não encontrado." });
 
-        var token = lojaRepo.GetActiveTokenForApp(app.Aplicacaoid!);
+        var token = await lojaRepo.GetActiveTokenForAppAsync(app.Aplicacaoid!);
         if (token == null)
             return NotFound(new { message = "Loja não disponível." });
 
@@ -42,7 +42,7 @@ public class LojaPublicaController(
         if (string.IsNullOrEmpty(token))
             return BadRequest(new { message = "token é obrigatório." });
 
-        var aplicacaoid = lojaRepo.ResolvePublicToken(token);
+        var aplicacaoid = await lojaRepo.ResolvePublicTokenAsync(token);
         if (aplicacaoid == null)
             return NotFound(new { message = "Token inválido ou expirado." });
 
@@ -64,7 +64,7 @@ public class LojaPublicaController(
         if (string.IsNullOrEmpty(req.Token))
             return BadRequest(new { message = "token é obrigatório." });
 
-        var aplicacaoid = lojaRepo.ResolvePublicToken(req.Token);
+        var aplicacaoid = await lojaRepo.ResolvePublicTokenAsync(req.Token);
         if (aplicacaoid == null)
             return BadRequest(new { message = "Token inválido ou expirado." });
 
@@ -77,8 +77,8 @@ public class LojaPublicaController(
         dynamic connProps = new System.Dynamic.ExpandoObject();
         connProps.banco = "SqlServer";
         connProps.parms = 3;
-        clienteLojaRepo.MakeConnection(connProps);
-        clienteLojaRepo.CriaClienteLoja(new ClienteLoja
+        await clienteLojaRepo.MakeConnectionAsync(connProps);
+        await clienteLojaRepo.CriaClienteLojaAsync(new ClienteLoja
         {
             Aplicacaoid        = aplicacaoid,
             SalematicClienteId = auth.ClienteId
@@ -189,7 +189,7 @@ public class LojaPublicaController(
 
     [Authorize(AuthenticationSchemes = "Salematic")]
     [HttpGet("meus-pedidos")]
-    public IActionResult MeusPedidos()
+    public async Task<IActionResult> MeusPedidos()
     {
         var clienteEmail = User.FindFirst("email")?.Value
                     ?? User.FindFirst(ClaimTypes.Email)?.Value;
@@ -197,7 +197,7 @@ public class LojaPublicaController(
         if (string.IsNullOrEmpty(clienteEmail))
             return Unauthorized(new { message = "Email não encontrado." });
 
-        var pedidos = lojaRepo.ListaPedidosPorCliente(clienteEmail)
+        var pedidos = (await lojaRepo.ListaPedidosPorClienteAsync(clienteEmail))
             .Select(p => new {
                 p.Pedidoid,
                 p.Aplicacaoid,

@@ -8,41 +8,41 @@ public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
 {
     public AplicacaoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<Aplicacao> Lista(string? aplicacaoid) =>
+    public async Task<IEnumerable<Aplicacao>> ListaAsync(string? aplicacaoid) =>
         string.IsNullOrEmpty(aplicacaoid)
-            ? _db.Aplicacaos.AsNoTracking().OrderBy(a => a.Nome).ToList()
-            : _db.Aplicacaos.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).ToList();
+            ? await _db.Aplicacaos.AsNoTracking().OrderBy(a => a.Nome).ToListAsync()
+            : await _db.Aplicacaos.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).ToListAsync();
 
-    public Aplicacao? BuscaPorId(string id) =>
-        _db.Aplicacaos.AsNoTracking().FirstOrDefault(a => a.Aplicacaoid == id);
+    public async Task<Aplicacao?> BuscaPorIdAsync(string id) =>
+        await _db.Aplicacaos.AsNoTracking().FirstOrDefaultAsync(a => a.Aplicacaoid == id);
 
-    public LayoutTemplate? BuscaTemplatePadrao() =>
-        _db.LayoutTemplates.AsNoTracking().FirstOrDefault(t => t.Tipo == "home" && t.Padrao);
+    public async Task<LayoutTemplate?> BuscaTemplatePadraoAsync() =>
+        await _db.LayoutTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Tipo == "home" && t.Padrao);
 
-    public void Criar(Aplicacao aplicacao, Area homeArea)
+    public async Task CriarAsync(Aplicacao aplicacao, Area homeArea)
     {
         _db.Aplicacaos.Add(aplicacao);
         _db.Areas.Add(homeArea);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Atualizar(Aplicacao aplicacao)
+    public async Task AtualizarAsync(Aplicacao aplicacao)
     {
         _db.Aplicacaos.Update(aplicacao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void AlterarStatus(Aplicacao aplicacao, bool ativo)
+    public async Task AlterarStatusAsync(Aplicacao aplicacao, bool ativo)
     {
         aplicacao.Isactive = ativo;
         aplicacao.Datafinal = ativo ? null : DateTime.UtcNow;
         _db.Aplicacaos.Update(aplicacao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remover(Aplicacao aplicacao)
+    public async Task RemoverAsync(Aplicacao aplicacao)
     {
         _db.Aplicacaos.Remove(aplicacao);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

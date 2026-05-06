@@ -19,19 +19,20 @@ public class AplicacaosController : Controller
         (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
 
     [HttpGet]
-    public IEnumerable<Aplicacao> Get()
+    public async Task<IActionResult> Get()
     {
         var (acessoTotal, claimAppId) = UserContext();
-        return acessoTotal
-            ? _repo.Lista(null)
-            : _repo.Lista(claimAppId);
+        var lista = acessoTotal
+            ? await _repo.ListaAsync(null)
+            : await _repo.ListaAsync(claimAppId);
+        return Ok(lista);
     }
 
     [HttpGet("{id}")]
-    public IActionResult Get(string id)
+    public async Task<IActionResult> Get(string id)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var item = _repo.BuscaPorId(id);
+        var item = await _repo.BuscaPorIdAsync(id);
         if (item == null) return NotFound();
         if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
         return Ok(item);
@@ -63,7 +64,7 @@ public class AplicacaosController : Controller
     }
 
     [HttpPost]
-    public IActionResult Post([FromBody] NovaAplicacaoDto dto)
+    public async Task<IActionResult> Post([FromBody] NovaAplicacaoDto dto)
     {
         var (acessoTotal, _) = UserContext();
         if (!acessoTotal) return Forbid();
@@ -96,7 +97,7 @@ public class AplicacaosController : Controller
             Descricao       = dto.Descricao
         };
 
-        var templatePadrao = _repo.BuscaTemplatePadrao();
+        var templatePadrao = await _repo.BuscaTemplatePadraoAsync();
         var homeArea = new Area
         {
             Areaid      = Guid.NewGuid().ToString(),
@@ -107,15 +108,15 @@ public class AplicacaosController : Controller
             Layout      = templatePadrao?.Layout ?? "{\"blocos\":[]}"
         };
 
-        _repo.Criar(item, homeArea);
+        await _repo.CriarAsync(item, homeArea);
         return Ok(item);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Put(string id, [FromBody] NovaAplicacaoDto dto)
+    public async Task<IActionResult> Put(string id, [FromBody] NovaAplicacaoDto dto)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var item = _repo.BuscaPorId(id);
+        var item = await _repo.BuscaPorIdAsync(id);
         if (item == null) return NotFound();
         if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
 
@@ -140,33 +141,33 @@ public class AplicacaosController : Controller
         item.Endereco       = dto.Endereco;
         item.Descricao      = dto.Descricao;
 
-        _repo.Atualizar(item);
+        await _repo.AtualizarAsync(item);
         return Ok(item);
     }
 
     [HttpPatch("{id}/status")]
-    public IActionResult PatchStatus(string id, [FromBody] bool ativo)
+    public async Task<IActionResult> PatchStatus(string id, [FromBody] bool ativo)
     {
         var (acessoTotal, _) = UserContext();
         if (!acessoTotal) return Forbid();
 
-        var item = _repo.BuscaPorId(id);
+        var item = await _repo.BuscaPorIdAsync(id);
         if (item == null) return NotFound();
 
-        _repo.AlterarStatus(item, ativo);
+        await _repo.AlterarStatusAsync(item, ativo);
         return Ok(item);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(string id)
+    public async Task<IActionResult> Delete(string id)
     {
         var (acessoTotal, _) = UserContext();
         if (!acessoTotal) return Forbid();
 
-        var item = _repo.BuscaPorId(id);
+        var item = await _repo.BuscaPorIdAsync(id);
         if (item == null) return NotFound();
 
-        _repo.Remover(item);
+        await _repo.RemoverAsync(item);
         return Ok();
     }
 }
