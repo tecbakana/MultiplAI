@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -10,30 +11,23 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class GruposController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public GruposController(CmsxDbContext context) { _context = context; }
+        private readonly IGrupoRepositorio _repo;
+        public GruposController(IGrupoRepositorio repo) { _repo = repo; }
 
         private bool IsAdmin() => User.FindFirstValue("acessoTotal") == "True";
 
-        // Grupos são globais — somente admin gerencia
         [HttpGet]
         public IActionResult Get()
         {
             if (!IsAdmin()) return Forbid();
-            return Ok(_context.Grupos.OrderBy(g => g.Nome).ToArray());
+            return Ok(_repo.Lista());
         }
 
         [HttpGet("{id}/usuarios")]
         public IActionResult GetUsuarios(string id)
         {
             if (!IsAdmin()) return Forbid();
-            var usuarios = _context.Relusuariogrupos
-                .Where(r => r.Grupoid == id)
-                .AsEnumerable()
-                .Join(_context.Usuarios.AsEnumerable(), r => r.Usuarioid, u => u.Userid,
-                    (r, u) => new { r.Relacaoid, u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo })
-                .ToList();
-            return Ok(usuarios);
+            return Ok(_repo.UsuariosPorGrupo(id));
         }
 
         public class NovoGrupoDto
@@ -54,8 +48,7 @@ namespace CMSAPI.Controllers
                 Descricao   = dto.Descricao,
                 Acessototal = dto.Acessototal
             };
-            _context.Grupos.Add(item);
-            _context.SaveChanges();
+            _repo.Criar(item);
             return Ok(item);
         }
 
@@ -63,12 +56,12 @@ namespace CMSAPI.Controllers
         public IActionResult Put(string id, [FromBody] NovoGrupoDto dto)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _context.Grupos.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
             item.Nome        = dto.Nome;
             item.Descricao   = dto.Descricao;
             item.Acessototal = dto.Acessototal;
-            _context.SaveChanges();
+            _repo.Atualizar(item);
             return Ok(item);
         }
 
@@ -76,12 +69,9 @@ namespace CMSAPI.Controllers
         public IActionResult Delete(string id)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _context.Grupos.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
-            var vinculos = _context.Relusuariogrupos.Where(r => r.Grupoid == id).ToList();
-            _context.Relusuariogrupos.RemoveRange(vinculos);
-            _context.Grupos.Remove(item);
-            _context.SaveChanges();
+            _repo.RemoverComVinculos(item);
             return Ok();
         }
 
@@ -89,16 +79,15 @@ namespace CMSAPI.Controllers
         public IActionResult AddUsuario(string id, [FromBody] string usuarioid)
         {
             if (!IsAdmin()) return Forbid();
-            if (_context.Relusuariogrupos.Any(r => r.Grupoid == id && r.Usuarioid == usuarioid))
+            if (_repo.ExisteVinculoUsuario(id, usuarioid))
                 return BadRequest(new { message = "Usuário já pertence a este grupo." });
 
-            _context.Relusuariogrupos.Add(new Relusuariogrupo
+            _repo.AdicionarUsuario(new Relusuariogrupo
             {
                 Relacaoid = Guid.NewGuid().ToString(),
                 Grupoid   = id,
                 Usuarioid = usuarioid
             });
-            _context.SaveChanges();
             return Ok();
         }
 
@@ -106,10 +95,9 @@ namespace CMSAPI.Controllers
         public IActionResult RemoveUsuario(string id, string relacaoid)
         {
             if (!IsAdmin()) return Forbid();
-            var rel = _context.Relusuariogrupos.Find(relacaoid);
+            var rel = _repo.BuscaVinculoPorRelacaoid(relacaoid);
             if (rel == null) return NotFound();
-            _context.Relusuariogrupos.Remove(rel);
-            _context.SaveChanges();
+            _repo.RemoverVinculoUsuario(rel);
             return Ok();
         }
     }

@@ -29,6 +29,17 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IModeloCompostoRepositorio, ModeloCompostoRepositorio>();
         services.AddScoped<ILojaRepositorio, LojaRepositorio>();
         services.AddScoped<IProdutoMaoDeObraRepositorio, ProdutoMaoDeObraRepositorio>();
+        services.AddScoped<ISiteRepositorio, SiteRepositorio>();
+        services.AddScoped<IProdutosRepositorio, ProdutosRepositorio>();
+        services.AddScoped<IPageBuilderRepositorio, PageBuilderRepositorio>();
+        services.AddScoped<IDashboardRepositorio, DashboardRepositorio>();
+        services.AddScoped<IFaqRepositorio, FaqRepositorio>();
+        services.AddScoped<IGrupoRepositorio, GrupoRepositorio>();
+        services.AddScoped<ILayoutTemplateRepositorio, LayoutTemplateRepositorio>();
+        services.AddScoped<IPublicTokenRepositorio, PublicTokenRepositorio>();
+        services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
+        services.AddScoped<IVinculoModuloUsuarioRepositorio, VinculoModuloUsuarioRepositorio>();
+        services.AddScoped<IVinculoUsuarioAplicacaoRepositorio, VinculoUsuarioAplicacaoRepositorio>();
 
         return services;
     }

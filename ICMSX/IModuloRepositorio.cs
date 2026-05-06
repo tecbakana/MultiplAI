@@ -1,11 +1,10 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface IModuloRepositorio
 {
-    public interface IModuloRepositorio
-    {
-        void MakeConnection(dynamic prop);
-        List<Modulo> ListaModulos();
-        void CriaModulo();
-    }
+    IEnumerable<Modulo> ListaTodos();
+    IEnumerable<Modulo> ListaPorAplicacao(string aplicacaoid);
+    IEnumerable<Modulo> ListaPorUsuario(string usuarioid);
 }

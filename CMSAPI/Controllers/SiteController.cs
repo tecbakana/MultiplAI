@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -9,32 +9,36 @@ namespace CMSAPI.Controllers
     [Route("[controller]")]
     public class SiteController : ControllerBase
     {
-        private readonly CmsxDbContext _context;
+        private readonly ISiteRepositorio _repo;
+        private readonly IAplicacaoRepositorio _aplicacaoRepo;
 
-        public SiteController(CmsxDbContext context) => _context = context;
+        public SiteController(ISiteRepositorio repo, IAplicacaoRepositorio aplicacaoRepo)
+        {
+            _repo = repo;
+            _aplicacaoRepo = aplicacaoRepo;
+        }
 
         [AllowAnonymous]
         [HttpGet("slug/{slug}")]
         public IActionResult GetBySlug(string slug)
         {
-            var app = _context.Aplicacaos.FirstOrDefault(a => a.Url == slug);
-            return app == null ? NotFound(new { erro = $"Site '{slug}' não encontrado." }) : BuildSiteData(app);
+            var app = _repo.BuscaPorSlug(slug);
+            return app == null
+                ? NotFound(new { erro = $"Site '{slug}' não encontrado." })
+                : BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
         }
 
         [Authorize]
         [HttpGet("preview/{aplicacaoid}")]
         public IActionResult GetPreview(string aplicacaoid)
         {
-            var app = _context.Aplicacaos.FirstOrDefault(a => a.Aplicacaoid == aplicacaoid);
-            return app == null ? NotFound() : BuildSiteData(app);
+            var app = _aplicacaoRepo.BuscaPorId(aplicacaoid);
+            return app == null ? NotFound() : BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
         }
 
-        private IActionResult BuildSiteData(Aplicacao app)
+        private IActionResult BuildSiteData(string aplicacaoid, string? nome, string? url, string? header)
         {
-            var areas = _context.Areas
-                .Where(a => a.Aplicacaoid == app.Aplicacaoid)
-                .OrderBy(a => a.Posicao).ThenBy(a => a.Nome)
-                .ToList();
+            var areas = _repo.ListaAreas(aplicacaoid);
 
             var areasResult = areas.Select(area =>
             {
@@ -50,7 +54,7 @@ namespace CMSAPI.Controllers
                             var configRaw = b.GetProperty("config").GetRawText();
                             var config = JsonDocument.Parse(configRaw).RootElement;
                             var coluna = b.TryGetProperty("coluna", out var colunaEl) ? colunaEl.GetString() : null;
-                            var dados = EnriquecerBloco(tipo, config, app.Aplicacaoid.ToString());
+                            var dados = EnriquecerBloco(tipo, config, aplicacaoid);
                             blocos.Add(new { tipo, config = JsonSerializer.Deserialize<object>(configRaw), coluna, dados });
                         }
                     }
@@ -59,7 +63,7 @@ namespace CMSAPI.Controllers
                 return new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos };
             }).ToList();
 
-            return Ok(new { Aplicacaoid = app.Aplicacaoid.ToString(), app.Nome, app.Url, app.Header, areas = areasResult });
+            return Ok(new { Aplicacaoid = aplicacaoid, Nome = nome, Url = url, Header = header, areas = areasResult });
         }
 
         private object? EnriquecerBloco(string tipo, JsonElement config, string aplicacaoid)
@@ -70,30 +74,21 @@ namespace CMSAPI.Controllers
                 {
                     var areaid = Str(config, "areaid");
                     if (string.IsNullOrEmpty(areaid)) return null;
-                    return _context.Conteudos
-                        .Where(c => c.Areaid == areaid)
-                        .OrderByDescending(c => c.Datainclusao)
-                        .Take(Int(config, "limite", 6))
+                    return _repo.ListaConteudosPorArea(areaid, Int(config, "limite", 6))
                         .Select(c => new { c.Conteudoid, c.Titulo, c.Texto, c.Autor, c.Datainclusao })
                         .ToList();
                 }
                 case "lista-produtos":
                 {
                     var catid = Str(config, "cateriaid");
-                    var q = _context.Produtos.Where(p => p.Aplicacaoid == aplicacaoid);
-                    if (!string.IsNullOrEmpty(catid)) q = q.Where(p => p.Cateriaid == catid);
-                    return q.Take(Int(config, "limite", 8))
-                        .Select(p => new {
-                            p.Produtoid, p.Nome, p.Descricacurta, p.Valor,
-                            Imagem = _context.Imagems.Where(i => i.Parentid == p.Produtoid).Select(i => i.Url).FirstOrDefault()
-                        }).ToList();
+                    return _repo.ListaProdutos(aplicacaoid, catid, Int(config, "limite", 8))
+                        .Select(p => new { p.Produtoid, p.Nome, p.Descricacurta, p.Valor, p.Imagem })
+                        .ToList();
                 }
                 case "categorias":
                 {
                     var pai = Str(config, "cateriaidpai");
-                    return _context.Cateria
-                        .Where(c => c.Aplicacaoid == aplicacaoid &&
-                            (string.IsNullOrEmpty(pai) ? c.Cateriaidpai == null : c.Cateriaidpai == pai))
+                    return _repo.ListaCategorias(aplicacaoid, pai)
                         .Select(c => new { c.Cateriaid, c.Nome, c.Descricao })
                         .ToList();
                 }
@@ -101,9 +96,7 @@ namespace CMSAPI.Controllers
                 {
                     var formularioid = Str(config, "formularioid");
                     if (string.IsNullOrEmpty(formularioid)) return null;
-                    return _context.Faqs
-                        .Where(f => f.Formularioid == formularioid && f.Ativo)
-                        .OrderBy(f => f.Ordem)
+                    return _repo.ListaFaqsAtivos(formularioid)
                         .Select(f => new { f.Faqid, f.Pergunta, f.Resposta })
                         .ToList();
                 }
@@ -111,14 +104,12 @@ namespace CMSAPI.Controllers
                 {
                     var formularioid = Str(config, "formularioid");
                     if (string.IsNullOrEmpty(formularioid)) return null;
-                    var f = _context.Formularios.FirstOrDefault(x => x.Formularioid == formularioid);
+                    var f = _repo.BuscaFormulario(formularioid);
                     return f == null ? null : new { f.Formularioid, f.Nome, f.Valor };
                 }
                 case "menu-navegacao":
                 {
-                    return _context.Areas
-                        .Where(a => a.Aplicacaoid == aplicacaoid && !string.IsNullOrEmpty(a.Url))
-                        .OrderBy(a => a.Posicao).ThenBy(a => a.Nome)
+                    return _repo.ListaAreasMenu(aplicacaoid)
                         .Select(a => new { a.Areaid, a.Nome, a.Url })
                         .ToList();
                 }
@@ -127,7 +118,7 @@ namespace CMSAPI.Controllers
                 case "contador":
                 case "hero-cta":
                 case "rodape":
-                    return null; // config-only blocks, no DB enrichment needed
+                    return null;
                 default: return null;
             }
         }

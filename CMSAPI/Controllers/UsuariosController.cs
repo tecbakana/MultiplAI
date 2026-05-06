@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -10,14 +11,11 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class UsuariosController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public UsuariosController(CmsxDbContext context) { _context = context; }
+        private readonly IUsuarioRepositorio _repo;
+        public UsuariosController(IUsuarioRepositorio repo) { _repo = repo; }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
-
-        private static Guid? ParseGuid(string? s) =>
-            s != null && Guid.TryParse(s, out var g) ? g : null;
 
         [HttpGet]
         public IEnumerable<object> Get([FromQuery] string? aplicacaoid = null)
@@ -27,41 +25,11 @@ namespace CMSAPI.Controllers
             if (acessoTotal)
             {
                 if (!string.IsNullOrEmpty(aplicacaoid))
-                {
-                    var adminSet = _context.Relusuariogrupos
-                        .Join(_context.Grupos, r => r.Grupoid, g => g.Grupoid, (r, g) => new { r.Usuarioid, g.Acessototal })
-                        .Where(x => x.Acessototal)
-                        .Select(x => x.Usuarioid)
-                        .ToHashSet();
-
-                    return _context.Relusuarioaplicacaos
-                        .Where(r => r.Aplicacaoid == aplicacaoid)
-                        .Join(_context.Usuarios, r => r.Usuarioid, u => u.Userid,
-                            (r, u) => new { u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo, u.Datainclusao })
-                        .AsEnumerable()
-                        .Where(u => !adminSet.Contains(u.Userid))
-                        .ToArray();
-                }
-
-                return _context.Usuarios
-                    .Select(u => new { u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo, u.Datainclusao })
-                    .ToArray();
+                    return _repo.ListaPorAplicacao(aplicacaoid);
+                return _repo.ListaTodos();
             }
 
-            // Tenant: retorna usuários da sua aplicação excluindo admins
-            var adminIds = _context.Relusuariogrupos
-                .Join(_context.Grupos, r => r.Grupoid, g => g.Grupoid, (r, g) => new { r.Usuarioid, g.Acessototal })
-                .Where(x => x.Acessototal)
-                .Select(x => x.Usuarioid)
-                .ToHashSet();
-
-            return _context.Relusuarioaplicacaos
-                .Where(r => r.Aplicacaoid == claimAppId)
-                .Join(_context.Usuarios, r => r.Usuarioid, u => u.Userid,
-                    (r, u) => new { u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo, u.Datainclusao })
-                .AsEnumerable()
-                .Where(u => !adminIds.Contains(u.Userid))
-                .ToArray();
+            return _repo.ListaPorAplicacao(claimAppId!);
         }
 
         public class NovoUsuarioDto
@@ -87,20 +55,19 @@ namespace CMSAPI.Controllers
                 Ativo        = 1,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.Usuarios.Add(usuario);
 
-            // Tenant: vincula o novo usuário automaticamente à sua aplicação
+            Relusuarioaplicacao? vinculo = null;
             if (!acessoTotal && !string.IsNullOrEmpty(claimAppId))
             {
-                _context.Relusuarioaplicacaos.Add(new Relusuarioaplicacao
+                vinculo = new Relusuarioaplicacao
                 {
                     Relacaoid   = Guid.NewGuid().ToString(),
                     Usuarioid   = usuario.Userid,
                     Aplicacaoid = claimAppId
-                });
+                };
             }
 
-            _context.SaveChanges();
+            _repo.Criar(usuario, vinculo);
             return Ok(usuario);
         }
 
@@ -117,15 +84,11 @@ namespace CMSAPI.Controllers
         public IActionResult Put(string id, [FromBody] EditarUsuarioDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var user = _context.Usuarios.Find(id);
+            var user = _repo.BuscaPorId(id);
             if (user == null) return NotFound();
 
-            if (!acessoTotal)
-            {
-                var pertence = _context.Relusuarioaplicacaos
-                    .Any(r => r.Usuarioid == id && r.Aplicacaoid == claimAppId);
-                if (!pertence) return Forbid();
-            }
+            if (!acessoTotal && !_repo.PertenceAplicacao(id, claimAppId!))
+                return Forbid();
 
             user.Nome      = dto.Nome;
             user.Sobrenome = dto.Sobrenome;
@@ -133,7 +96,7 @@ namespace CMSAPI.Controllers
             user.Ativo     = dto.Ativo;
             if (!string.IsNullOrWhiteSpace(dto.Senha))
                 user.Senha = dto.Senha;
-            _context.SaveChanges();
+            _repo.Atualizar(user);
             return Ok(user);
         }
 
@@ -141,18 +104,13 @@ namespace CMSAPI.Controllers
         public IActionResult Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var user = _context.Usuarios.Find(id);
+            var user = _repo.BuscaPorId(id);
             if (user == null) return NotFound();
 
-            if (!acessoTotal)
-            {
-                var pertence = _context.Relusuarioaplicacaos
-                    .Any(r => r.Usuarioid == id && r.Aplicacaoid == claimAppId);
-                if (!pertence) return Forbid();
-            }
+            if (!acessoTotal && !_repo.PertenceAplicacao(id, claimAppId!))
+                return Forbid();
 
-            _context.Usuarios.Remove(user);
-            _context.SaveChanges();
+            _repo.Remover(user);
             return Ok();
         }
     }

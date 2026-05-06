@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace CMSAPI.Services;
 
-public class SalematicHttpService(HttpClient http, ILogger<SalematicHttpService> logger)
+public class SalematicHttpService(HttpClient http, ILogger<SalematicHttpService> logger) : ISalematicHttpService
 {
     private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNameCaseInsensitive = true };
 

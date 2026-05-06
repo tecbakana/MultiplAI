@@ -1,25 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class CategoriaRepositorio : BaseRepositorio, ICategoriaRepositorio
 {
-    public class CategoriaRepositorio : BaseRepositorio, ICategoriaRepositorio
+    public CategoriaRepositorio(CmsxDbContext db) : base(db) { }
+
+    public IEnumerable<Caterium> Lista(string? aplicacaoid) =>
+        string.IsNullOrEmpty(aplicacaoid)
+            ? _db.Cateria.AsNoTracking().OrderBy(c => c.Nome).ToList()
+            : _db.Cateria.AsNoTracking().Where(c => c.Aplicacaoid == aplicacaoid).OrderBy(c => c.Nome).ToList();
+
+    public Caterium? BuscaPorId(string id) =>
+        _db.Cateria.AsNoTracking().FirstOrDefault(c => c.Cateriaid == id);
+
+    public void Criar(Caterium item)
     {
-        private readonly ICategoriaDAL _dal;
+        _db.Cateria.Add(item);
+        _db.SaveChanges();
+    }
 
-        public CategoriaRepositorio(CmsxDbContext db, ICategoriaDAL dal) : base(db) { _dal = dal; }
+    public void Atualizar(Caterium item)
+    {
+        _db.Cateria.Update(item);
+        _db.SaveChanges();
+    }
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
-
-        public Caterium ObtemCategoriaPorId() => throw new NotImplementedException();
-        public void CriaNovaCategoria() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoria() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoriaFull() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoriaPai() => throw new NotImplementedException();
-        public List<Caterium> ListaSubCategoria() => throw new NotImplementedException();
-        public void InativaCategorias() => throw new NotImplementedException();
+    public void Remover(Caterium item)
+    {
+        _db.Cateria.Remove(item);
+        _db.SaveChanges();
     }
 }

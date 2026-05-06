@@ -11,10 +11,10 @@ namespace CMSAPI.Controllers;
 [Route("api/loja")]
 [AllowAnonymous]
 public class LojaController(
-    SalematicHttpService salematic,
+    ISalematicHttpService salematic,
     ILojaRepositorio lojaRepo,
     IClienteLojaRepositorio clienteLojaRepo,
-    PedidoServiceBusPublisher publisher) : ControllerBase
+    IEventPublisher publisher) : ControllerBase
 {
 
     [HttpGet("resolve")]

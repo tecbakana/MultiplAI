@@ -1,4 +1,5 @@
 using CMSXData.Models;
+using ICMSX;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,11 +12,11 @@ namespace CMSAPI.Controllers;
 [Authorize]
 public class PublicTokensController : Controller
 {
-    private readonly CmsxDbContext _context;
+    private readonly IPublicTokenRepositorio _repo;
 
-    public PublicTokensController(CmsxDbContext context)
+    public PublicTokensController(IPublicTokenRepositorio repo)
     {
-        _context = context;
+        _repo = repo;
     }
 
     private (bool acessoTotal, string? aplicacaoid) UserContext() =>
@@ -28,18 +29,16 @@ public class PublicTokensController : Controller
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
 
-        var lista = _context.PublicTokens
-            .Where(t => t.Aplicacaoid == appId)
-            .OrderByDescending(t => t.Datainclusao)
-            .Select(t => new
-            {
-                t.PublicTokenId,
-                t.Token,
-                t.Ativo,
-                t.Datainclusao,
-                t.Datavencimento
-            })
-            .ToList();
+        if (string.IsNullOrEmpty(appId)) return Forbid();
+
+        var lista = _repo.Lista(appId).Select(t => new
+        {
+            t.PublicTokenId,
+            t.Token,
+            t.Ativo,
+            t.Datainclusao,
+            t.Datavencimento
+        });
 
         return Ok(lista);
     }
@@ -68,8 +67,7 @@ public class PublicTokensController : Controller
             Datavencimento = dto?.Datavencimento
         };
 
-        _context.PublicTokens.Add(token);
-        _context.SaveChanges();
+        _repo.Criar(token);
 
         return Ok(new { token.PublicTokenId, token.Token, token.Datainclusao });
     }
@@ -79,12 +77,11 @@ public class PublicTokensController : Controller
     {
         var (acessoTotal, claimAppId) = UserContext();
 
-        var token = _context.PublicTokens.FirstOrDefault(t => t.PublicTokenId == id);
+        var token = _repo.BuscaPorId(id);
         if (token == null) return NotFound();
         if (!acessoTotal && token.Aplicacaoid != claimAppId) return Forbid();
 
-        token.Ativo = false;
-        _context.SaveChanges();
+        _repo.Revogar(token);
 
         return Ok();
     }

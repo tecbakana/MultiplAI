@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -10,8 +11,8 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class CategoriasController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public CategoriasController(CmsxDbContext context) { _context = context; }
+        private readonly ICategoriaRepositorio _repo;
+        public CategoriasController(ICategoriaRepositorio repo) { _repo = repo; }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
@@ -20,17 +21,8 @@ namespace CMSAPI.Controllers
         public IEnumerable<Caterium> Get([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Cateria.AsQueryable();
-            if (acessoTotal)
-            {
-                if (!string.IsNullOrEmpty(aplicacaoid))
-                    q = q.Where(c => c.Aplicacaoid == aplicacaoid);
-            }
-            else
-            {
-                q = q.Where(c => c.Aplicacaoid == claimAppId);
-            }
-            return q.OrderBy(c => c.Nome).ToArray();
+            var filtro = acessoTotal ? aplicacaoid : claimAppId;
+            return _repo.Lista(filtro);
         }
 
         public class NovaCategoriaDto
@@ -55,8 +47,7 @@ namespace CMSAPI.Controllers
                 Cateriaidpai = dto.Cateriaidpai,
                 Aplicacaoid  = acessoTotal ? dto.Aplicacaoid : claimAppId
             };
-            _context.Cateria.Add(item);
-            _context.SaveChanges();
+            _repo.Criar(item);
             return Ok(item);
         }
 
@@ -64,14 +55,14 @@ namespace CMSAPI.Controllers
         public IActionResult Put(string id, [FromBody] NovaCategoriaDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Cateria.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
             if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
             item.Nome        = dto.Nome;
             item.Descricao   = dto.Descricao;
             item.Tipocateria = dto.Tipocateria;
             item.Cateriaidpai = dto.Cateriaidpai;
-            _context.SaveChanges();
+            _repo.Atualizar(item);
             return Ok(item);
         }
 
@@ -79,11 +70,10 @@ namespace CMSAPI.Controllers
         public IActionResult Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Cateria.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
             if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
-            _context.Cateria.Remove(item);
-            _context.SaveChanges();
+            _repo.Remover(item);
             return Ok();
         }
     }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -10,8 +11,8 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class ConteudosController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public ConteudosController(CmsxDbContext context) { _context = context; }
+        private readonly IConteudoRepositorio _repo;
+        public ConteudosController(IConteudoRepositorio repo) { _repo = repo; }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
@@ -20,43 +21,20 @@ namespace CMSAPI.Controllers
         public IEnumerable<Conteudo> Get([FromQuery] string? areaid = null, [FromQuery] string? cateriaid = null, [FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Conteudos.AsQueryable();
-
-            if (!acessoTotal)
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == claimAppId)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(c => c.Areaid != null && areasIds.Contains(c.Areaid));
-            }
-            else if (!string.IsNullOrEmpty(aplicacaoid))
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == aplicacaoid)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(c => c.Areaid != null && areasIds.Contains(c.Areaid));
-            }
-
-            if (!string.IsNullOrEmpty(areaid))
-                q = q.Where(c => c.Areaid == areaid);
-            if (!string.IsNullOrEmpty(cateriaid))
-                q = q.Where(c => c.Cateriaid == cateriaid);
-
-            return q.OrderByDescending(c => c.Datainclusao).ToArray();
+            var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
+            return _repo.Lista(filtroApp, areaid, cateriaid);
         }
 
         [HttpGet("{id}")]
         public IActionResult Get(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Conteudos.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = _repo.AplicacaoidDaArea(item.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
             return Ok(item);
         }
@@ -77,8 +55,8 @@ namespace CMSAPI.Controllers
             var (acessoTotal, claimAppId) = UserContext();
             if (!acessoTotal && !string.IsNullOrEmpty(dto.Areaid))
             {
-                var area = _context.Areas.Find(dto.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = _repo.AplicacaoidDaArea(dto.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
 
             var item = new Conteudo
@@ -92,8 +70,7 @@ namespace CMSAPI.Controllers
                 Datafinal    = dto.Datafinal,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.Conteudos.Add(item);
-            _context.SaveChanges();
+            _repo.Criar(item);
             return Ok(item);
         }
 
@@ -101,12 +78,12 @@ namespace CMSAPI.Controllers
         public IActionResult Put(string id, [FromBody] Conteudo item)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var existing = _context.Conteudos.Find(id);
+            var existing = _repo.BuscaPorId(id);
             if (existing == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Areas.Find(existing.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = _repo.AplicacaoidDaArea(existing.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
             existing.Titulo    = item.Titulo;
             existing.Texto     = item.Texto;
@@ -114,7 +91,7 @@ namespace CMSAPI.Controllers
             existing.Cateriaid = item.Cateriaid;
             existing.Areaid    = item.Areaid;
             existing.Datafinal = item.Datafinal;
-            _context.SaveChanges();
+            _repo.Atualizar(existing);
             return Ok(existing);
         }
 
@@ -122,15 +99,14 @@ namespace CMSAPI.Controllers
         public IActionResult Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Conteudos.Find(id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = _repo.AplicacaoidDaArea(item.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
-            _context.Conteudos.Remove(item);
-            _context.SaveChanges();
+            _repo.Remover(item);
             return Ok();
         }
     }

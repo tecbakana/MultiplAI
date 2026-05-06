@@ -18,14 +18,30 @@ namespace CMSAPI.Controllers
     [Route("[controller]")]
     public class PageBuilderController : Controller
     {
-        private readonly CmsxDbContext _context;
+        private readonly IPageBuilderRepositorio _pbRepo;
+        private readonly IAreasRepositorio _areasRepo;
+        private readonly IFormularioRepositorio _formRepo;
+        private readonly ICategoriaRepositorio _catRepo;
+        private readonly IAplicacaoRepositorio _aplicacaoRepo;
         private readonly IAgentIAFactory _agentFactory;
         private readonly IConfiguration _config;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public PageBuilderController(CmsxDbContext context, IAgentIAFactory agentFactory, IConfiguration config, IHttpClientFactory httpClientFactory)
+        public PageBuilderController(
+            IPageBuilderRepositorio pbRepo,
+            IAreasRepositorio areasRepo,
+            IFormularioRepositorio formRepo,
+            ICategoriaRepositorio catRepo,
+            IAplicacaoRepositorio aplicacaoRepo,
+            IAgentIAFactory agentFactory,
+            IConfiguration config,
+            IHttpClientFactory httpClientFactory)
         {
-            _context = context;
+            _pbRepo = pbRepo;
+            _areasRepo = areasRepo;
+            _formRepo = formRepo;
+            _catRepo = catRepo;
+            _aplicacaoRepo = aplicacaoRepo;
             _agentFactory = agentFactory;
             _config = config;
             _httpClientFactory = httpClientFactory;
@@ -39,7 +55,7 @@ namespace CMSAPI.Controllers
         [AllowAnonymous]
         [HttpGet("blocos")]
         public IActionResult GetBlocos() =>
-            Ok(_context.DictBlocos.OrderBy(b => b.Nome).ToArray());
+            Ok(_pbRepo.ListaBlocos().OrderBy(b => b.Nome).ToArray());
 
         // ── Resumo de layouts salvos ─────────────────────────────────────────
 
@@ -48,17 +64,12 @@ namespace CMSAPI.Controllers
         public IActionResult GetLayoutsResumo([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var query = _context.Areas.AsQueryable();
+            var resolvedAppId = acessoTotal
+                ? (string.IsNullOrEmpty(aplicacaoid) ? null : aplicacaoid)
+                : claimAppId;
 
-            if (!acessoTotal)
-                query = query.Where(a => a.Aplicacaoid == claimAppId);
-            else if (!string.IsNullOrEmpty(aplicacaoid))
-                query = query.Where(a => a.Aplicacaoid == aplicacaoid);
-
-            var areas = query
+            var areas = _areasRepo.Lista(resolvedAppId)
                 .Where(a => a.Layout != null && a.Layout != "{\"blocos\":[]}")
-                .Select(a => new { a.Areaid, a.Nome, a.Layout })
-                .ToList()
                 .Select(a => {
                     int qtd = 0;
                     try { qtd = JsonDocument.Parse(a.Layout!).RootElement.GetProperty("blocos").GetArrayLength(); } catch { }
@@ -74,7 +85,7 @@ namespace CMSAPI.Controllers
         public IActionResult GetLayout(string areaid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _context.Areas.FirstOrDefault(a => a.Areaid == areaid);
+            var area = _areasRepo.BuscaPorId(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
@@ -86,12 +97,12 @@ namespace CMSAPI.Controllers
         public IActionResult SaveLayout(string areaid, [FromBody] JsonElement payload)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _context.Areas.FirstOrDefault(a => a.Areaid == areaid);
+            var area = _areasRepo.BuscaPorId(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
             area.Layout = payload.GetRawText();
-            _context.SaveChanges();
+            _areasRepo.Atualizar(area);
             return Ok();
         }
 
@@ -102,27 +113,21 @@ namespace CMSAPI.Controllers
         public IActionResult GetContextoIA()
         {
             var (acessoTotal, claimAppId) = UserContext();
+            var resolvedAppId = acessoTotal ? null : claimAppId;
 
-            var blocos = _context.DictBlocos
-                .OrderBy(b => b.Nome)
+            var blocos = _pbRepo.ListaBlocos()
                 .Select(b => new { b.Tipobloco, b.Nome, b.Descricao, b.SchemaConfig })
                 .ToList();
 
-            var areas = _context.Areas
-                .Where(a => acessoTotal || a.Aplicacaoid == claimAppId)
+            var areas = _areasRepo.Lista(resolvedAppId)
                 .Select(a => new { a.Areaid, a.Nome })
                 .ToList();
 
-            var formularios = _context.Formularios
-                .Where(f => _context.Areas
-                    .Where(a => acessoTotal || a.Aplicacaoid == claimAppId)
-                    .Select(a => a.Areaid)
-                    .Contains(f.Areaid))
+            var formularios = _formRepo.ListaDefs(resolvedAppId, null)
                 .Select(f => new { f.Formularioid, f.Nome })
                 .ToList();
 
-            var categorias = _context.Cateria
-                .Where(c => acessoTotal || c.Aplicacaoid == claimAppId)
+            var categorias = _catRepo.Lista(resolvedAppId)
                 .Select(c => new { c.Cateriaid, c.Nome, c.Cateriaidpai })
                 .ToList();
 
@@ -138,20 +143,18 @@ namespace CMSAPI.Controllers
             var (_, claimAppId) = UserContext();
             if (claimAppId == null) return BadRequest();
 
-            var config = _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId);
+            var config = _pbRepo.BuscaConfig(claimAppId);
             var limitePadrao = _config.GetValue<int>("AgentIA:LimiteDiarioPadrao", 20);
-
-            // Uso de hoje
             var hoje = DateOnly.FromDateTime(DateTime.Today);
-            var uso = _context.IaUsos.FirstOrDefault(u => u.Aplicacaoid == claimAppId && u.Data == hoje);
+            var usoHoje = _pbRepo.BuscaUsoHoje(claimAppId, hoje);
 
             return Ok(new
             {
-                provedor      = config?.Provedor,
+                provedor        = config?.Provedor,
                 temChavePropria = !string.IsNullOrWhiteSpace(config?.Apikey),
-                modelo        = config?.Modelo,
-                limiteDiario  = config?.LimiteDiario ?? limitePadrao,
-                usoHoje       = uso?.Contador ?? 0
+                modelo          = config?.Modelo,
+                limiteDiario    = config?.LimiteDiario ?? limitePadrao,
+                usoHoje
             });
         }
 
@@ -170,22 +173,7 @@ namespace CMSAPI.Controllers
             var (_, claimAppId) = UserContext();
             if (claimAppId == null) return BadRequest();
 
-            var config = _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId);
-            if (config == null)
-            {
-                config = new IaConfig { Aplicacaoid = claimAppId };
-                _context.IaConfigs.Add(config);
-            }
-
-            config.Provedor     = dto.Provedor;
-            config.Modelo       = dto.Modelo;
-            config.LimiteDiario = dto.LimiteDiario;
-
-            // Só atualiza a key se foi enviada (string não vazia)
-            if (!string.IsNullOrWhiteSpace(dto.Apikey))
-                config.Apikey = dto.Apikey;
-
-            _context.SaveChanges();
+            _pbRepo.SalvarConfig(claimAppId, dto.Provedor, dto.Modelo, dto.LimiteDiario, dto.Apikey);
             return Ok();
         }
 
@@ -208,9 +196,7 @@ namespace CMSAPI.Controllers
         public async Task<IActionResult> ExtrairPaleta([FromBody] ExtrairPaletaDto dto)
         {
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null
-                ? _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId)
-                : null;
+            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
 
             var prompt = @"Analise esta imagem e extraia uma paleta de 5 cores que representem bem o estilo visual.
 Retorne APENAS um JSON válido, sem texto adicional:
@@ -228,7 +214,7 @@ Regras:
                 var provedorEfetivo = dto.Provedor ?? iaConfig?.Provedor;
                 var agente = _agentFactory.Criar(provedorEfetivo, iaConfig?.Apikey, iaConfig?.Modelo);
                 var resposta = LimparMarkdown(await agente.GerarComImagemAsync(imageBytes, dto.MimeType, prompt));
-                JsonDocument.Parse(resposta); // valida JSON
+                JsonDocument.Parse(resposta);
                 return Ok(new { paleta = resposta });
             }
             catch (JsonException ex)
@@ -250,8 +236,7 @@ Regras:
         public IActionResult RemoverApiKey()
         {
             var (_, claimAppId) = UserContext();
-            var config = _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId);
-            if (config != null) { config.Apikey = null; _context.SaveChanges(); }
+            if (claimAppId != null) _pbRepo.RemoverApiKey(claimAppId);
             return Ok();
         }
 
@@ -262,28 +247,22 @@ Regras:
         public async Task<IActionResult> GerarLayout([FromBody] GerarLayoutDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
+            var resolvedAppId = acessoTotal ? null : claimAppId;
 
-            // Configuração de IA do tenant
-            var iaConfig = claimAppId != null
-                ? _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId)
-                : null;
+            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
             var temChavePropria = !string.IsNullOrWhiteSpace(iaConfig?.Apikey);
 
-            // Verifica limite diário (só se usar chave do sistema e não for admin)
             if (!acessoTotal && !temChavePropria && claimAppId != null)
             {
                 var limitePadrao = _config.GetValue<int>("AgentIA:LimiteDiarioPadrao", 20);
                 var limite = iaConfig?.LimiteDiario ?? limitePadrao;
                 var hoje = DateOnly.FromDateTime(DateTime.Today);
-                var uso = _context.IaUsos.FirstOrDefault(u => u.Aplicacaoid == claimAppId && u.Data == hoje);
-                if (uso != null && uso.Contador >= limite)
+                var usoHoje = _pbRepo.BuscaUsoHoje(claimAppId, hoje);
+                if (usoHoje >= limite)
                     return StatusCode(429, $"Limite diário de {limite} gerações atingido. Configure sua própria chave de IA nas configurações.");
             }
 
-            // Monta o contexto do tenant
-            var blocos = _context.DictBlocos
-                .Select(b => new { b.Tipobloco, b.Nome, b.Descricao, b.SchemaConfig })
-                .ToList()
+            var blocos = _pbRepo.ListaBlocos()
                 .Select(b => new {
                     b.Tipobloco, b.Nome, b.Descricao,
                     campos = b.SchemaConfig != null
@@ -292,40 +271,33 @@ Regras:
                 })
                 .ToList();
 
-            var areas = _context.Areas
-                .Where(a => acessoTotal || a.Aplicacaoid == claimAppId)
+            var areas = _areasRepo.Lista(resolvedAppId)
                 .Select(a => new { a.Areaid, a.Nome })
                 .ToList();
 
-            var formularios = _context.Formularios
-                .Where(f => _context.Areas
-                    .Where(a => acessoTotal || a.Aplicacaoid == claimAppId)
-                    .Select(a => a.Areaid)
-                    .Contains(f.Areaid))
+            var formularios = _formRepo.ListaDefs(resolvedAppId, null)
                 .Select(f => new { f.Formularioid, f.Nome })
                 .ToList();
 
-            var categorias = _context.Cateria
-                .Where(c => acessoTotal || c.Aplicacaoid == claimAppId)
+            var categorias = _catRepo.Lista(resolvedAppId)
                 .Select(c => new { c.Cateriaid, c.Nome })
                 .ToList();
 
-            // Perfil do tenant para personalizar o conteúdo gerado
-            var tenantApp = _context.Aplicacaos.FirstOrDefault(a => a.Aplicacaoid == claimAppId);
+            var tenantApp = claimAppId != null ? _aplicacaoRepo.BuscaPorId(claimAppId) : null;
             var tenantPerfil = new
             {
                 nome_empresa  = tenantApp?.Nome ?? "aguardando informação",
-                descricao     = string.IsNullOrWhiteSpace(tenantApp?.Descricao)   ? "aguardando informação" : tenantApp.Descricao,
-                telefone      = string.IsNullOrWhiteSpace(tenantApp?.Telefone)    ? "aguardando informação" : tenantApp.Telefone,
-                endereco      = string.IsNullOrWhiteSpace(tenantApp?.Endereco)    ? "aguardando informação" : tenantApp.Endereco,
-                email_contato = string.IsNullOrWhiteSpace(tenantApp?.Mailuser)    ? "aguardando informação" : tenantApp.Mailuser,
+                descricao     = string.IsNullOrWhiteSpace(tenantApp?.Descricao)    ? "aguardando informação" : tenantApp.Descricao,
+                telefone      = string.IsNullOrWhiteSpace(tenantApp?.Telefone)     ? "aguardando informação" : tenantApp.Telefone,
+                endereco      = string.IsNullOrWhiteSpace(tenantApp?.Endereco)     ? "aguardando informação" : tenantApp.Endereco,
+                email_contato = string.IsNullOrWhiteSpace(tenantApp?.Mailuser)     ? "aguardando informação" : tenantApp.Mailuser,
                 instagram     = string.IsNullOrWhiteSpace(tenantApp?.Pageinstagram) ? "aguardando informação" : tenantApp.Pageinstagram,
                 facebook      = string.IsNullOrWhiteSpace(tenantApp?.Pagefacebook)  ? "aguardando informação" : tenantApp.Pagefacebook,
                 linkedin      = string.IsNullOrWhiteSpace(tenantApp?.Pagelinkedin)  ? "aguardando informação" : tenantApp.Pagelinkedin
             };
 
             var areaNome = dto.Areaid != null
-                ? _context.Areas.FirstOrDefault(a => a.Areaid == dto.Areaid)?.Nome
+                ? _areasRepo.BuscaPorId(dto.Areaid)?.Nome
                 : null;
             var contextoArea = areaNome != null ? $" para a área \"{areaNome}\"" : "";
 
@@ -336,7 +308,6 @@ Regras:
 
             if (dto.Blocos != null && dto.Blocos.Count > 0)
             {
-                // Modo híbrido: AI preenche conteúdo da estrutura pré-definida pelo usuário
                 var estrutura = JsonSerializer.Serialize(
                     dto.Blocos.Select(b => new { tipo = b.Tipo }),
                     new JsonSerializerOptions { WriteIndented = false });
@@ -364,7 +335,6 @@ Regras:
             }
             else
             {
-                // Modo livre: AI decide estrutura e conteúdo
                 var contexto = new
                 {
                     perfil_tenant         = tenantPerfil,
@@ -400,10 +370,9 @@ Regras importantes:
 - O JSON deve ser completo e válido — não truncar";
             }
 
-            // Verifica cache
             var provedorEfetivo = dto.Provedor ?? iaConfig?.Provedor;
             var hashKey = ComputeHash($"{provedorEfetivo}:{prompt}");
-            var cached = _context.IaCaches.FirstOrDefault(c => c.Hash == hashKey && c.Datavencimento > DateTime.UtcNow);
+            var cached = _pbRepo.BuscaCache(hashKey, DateTime.UtcNow);
             if (cached != null)
                 return Ok(new { layout = cached.Resultado, provedor = "cache" });
 
@@ -413,32 +382,21 @@ Regras importantes:
                 var layoutJson = LimparMarkdown(await agente.GerarAsync(prompt));
                 JsonDocument.Parse(layoutJson);
 
-                // Resolve imagens via Unsplash se houver AccessKey configurada
                 layoutJson = await ResolverImagensAsync(layoutJson);
 
-                // Salva no cache
                 var ttl = _config.GetValue<int>("AgentIA:CacheTTLHoras", 24);
-                _context.IaCaches.Add(new IaCache
+                var hoje = DateOnly.FromDateTime(DateTime.Today);
+                var incrementarUso = !acessoTotal && !temChavePropria && claimAppId != null;
+                var novoCache = new IaCache
                 {
                     Cacheid        = Guid.NewGuid().ToString(),
                     Hash           = hashKey,
                     Resultado      = layoutJson,
                     Datainclusao   = DateTime.UtcNow,
                     Datavencimento = DateTime.UtcNow.AddHours(ttl)
-                });
+                };
+                _pbRepo.RegistrarGeracao(novoCache, claimAppId, hoje, incrementarUso);
 
-                // Incrementa uso (só se usar chave do sistema)
-                if (!acessoTotal && !temChavePropria && claimAppId != null)
-                {
-                    var hoje = DateOnly.FromDateTime(DateTime.Today);
-                    var uso = _context.IaUsos.FirstOrDefault(u => u.Aplicacaoid == claimAppId && u.Data == hoje);
-                    if (uso == null)
-                        _context.IaUsos.Add(new IaUso { Usoid = Guid.NewGuid().ToString(), Aplicacaoid = claimAppId, Data = hoje, Contador = 1 });
-                    else
-                        uso.Contador++;
-                }
-
-                _context.SaveChanges();
                 return Ok(new { layout = layoutJson, provedor = agente.Provedor });
             }
             catch (JsonException ex)
@@ -455,7 +413,6 @@ Regras importantes:
             }
         }
 
-        // Campos de imagem a resolver por tipo de bloco: (tipobloco, campo)
         private static readonly (string tipo, string campo)[] _camposImagem = new (string tipo, string campo)[]
         {
             ("hero",          "imagemFundo"),
@@ -527,20 +484,15 @@ Regras importantes:
 
         private static string LimparMarkdown(string texto)
         {
-            // Remove code fences: ```json ... ``` ou ``` ... ```
             texto = Regex.Replace(texto, @"```(?:json)?\s*", "").Trim();
-
-            // Remove backticks avulsos
             texto = texto.Trim('`').Trim();
 
-            // Extrai o objeto JSON (primeiro { até o último })
             var inicio = texto.IndexOf('{');
             if (inicio < 0) return texto.Trim();
 
             var fim = texto.LastIndexOf('}');
             var json = fim > inicio ? texto[inicio..(fim + 1)] : texto[inicio..];
 
-            // Tenta reparar JSON truncado fechando colchetes/chaves abertas
             try { JsonDocument.Parse(json); return json; }
             catch { return RepararJson(json); }
         }
@@ -564,7 +516,7 @@ Regras importantes:
             }
 
             var sb = new System.Text.StringBuilder(json.TrimEnd().TrimEnd(','));
-            if (inString) sb.Append('"'); // fecha string aberta (JSON truncado no meio de um valor)
+            if (inString) sb.Append('"');
             while (stack.Count > 0)
                 sb.Append(stack.Pop() == '{' ? '}' : ']');
 
@@ -583,7 +535,7 @@ Regras importantes:
         public IActionResult AtualizarAreaVersion(string areaid, [FromBody] AreaVersionDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var area = _context.Areas.FirstOrDefault(a => a.Areaid == areaid);
+            var area = _areasRepo.BuscaPorId(areaid);
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
@@ -591,7 +543,7 @@ Regras importantes:
                 return BadRequest("Versão inválida. Use 'v1' ou 'v2'.");
 
             area.PageBuilderVersion = dto.Version;
-            _context.SaveChanges();
+            _areasRepo.Atualizar(area);
             return Ok();
         }
 
@@ -612,14 +564,9 @@ Regras importantes:
                 return BadRequest("Arquivo de imagem obrigatório.");
 
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null
-                ? _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId)
-                : null;
+            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
 
-            var tiposDisponiveis = _context.DictBlocos
-                .Select(b => b.Tipobloco)
-                .ToHashSet();
-
+            var tiposDisponiveis = _pbRepo.ListaTiposBlocos().ToHashSet();
             var tiposJson = string.Join(", ", tiposDisponiveis.OrderBy(t => t));
 
             var prompt = $@"Analise este rascunho/wireframe de página web e identifique os blocos de conteúdo e suas posições em um grid de 12 colunas.
@@ -654,8 +601,7 @@ Retorne APENAS um JSON válido, sem texto adicional:
                 var blocosMapeados = blocosEl.EnumerateArray().Select(b =>
                 {
                     var tipo = b.TryGetProperty("tipo", out var t) ? t.GetString() ?? "" : "";
-                    if (!tiposDisponiveis.Contains(tipo))
-                        tipo = "bloco-generico";
+                    if (!tiposDisponiveis.Contains(tipo)) tipo = "bloco-generico";
 
                     return new
                     {
@@ -717,11 +663,8 @@ Retorne APENAS um JSON válido, sem texto adicional:
                 return BadRequest("Arquivo de wireframe obrigatório.");
 
             var (_, claimAppId) = UserContext();
-            var iaConfig = claimAppId != null
-                ? _context.IaConfigs.FirstOrDefault(c => c.Aplicacaoid == claimAppId)
-                : null;
+            var iaConfig = claimAppId != null ? _pbRepo.BuscaConfig(claimAppId) : null;
 
-            // 1. Faz upload da imagem de fundo para o Blob Storage (se fornecida)
             string? urlFundo = null;
             if (dto.ImagemFundo != null && dto.ImagemFundo.Length > 0)
             {
@@ -747,8 +690,7 @@ Retorne APENAS um JSON válido, sem texto adicional:
                 }
             }
 
-            // 2. Interpreta o wireframe com IA
-            var tiposDisponiveis = _context.DictBlocos.Select(b => b.Tipobloco).ToHashSet();
+            var tiposDisponiveis = _pbRepo.ListaTiposBlocos().ToHashSet();
             var tiposJson = string.Join(", ", tiposDisponiveis.OrderBy(t => t));
 
             var prompt = $@"Analise este rascunho/wireframe de página web e identifique os blocos de conteúdo e suas posições em um grid de 12 colunas.
@@ -785,7 +727,6 @@ Retorne APENAS um JSON válido, sem texto adicional:
                     var tipo = b.TryGetProperty("tipo", out var t) ? t.GetString() ?? "" : "";
                     if (!tiposDisponiveis.Contains(tipo)) tipo = "bloco-generico";
 
-                    // 3. Injeta URL do fundo nos campos de imagem de cada bloco que os suporta
                     var config = new Dictionary<string, object?>();
                     if (urlFundo != null)
                     {

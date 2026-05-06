@@ -1,24 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class AreasRepositorio : BaseRepositorio, IAreasRepositorio
 {
-    public class AreasRepositorio : BaseRepositorio, IAreasRepositorio
+    public AreasRepositorio(CmsxDbContext db) : base(db) { }
+
+    public IEnumerable<Area> Lista(string? aplicacaoid) =>
+        string.IsNullOrEmpty(aplicacaoid)
+            ? _db.Areas.AsNoTracking().OrderBy(a => a.Posicao).ToList()
+            : _db.Areas.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).OrderBy(a => a.Posicao).ToList();
+
+    public Area? BuscaPorId(string id) =>
+        _db.Areas.AsNoTracking().FirstOrDefault(a => a.Areaid == id);
+
+    public void Criar(Area area)
     {
-        private readonly IAreasDAL _dal;
+        _db.Areas.Add(area);
+        _db.SaveChanges();
+    }
 
-        public AreasRepositorio(CmsxDbContext db, IAreasDAL dal) : base(db) { _dal = dal; }
+    public void Atualizar(Area area)
+    {
+        _db.Areas.Update(area);
+        _db.SaveChanges();
+    }
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
-
-        public Area ObtemAreaPorId() => throw new NotImplementedException();
-        public void CriaNovaArea() => throw new NotImplementedException();
-        public string AreaRapida() => throw new NotImplementedException();
-        public void EditaAreaPosicao() => throw new NotImplementedException();
-        public List<Area> ListaAreas() => throw new NotImplementedException();
-        public void InativaArea() => throw new NotImplementedException();
+    public void Remover(Area area)
+    {
+        _db.Areas.Remove(area);
+        _db.SaveChanges();
     }
 }

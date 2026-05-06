@@ -1,15 +1,12 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface IAreasRepositorio
 {
-    public interface IAreasRepositorio
-    {
-        Area ObtemAreaPorId();
-        void MakeConnection(dynamic prop);
-        void CriaNovaArea();
-        string AreaRapida();
-        void EditaAreaPosicao();
-        List<Area> ListaAreas();
-        void InativaArea();
-    }
+    IEnumerable<Area> Lista(string? aplicacaoid);
+    Area? BuscaPorId(string id);
+    void Criar(Area area);
+    void Atualizar(Area area);
+    void Remover(Area area);
 }

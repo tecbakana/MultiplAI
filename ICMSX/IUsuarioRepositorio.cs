@@ -1,14 +1,14 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface IUsuarioRepositorio
 {
-    public interface IUsuarioRepositorio
-    {
-        Usuario ObtemUsuarioPorId(Guid id);
-        void MakeConnection(dynamic prop);
-        void CriaUsuario();
-        List<Usuario> ListaUsuarios();
-        List<Usuario> ListaUsuariosPorAppId();
-        void InativaUsuario();
-    }
+    IEnumerable<object> ListaTodos();
+    IEnumerable<object> ListaPorAplicacao(string aplicacaoid);
+    Usuario? BuscaPorId(string id);
+    bool PertenceAplicacao(string userid, string aplicacaoid);
+    void Criar(Usuario usuario, Relusuarioaplicacao? vinculo);
+    void Atualizar(Usuario usuario);
+    void Remover(Usuario usuario);
 }

@@ -1,16 +1,12 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface ICategoriaRepositorio
 {
-    public interface ICategoriaRepositorio
-    {
-        Caterium ObtemCategoriaPorId();
-        void MakeConnection(dynamic prop);
-        void CriaNovaCategoria();
-        List<Caterium> ListaCategoria();
-        List<Caterium> ListaCategoriaFull();
-        List<Caterium> ListaCategoriaPai();
-        List<Caterium> ListaSubCategoria();
-        void InativaCategorias();
-    }
+    IEnumerable<Caterium> Lista(string? aplicacaoid);
+    Caterium? BuscaPorId(string id);
+    void Criar(Caterium item);
+    void Atualizar(Caterium item);
+    void Remover(Caterium item);
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -9,8 +10,8 @@ namespace CMSAPI.Controllers
     [Route("[controller]")]
     public class FaqController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public FaqController(CmsxDbContext context) { _context = context; }
+        private readonly IFaqRepositorio _repo;
+        public FaqController(IFaqRepositorio repo) { _repo = repo; }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
@@ -21,30 +22,17 @@ namespace CMSAPI.Controllers
         [HttpGet("wiki/{aplicacaoid}")]
         public IActionResult GetWiki(string aplicacaoid)
         {
-            var categorias = _context.Cateria
-                .Where(c => c.Aplicacaoid == aplicacaoid)
-                .Select(c => new { c.Cateriaid, c.Nome, c.Cateriaidpai })
-                .AsEnumerable()
-                .Select(c => (c.Cateriaid, c.Nome, c.Cateriaidpai))
+            var categorias = _repo.ListaCategoriasPorApp(aplicacaoid)
+                .Select(c => (Cateriaid: c.Cateriaid!, c.Nome, c.Cateriaidpai))
                 .ToList();
 
-            var formularios = _context.Formularios
-                .Where(f => f.Categoriaid != null &&
-                            _context.Areas
-                                .Where(a => a.Aplicacaoid == aplicacaoid)
-                                .Select(a => a.Areaid)
-                                .Contains(f.Areaid))
-                .Select(f => new { f.Formularioid, f.Nome, f.Categoriaid })
-                .AsEnumerable()
-                .Select(f => (f.Formularioid, f.Nome, f.Categoriaid))
+            var formularios = _repo.ListaFormulariosComCategoria(aplicacaoid)
+                .Select(f => (Formularioid: f.Formularioid!, f.Nome, f.Categoriaid))
                 .ToList();
 
-            var formularioIds = formularios.Select(f => f.Formularioid).ToHashSet();
+            var formularioIds = formularios.Select(f => f.Formularioid).ToList();
 
-            var faqs = _context.Faqs
-                .Where(faq => faq.Ativo && formularioIds.Contains(faq.Formularioid))
-                .OrderBy(faq => faq.Ordem)
-                .AsEnumerable()
+            var faqs = _repo.ListaFaqsAtivos(formularioIds)
                 .Select(faq => new FaqWiki(faq.Faqid, faq.Formularioid, faq.Pergunta, faq.Resposta, faq.Ordem))
                 .ToList();
 
@@ -88,13 +76,9 @@ namespace CMSAPI.Controllers
         public IActionResult GetByFormulario(string formularioid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            if (!acessoTotal && !TemAcesso(formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(formularioid, claimAppId)) return Forbid();
 
-            var items = _context.Faqs
-                .Where(f => f.Formularioid == formularioid)
-                .OrderBy(f => f.Ordem)
-                .ToArray();
-            return Ok(items);
+            return Ok(_repo.ListaPorFormulario(formularioid));
         }
 
         public class FaqDto
@@ -109,7 +93,7 @@ namespace CMSAPI.Controllers
         public IActionResult Post(string formularioid, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            if (!acessoTotal && !TemAcesso(formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(formularioid, claimAppId)) return Forbid();
 
             var item = new Faq
             {
@@ -121,8 +105,7 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.Faqs.Add(item);
-            _context.SaveChanges();
+            _repo.Criar(item);
             return Ok(item);
         }
 
@@ -131,14 +114,14 @@ namespace CMSAPI.Controllers
         public IActionResult Put(string id, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Faqs.FirstOrDefault(f => f.Faqid == id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
 
             item.Pergunta = dto.Pergunta ?? item.Pergunta;
             item.Resposta = dto.Resposta ?? item.Resposta;
             item.Ordem    = dto.Ordem;
-            _context.SaveChanges();
+            _repo.Atualizar(item);
             return Ok(item);
         }
 
@@ -147,12 +130,12 @@ namespace CMSAPI.Controllers
         public IActionResult PatchAtivo(string id, [FromBody] bool ativo)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Faqs.FirstOrDefault(f => f.Faqid == id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
 
             item.Ativo = ativo;
-            _context.SaveChanges();
+            _repo.Atualizar(item);
             return Ok();
         }
 
@@ -161,12 +144,11 @@ namespace CMSAPI.Controllers
         public IActionResult Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Faqs.FirstOrDefault(f => f.Faqid == id);
+            var item = _repo.BuscaPorId(id);
             if (item == null) return NotFound();
-            if (!acessoTotal && !TemAcesso(item.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(item.Formularioid, claimAppId)) return Forbid();
 
-            _context.Faqs.Remove(item);
-            _context.SaveChanges();
+            _repo.Remover(item);
             return Ok();
         }
 
@@ -177,9 +159,9 @@ namespace CMSAPI.Controllers
         public IActionResult Promover(int idform, [FromBody] FaqDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var resposta = _context.Formularionews.Find(idform);
+            var resposta = _repo.BuscaRespostaInbox(idform);
             if (resposta == null) return NotFound();
-            if (!acessoTotal && !TemAcesso(resposta.Formularioid, claimAppId)) return Forbid();
+            if (!acessoTotal && !_repo.TemAcesso(resposta.Formularioid, claimAppId)) return Forbid();
 
             var item = new Faq
             {
@@ -191,20 +173,8 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.Faqs.Add(item);
-            _context.SaveChanges();
+            _repo.Criar(item);
             return Ok(item);
-        }
-
-        // ── Helper ───────────────────────────────────────────────────────────
-
-        private bool TemAcesso(string? formularioid, string? claimAppId)
-        {
-            if (string.IsNullOrEmpty(formularioid)) return false;
-            return _context.Formularios
-                .Where(f => f.Formularioid == formularioid)
-                .Join(_context.Areas, f => f.Areaid, a => a.Areaid, (f, a) => a)
-                .Any(a => a.Aplicacaoid == claimAppId);
         }
     }
 }

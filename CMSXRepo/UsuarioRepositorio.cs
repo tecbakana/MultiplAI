@@ -1,22 +1,63 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class UsuarioRepositorio : BaseRepositorio, IUsuarioRepositorio
 {
-    public class UsuarioRepositorio : BaseRepositorio, IUsuarioRepositorio
+    public UsuarioRepositorio(CmsxDbContext db) : base(db) { }
+
+    private HashSet<string?> AdminIds() =>
+        _db.Relusuariogrupos.AsNoTracking()
+            .Join(_db.Grupos.AsNoTracking(), r => r.Grupoid, g => g.Grupoid, (r, g) => new { r.Usuarioid, g.Acessototal })
+            .Where(x => x.Acessototal)
+            .Select(x => x.Usuarioid)
+            .ToHashSet();
+
+    public IEnumerable<object> ListaTodos()
     {
-        private readonly IUsuarioDAL _dal;
+        return _db.Usuarios.AsNoTracking()
+            .Select(u => (object)new { u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo, u.Datainclusao })
+            .ToList();
+    }
 
-        public UsuarioRepositorio(CMSXData.Models.CmsxDbContext db, IUsuarioDAL dal) : base(db) { _dal = dal; }
+    public IEnumerable<object> ListaPorAplicacao(string aplicacaoid)
+    {
+        var adminIds = AdminIds();
+        return _db.Relusuarioaplicacaos.AsNoTracking()
+            .Where(r => r.Aplicacaoid == aplicacaoid)
+            .Join(_db.Usuarios.AsNoTracking(), r => r.Usuarioid, u => u.Userid,
+                (r, u) => new { u.Userid, u.Nome, u.Sobrenome, u.Apelido, u.Ativo, u.Datainclusao })
+            .AsEnumerable()
+            .Where(u => !adminIds.Contains(u.Userid))
+            .Cast<object>()
+            .ToList();
+    }
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
-        public Usuario ObtemUsuarioPorId(Guid id) => throw new NotImplementedException();
-        public void CriaUsuario() => throw new NotImplementedException();
-        public List<Usuario> ListaUsuarios() => throw new NotImplementedException();
-        public List<Usuario> ListaUsuariosPorAppId() => throw new NotImplementedException();
-        public void InativaUsuario() => throw new NotImplementedException();
+    public Usuario? BuscaPorId(string id) =>
+        _db.Usuarios.AsNoTracking().FirstOrDefault(u => u.Userid == id);
+
+    public bool PertenceAplicacao(string userid, string aplicacaoid) =>
+        _db.Relusuarioaplicacaos.Any(r => r.Usuarioid == userid && r.Aplicacaoid == aplicacaoid);
+
+    public void Criar(Usuario usuario, Relusuarioaplicacao? vinculo)
+    {
+        _db.Usuarios.Add(usuario);
+        if (vinculo != null)
+            _db.Relusuarioaplicacaos.Add(vinculo);
+        _db.SaveChanges();
+    }
+
+    public void Atualizar(Usuario usuario)
+    {
+        _db.Usuarios.Update(usuario);
+        _db.SaveChanges();
+    }
+
+    public void Remover(Usuario usuario)
+    {
+        _db.Usuarios.Remove(usuario);
+        _db.SaveChanges();
     }
 }
