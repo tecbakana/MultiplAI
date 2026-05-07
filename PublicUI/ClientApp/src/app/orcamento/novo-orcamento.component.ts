@@ -106,6 +106,8 @@ interface ItemOrcamento {
 export class NovoOrcamentoComponent implements OnInit {
   token = '';
   enviando = false;
+  gerando = false;
+  preview: any = null;
   sucesso = false;
   erro = '';
   erroSelecao = '';
@@ -345,13 +347,42 @@ export class NovoOrcamentoComponent implements OnInit {
     };
 
     this.http.post('/api/publico/orcamento', payload).subscribe({
-      next: () => { this.sucesso = true; this.enviando = false; },
+      next: () => { this.sucesso = true; this.enviando = false; this.preview = null; },
       error: () => { this.erro = 'Erro ao salvar orçamento. Tente novamente.'; this.enviando = false; }
     });
   }
 
+
+  gerar() {
+    this.erro = '';
+    if (!this.form.nome.trim()) { this.erro = 'Nome do cliente é obrigatório.'; return; }
+    if (this.itensCompostos.length === 0 && this.itens.filter(i => i.descricao.trim()).length === 0) {
+      this.erro = 'Adicione pelo menos um item ao orçamento.'; return;
+    }
+    this.preview = {
+      ...this.form,
+      itensCompostos: this.itensCompostos,
+      itens: this.itens.filter(i => i.descricao.trim())
+    };
+  }
+
+  formatarValor(v: number | null | undefined): string {
+    if (v == null) return '—';
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  calcMoItemCost(mo: MaoDeObraPublica, qtd: number): number {
+    if (mo.tipo === 'capacidade_dia' && mo.capacidadeDia && mo.valorDia)
+      return Math.ceil(qtd / mo.capacidadeDia) * mo.valorDia;
+    if (mo.tipo === 'milheiro' && mo.valorMilheiro)
+      return Math.ceil(qtd / 1000) * mo.valorMilheiro;
+    return 0;
+  }
+
+
   novoOrcamento() {
     this.sucesso = false;
+    this.preview = null;
     this.form = { nome: '', email: '', telefone: '', descricaoservico: '', valorestimado: null, prazo: '', nomevendedor: '' };
     this.itens = [];
     this.itensCompostos = [];
