@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
-using CMSAPI.Services;
+using ICMSX;
 
 namespace CMSAPI.Controllers;
 
@@ -11,12 +11,12 @@ namespace CMSAPI.Controllers;
 [Authorize]
 public class PedidosController : Controller
 {
-    private readonly CmsxDbContext _context;
-    private readonly PedidoServiceBusPublisher _publisher;
+    private readonly IPedidoRepositorio _repo;
+    private readonly IEventPublisher _publisher;
 
-    public PedidosController(CmsxDbContext context, PedidoServiceBusPublisher publisher)
+    public PedidosController(IPedidoRepositorio repo, IEventPublisher publisher)
     {
-        _context   = context;
+        _repo      = repo;
         _publisher = publisher;
     }
 
@@ -24,63 +24,43 @@ public class PedidosController : Controller
         (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
 
     [HttpGet]
-    public IActionResult Get([FromQuery] string? aplicacaoid = null, [FromQuery] string? status = null)
+    public async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null, [FromQuery] string? status = null)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var q = _context.Pedidos.AsQueryable();
+        var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
 
-        if (acessoTotal)
+        var lista = await _repo.ListaAsync(appId, status);
+
+        return Ok(lista.Select(p => new
         {
-            if (!string.IsNullOrEmpty(aplicacaoid))
-                q = q.Where(p => p.Aplicacaoid == aplicacaoid);
-        }
-        else
-        {
-            q = q.Where(p => p.Aplicacaoid == claimAppId);
-        }
-
-        if (!string.IsNullOrEmpty(status))
-            q = q.Where(p => p.Statusatual == status);
-
-        var resultado = q
-            .OrderByDescending(p => p.Datainclusao)
-            .Select(p => new
-            {
-                p.Pedidoid,
-                p.Aplicacaoid,
-                p.Numeropedido,
-                p.Clientenome,
-                p.Clienteemail,
-                p.Valorpedido,
-                p.Statusatual,
-                p.Datainclusao
-            })
-            .ToArray();
-
-        return Ok(resultado);
+            p.Pedidoid,
+            p.Aplicacaoid,
+            p.Numeropedido,
+            p.Clientenome,
+            p.Clienteemail,
+            p.Valorpedido,
+            p.Statusatual,
+            p.Datainclusao
+        }));
     }
 
     [HttpGet("{id}/timeline")]
-    public IActionResult GetTimeline(Guid id)
+    public async Task<IActionResult> GetTimeline(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var pedido = _context.Pedidos.FirstOrDefault(p => p.Pedidoid == id);
+        var pedido = await _repo.BuscaPorIdAsync(id);
         if (pedido is null) return NotFound();
         if (!acessoTotal && pedido.Aplicacaoid != claimAppId) return Forbid();
 
-        var timeline = _context.Statuspedidos
-            .Where(s => s.Pedidoid == id)
-            .OrderBy(s => s.Datahora)
-            .Select(s => new
-            {
-                s.Statuspedidoid,
-                s.Status,
-                s.Descricao,
-                s.Datahora
-            })
-            .ToArray();
+        var timeline = await _repo.ListaTimelineAsync(id);
 
-        return Ok(timeline);
+        return Ok(timeline.Select(s => new
+        {
+            s.Statuspedidoid,
+            s.Status,
+            s.Descricao,
+            s.Datahora
+        }));
     }
 
     [HttpPost]
@@ -92,19 +72,18 @@ public class PedidosController : Controller
 
         var pedido = new Pedido
         {
-            Pedidoid     = Guid.NewGuid(),
-            Aplicacaoid  = appId,
-            Numeropedido = dto.Numeropedido,
-            Clientenome  = dto.Clientenome,
-            Clienteemail = dto.Clienteemail,
-            Valorpedido  = dto.Valorpedido,
+            Pedidoid        = Guid.NewGuid(),
+            Aplicacaoid     = appId,
+            Numeropedido    = dto.Numeropedido,
+            Clientenome     = dto.Clientenome,
+            Clienteemail    = dto.Clienteemail,
+            Valorpedido     = dto.Valorpedido,
             MetodoPagamento = dto.MetodoPagamento,
-            Statusatual  = "aguardando_envio",
-            Datainclusao = DateTime.UtcNow
+            Statusatual     = "aguardando_envio",
+            Datainclusao    = DateTime.UtcNow
         };
 
-        _context.Pedidos.Add(pedido);
-        _context.Statuspedidos.Add(new Statuspedido
+        await _repo.CriarAsync(pedido, new Statuspedido
         {
             Statuspedidoid = Guid.NewGuid(),
             Pedidoid       = pedido.Pedidoid,
@@ -112,14 +91,13 @@ public class PedidosController : Controller
             Descricao      = "Pedido recebido, aguardando envio ao processador.",
             Datahora       = DateTime.UtcNow
         });
-        await _context.SaveChangesAsync();
 
         try
         {
             await _publisher.PublicarPedidoAsync(pedido);
 
             pedido.Statusatual = "criado";
-            _context.Statuspedidos.Add(new Statuspedido
+            await _repo.AtualizarStatusAsync(pedido, new Statuspedido
             {
                 Statuspedidoid = Guid.NewGuid(),
                 Pedidoid       = pedido.Pedidoid,
@@ -127,12 +105,11 @@ public class PedidosController : Controller
                 Descricao      = "Pedido publicado no Service Bus com sucesso.",
                 Datahora       = DateTime.UtcNow
             });
-            await _context.SaveChangesAsync();
         }
         catch (Exception)
         {
-            // Compensação: mantém status aguardando_envio para reprocessamento posterior
-            _context.Statuspedidos.Add(new Statuspedido
+            pedido.Statusatual = "erro_envio";
+            await _repo.AtualizarStatusAsync(pedido, new Statuspedido
             {
                 Statuspedidoid = Guid.NewGuid(),
                 Pedidoid       = pedido.Pedidoid,
@@ -140,8 +117,6 @@ public class PedidosController : Controller
                 Descricao      = "Falha ao publicar no Service Bus. Pedido pendente de reenvio.",
                 Datahora       = DateTime.UtcNow
             });
-            pedido.Statusatual = "erro_envio";
-            await _context.SaveChangesAsync();
         }
 
         return CreatedAtAction(nameof(GetTimeline), new { id = pedido.Pedidoid }, new
@@ -162,7 +137,7 @@ public class PedidosController : Controller
     public async Task<IActionResult> Reenviar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var pedido = _context.Pedidos.FirstOrDefault(p => p.Pedidoid == id);
+        var pedido = await _repo.BuscaPorIdAsync(id);
         if (pedido is null) return NotFound();
         if (!acessoTotal && pedido.Aplicacaoid != claimAppId) return Forbid();
         if (pedido.Statusatual != "erro_envio" && pedido.Statusatual != "aguardando_envio")
@@ -173,7 +148,7 @@ public class PedidosController : Controller
             await _publisher.PublicarPedidoAsync(pedido);
 
             pedido.Statusatual = "criado";
-            _context.Statuspedidos.Add(new Statuspedido
+            await _repo.AtualizarStatusAsync(pedido, new Statuspedido
             {
                 Statuspedidoid = Guid.NewGuid(),
                 Pedidoid       = pedido.Pedidoid,
@@ -181,7 +156,6 @@ public class PedidosController : Controller
                 Descricao      = "Pedido reenviado ao Service Bus com sucesso.",
                 Datahora       = DateTime.UtcNow
             });
-            await _context.SaveChangesAsync();
             return Ok(new { message = "Pedido reenviado com sucesso." });
         }
         catch (Exception)
@@ -190,8 +164,13 @@ public class PedidosController : Controller
         }
     }
 
-    public class NovoPedido : Pedido
+    public class NovoPedido
     {
-       
+        public string? Aplicacaoid { get; set; }
+        public string? Numeropedido { get; set; }
+        public string? Clientenome { get; set; }
+        public string? Clienteemail { get; set; }
+        public decimal? Valorpedido { get; set; }
+        public string? MetodoPagamento { get; set; }
     }
 }

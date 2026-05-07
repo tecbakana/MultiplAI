@@ -11,9 +11,9 @@ namespace CMSXBLL
         public Guid CategoriaId { get; set; }
         public Guid AplicacaoId { get; set; }
         public Guid ?CategoriaIdPai { get; set; }
-        public string Nome { get; set; }
-        public string NomePai { get; set; }
-        public string Descricao { get; set; }
+        public string? Nome { get; set; }
+        public string? NomePai { get; set; }
+        public string? Descricao { get; set; }
         public int TipoCategoria { get; set; }
         #endregion
 

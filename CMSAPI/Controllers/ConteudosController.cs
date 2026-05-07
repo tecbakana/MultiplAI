@@ -2,136 +2,111 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
-namespace CMSAPI.Controllers
+namespace CMSAPI.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+[Authorize]
+public class ConteudosController : Controller
 {
-    [ApiController]
-    [Route("[controller]")]
-    [Authorize]
-    public class ConteudosController : Controller
+    private readonly IConteudoRepositorio _repo;
+    public ConteudosController(IConteudoRepositorio repo) { _repo = repo; }
+
+    private (bool acessoTotal, string? aplicacaoid) UserContext() =>
+        (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
+
+    [HttpGet]
+    public async Task<IActionResult> Get([FromQuery] string? areaid = null, [FromQuery] string? cateriaid = null, [FromQuery] string? aplicacaoid = null)
     {
-        private readonly CmsxDbContext _context;
-        public ConteudosController(CmsxDbContext context) { _context = context; }
+        var (acessoTotal, claimAppId) = UserContext();
+        var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
+        return Ok(await _repo.ListaAsync(filtroApp, areaid, cateriaid));
+    }
 
-        private (bool acessoTotal, string? aplicacaoid) UserContext() =>
-            (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
-
-        [HttpGet]
-        public IEnumerable<Conteudo> Get([FromQuery] string? areaid = null, [FromQuery] string? cateriaid = null, [FromQuery] string? aplicacaoid = null)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(string id)
+    {
+        var (acessoTotal, claimAppId) = UserContext();
+        var item = await _repo.BuscaPorIdAsync(id);
+        if (item == null) return NotFound();
+        if (!acessoTotal)
         {
-            var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Conteudos.AsQueryable();
+            var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
+            if (appId != claimAppId) return Forbid();
+        }
+        return Ok(item);
+    }
 
-            if (!acessoTotal)
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == claimAppId)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(c => c.Areaid != null && areasIds.Contains(c.Areaid));
-            }
-            else if (!string.IsNullOrEmpty(aplicacaoid))
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == aplicacaoid)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(c => c.Areaid != null && areasIds.Contains(c.Areaid));
-            }
+    public class NovoConteudoDto
+    {
+        public string? Titulo { get; set; }
+        public string? Texto { get; set; }
+        public string? Autor { get; set; }
+        public string? Areaid { get; set; }
+        public string? Cateriaid { get; set; }
+        public DateTime? Datafinal { get; set; }
+    }
 
-            if (!string.IsNullOrEmpty(areaid))
-                q = q.Where(c => c.Areaid == areaid);
-            if (!string.IsNullOrEmpty(cateriaid))
-                q = q.Where(c => c.Cateriaid == cateriaid);
-
-            return q.OrderByDescending(c => c.Datainclusao).ToArray();
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] NovoConteudoDto dto)
+    {
+        var (acessoTotal, claimAppId) = UserContext();
+        if (!acessoTotal && !string.IsNullOrEmpty(dto.Areaid))
+        {
+            var appId = await _repo.AplicacaoidDaAreaAsync(dto.Areaid);
+            if (appId != claimAppId) return Forbid();
         }
 
-        [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        var item = new Conteudo
         {
-            var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Conteudos.Find(id);
-            if (item == null) return NotFound();
-            if (!acessoTotal)
-            {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
-            }
-            return Ok(item);
-        }
+            Conteudoid   = Guid.NewGuid().ToString(),
+            Titulo       = dto.Titulo,
+            Texto        = dto.Texto,
+            Autor        = dto.Autor,
+            Areaid       = dto.Areaid,
+            Cateriaid    = dto.Cateriaid,
+            Datafinal    = dto.Datafinal,
+            Datainclusao = DateTime.UtcNow
+        };
+        await _repo.CriarAsync(item);
+        return Ok(item);
+    }
 
-        public class NovoConteudoDto
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(string id, [FromBody] Conteudo item)
+    {
+        var (acessoTotal, claimAppId) = UserContext();
+        var existing = await _repo.BuscaPorIdAsync(id);
+        if (existing == null) return NotFound();
+        if (!acessoTotal)
         {
-            public string? Titulo { get; set; }
-            public string? Texto { get; set; }
-            public string? Autor { get; set; }
-            public string? Areaid { get; set; }
-            public string? Cateriaid { get; set; }
-            public DateTime? Datafinal { get; set; }
+            var appId = await _repo.AplicacaoidDaAreaAsync(existing.Areaid);
+            if (appId != claimAppId) return Forbid();
         }
+        existing.Titulo    = item.Titulo;
+        existing.Texto     = item.Texto;
+        existing.Autor     = item.Autor;
+        existing.Cateriaid = item.Cateriaid;
+        existing.Areaid    = item.Areaid;
+        existing.Datafinal = item.Datafinal;
+        await _repo.AtualizarAsync(existing);
+        return Ok(existing);
+    }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] NovoConteudoDto dto)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var (acessoTotal, claimAppId) = UserContext();
+        var item = await _repo.BuscaPorIdAsync(id);
+        if (item == null) return NotFound();
+        if (!acessoTotal)
         {
-            var (acessoTotal, claimAppId) = UserContext();
-            if (!acessoTotal && !string.IsNullOrEmpty(dto.Areaid))
-            {
-                var area = _context.Areas.Find(dto.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
-            }
-
-            var item = new Conteudo
-            {
-                Conteudoid   = Guid.NewGuid().ToString(),
-                Titulo       = dto.Titulo,
-                Texto        = dto.Texto,
-                Autor        = dto.Autor,
-                Areaid       = dto.Areaid,
-                Cateriaid    = dto.Cateriaid,
-                Datafinal    = dto.Datafinal,
-                Datainclusao = DateTime.UtcNow
-            };
-            _context.Conteudos.Add(item);
-            _context.SaveChanges();
-            return Ok(item);
+            var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
+            if (appId != claimAppId) return Forbid();
         }
-
-        [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] Conteudo item)
-        {
-            var (acessoTotal, claimAppId) = UserContext();
-            var existing = _context.Conteudos.Find(id);
-            if (existing == null) return NotFound();
-            if (!acessoTotal)
-            {
-                var area = _context.Areas.Find(existing.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
-            }
-            existing.Titulo    = item.Titulo;
-            existing.Texto     = item.Texto;
-            existing.Autor     = item.Autor;
-            existing.Cateriaid = item.Cateriaid;
-            existing.Areaid    = item.Areaid;
-            existing.Datafinal = item.Datafinal;
-            _context.SaveChanges();
-            return Ok(existing);
-        }
-
-        [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
-        {
-            var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Conteudos.Find(id);
-            if (item == null) return NotFound();
-            if (!acessoTotal)
-            {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
-            }
-            _context.Conteudos.Remove(item);
-            _context.SaveChanges();
-            return Ok();
-        }
+        await _repo.RemoverAsync(item);
+        return Ok();
     }
 }

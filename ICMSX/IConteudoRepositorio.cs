@@ -1,20 +1,13 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface IConteudoRepositorio
 {
-    public interface IConteudoRepositorio
-    {
-        List<Conteudo> ObtemConteudoPorId();
-        void MakeConnection(dynamic prop);
-        void CriaNovoConteudo(Conteudo conteudo);
-        void EditaConteudo(Conteudo conteudo);
-        void CreateContent();
-        void CreateValue();
-        void EditContent();
-        void EditValue();
-        List<Conteudo> ListaConteudoPorAreaId();
-        List<Conteudo> ListaConteudoPorAplicacaoId();
-        List<Conteudo> ListaValor();
-        void InativaConteudo();
-    }
+    Task<IEnumerable<Conteudo>> ListaAsync(string? aplicacaoid, string? areaid, string? cateriaid);
+    Task<Conteudo?> BuscaPorIdAsync(string id);
+    Task<string?> AplicacaoidDaAreaAsync(string? areaid);
+    Task CriarAsync(Conteudo item);
+    Task AtualizarAsync(Conteudo item);
+    Task RemoverAsync(Conteudo item);
 }

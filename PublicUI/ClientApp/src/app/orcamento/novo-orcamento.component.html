@@ -1,227 +1,326 @@
 <div class="container py-4" style="max-width:700px">
 
-  <!-- Sucesso -->
-  <div *ngIf="sucesso" class="text-center py-5">
-    <div style="font-size:3rem">&#10003;</div>
-    <h4 class="mt-3">Orçamento salvo com sucesso!</h4>
-    <p class="text-muted">Você pode tirar um print desta tela ou criar um novo orçamento.</p>
-    <button class="btn btn-outline-primary mt-2" (click)="novoOrcamento()">Novo orçamento</button>
-  </div>
+    <!-- Sucesso -->
+    <div *ngIf="sucesso" class="text-center py-5">
+        <div style="font-size:3rem">&#10003;</div>
+        <h4 class="mt-3">Orçamento salvo com sucesso!</h4>
+        <p class="text-muted">Você pode tirar um print desta tela ou criar um novo orçamento.</p>
+        <button class="btn btn-outline-primary mt-2" (click)="novoOrcamento()">Novo orçamento</button>
+    </div>
 
-  <!-- Erro de link inválido -->
-  <div *ngIf="!sucesso && !token" class="alert alert-danger">
-    Link inválido. Solicite um novo link ao administrador.
-  </div>
+    <!-- Erro de link inválido -->
+    <div *ngIf="!sucesso && !token" class="alert alert-danger">
+        Link inválido. Solicite um novo link ao administrador.
+    </div>
 
-  <!-- Formulário -->
-  <div *ngIf="!sucesso && token">
-    <h4 class="mb-4">Novo Orçamento</h4>
+    <!-- Formulário -->
+    <div *ngIf="!sucesso && token">
+        <h4 class="mb-4">Novo Orçamento</h4>
 
-    <div class="alert alert-danger" *ngIf="erro">{{ erro }}</div>
+        <div class="alert alert-danger" *ngIf="erro">{{ erro }}</div>
 
-    <fieldset [disabled]="enviando">
+        <fieldset [disabled]="enviando">
 
-      <h6 class="text-muted mb-3">Dados do cliente</h6>
+            <h6 class="text-muted mb-3">Dados do cliente</h6>
 
-      <div class="mb-3">
-        <label class="form-label">Nome <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="form.nome" placeholder="Nome completo do cliente">
-      </div>
+            <div class="mb-3">
+                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="form.nome" placeholder="Nome completo do cliente">
+            </div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-md-6">
-          <label class="form-label">E-mail</label>
-          <input type="email" class="form-control" [(ngModel)]="form.email" placeholder="email@exemplo.com">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">E-mail</label>
+                    <input type="email" class="form-control" [(ngModel)]="form.email" placeholder="email@exemplo.com">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Telefone</label>
+                    <input type="text" class="form-control" [(ngModel)]="form.telefone" placeholder="(00) 00000-0000">
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="mb-3">
+                <label class="form-label">Prazo</label>
+                <input type="text" class="form-control" [(ngModel)]="form.prazo"
+                       placeholder="Ex: 5 dias úteis, 30/05/2025">
+            </div>
+
+            <!-- Itens -->
+            <hr>
+            <h6 class="text-muted mb-3">Itens do orçamento</h6>
+
+            <!-- Seletor de produto -->
+            <div class="card mb-3">
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label class="form-label form-label-sm fw-semibold">Produto</label>
+                        <select class="form-select form-select-sm"
+                                [(ngModel)]="produtoSelecionadoId"
+                                (ngModelChange)="onProdutoChange()">
+                            <option value="">Selecione um produto...</option>
+                            <option *ngFor="let p of produtos" [value]="p.produtoid">{{ p.nome }}</option>
+                        </select>
+                        <div *ngIf="produtos.length === 0" class="text-muted small mt-1">
+                            Nenhum produto cadastrado para este tenant.
+                        </div>
+                    </div>
+
+                    <ng-container *ngIf="produtoSelecionado">
+
+                        <!-- Selects em cascata -->
+                        <div *ngFor="let cadeia of cadeias; let ci = index; trackBy: trackByIndex" class="mb-3">
+                            <div *ngIf="cadeia.grupoLabel" class="fw-semibold small text-secondary mb-1 mt-2">{{ cadeia.grupoLabel }}</div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div *ngFor="let level of cadeia.levels; let li = index; trackBy: trackByIndex"
+                                     style="flex: 1 1 140px; min-width: 140px;">
+                                    <label class="form-label form-label-sm fw-semibold">{{ level.label }}</label>
+                                    <select class="form-select form-select-sm"
+                                            [(ngModel)]="level.selecionado"
+                                            (ngModelChange)="onLevelChange(ci, li)">
+                                        <option value="">Selecione...</option>
+                                        <option *ngFor="let item of level.itens" [value]="item.id">
+                                            {{ item.nome }}<ng-container *ngIf="level.isLeaf && item.valorAdicional > 0"> (+{{ item.valorAdicional | currency:'BRL':'symbol':'1.2-2' }})</ng-container>
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes de atributos standalone -->
+                        <div *ngIf="checkboxAtribs.length > 0" class="mb-3">
+                            <div class="fw-semibold small mb-1">Atributos</div>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div *ngFor="let cb of checkboxAtribs; let ci = index; trackBy: trackByIndex"
+                                     class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           [id]="'cb_' + ci"
+                                           [(ngModel)]="cb.selecionado">
+                                    <label class="form-check-label small" [for]="'cb_' + ci">
+                                        {{ cb.label }} <span class="text-muted">(+{{ cb.valorAdicional | currency:'BRL':'symbol':'1.2-2' }})</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumo de valor -->
+                        <div class="d-flex gap-3 mb-3 small text-muted">
+                            <span *ngIf="produtoSelecionado!.unidadeVenda">
+                                Unidade: <strong>{{ produtoSelecionado!.unidadeVenda }}</strong>
+                            </span>
+                            <span>
+                                Valor base: <strong>{{ produtoSelecionado!.valor | currency:'BRL':'symbol':'1.2-2' }}</strong>
+                            </span>
+                        </div>
+
+                        <div *ngIf="erroSelecao" class="text-danger small mb-2">{{ erroSelecao }}</div>
+
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="adicionarItem()">
+                            + Adicionar item
+                        </button>
+
+                    </ng-container>
+
+                </div>
+            </div>
+
+            <!-- Lista de itens -->
+            <div *ngIf="itensCompostos.length === 0 && itens.length === 0" class="text-muted small mb-3">
+                Nenhum item adicionado.
+            </div>
+
+            <div class="table-responsive mb-3" *ngIf="itensCompostos.length > 0 || itens.length > 0">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Produto / Opções</th>
+                            <th style="width:90px">Qtd</th>
+                            <th style="width:110px">Vlr Unit.</th>
+                            <th style="width:110px">Total</th>
+                            <th style="width:40px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        <tr *ngFor="let item of itensCompostos; let i = index">
+                            <td>
+                                <div class="small fw-semibold">{{ item.produtoNome }}</div>
+                                <div class="text-muted" style="font-size:0.75rem">
+                                    <ng-container *ngFor="let s of item.selecoes; let last = last">
+                                        {{ s.atributoNome }}: {{ s.opcaoNome }}<span *ngIf="!last"> | </span>
+                                    </ng-container>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm"
+                                       [(ngModel)]="item.quantidade"
+                                       (ngModelChange)="onQuantidadeCompostoChange(item)"
+                                       min="0.01" step="0.01">
+                            </td>
+                            <td class="text-muted small">
+                                <div>{{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</div>
+                                <div *ngIf="item.totalMo > 0" class="text-info" style="font-size:0.7rem">
+                                    + MO: {{ item.totalMo | currency:'BRL':'symbol':'1.2-2' }}
+                                </div>
+                            </td>
+                            <td class="fw-semibold small">
+                                {{ item.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeItemComposto(i)">&#x2715;</button>
+                            </td>
+                        </tr>
+
+                        <tr *ngFor="let item of itens; let i = index">
+                            <td class="small">{{ item.descricao }}</td>
+                            <td>
+                                <input type="number" class="form-control form-control-sm"
+                                       [(ngModel)]="item.quantidade"
+                                       (ngModelChange)="atualizarTotal()"
+                                       min="0.01" step="0.01">
+                            </td>
+                            <td class="text-muted small">{{ item.valor | currency:'BRL':'symbol':'1.2-2' }}</td>
+                            <td class="fw-semibold small">{{ calcularValorLinha(item) | currency:'BRL':'symbol':'1.2-2' }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        (click)="itens.splice(i, 1); atualizarTotal()">
+                                    &#x2715;
+                                </button>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <td colspan="3" class="text-end fw-semibold">Valor estimado:</td>
+                            <td class="fw-semibold">{{ form.valorestimado | currency:'BRL':'symbol':'1.2-2' }}</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <hr>
+            <h6 class="text-muted mb-3">Vendedor</h6>
+
+            <div class="mb-4">
+                <label class="form-label">Nome do vendedor</label>
+                <input type="text" class="form-control" [(ngModel)]="form.nomevendedor" placeholder="Seu nome">
+            </div>
+
+            <div class="d-grid">
+                <button type="button" class="btn btn-primary btn-lg" (click)="gerar()" [disabled]="enviando">
+                    Gerar orçamento
+                </button>
+            </div>
+
+        </fieldset>
+    </div>
+
+    <!-- Prévia do orçamento -->
+    <div class="card mt-4" *ngIf="preview">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Prévia do orçamentokkk</span>
+            <button class="btn btn-sm btn-outline-secondary" (click)="preview = null">✕</button>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">Telefone</label>
-          <input type="text" class="form-control" [(ngModel)]="form.telefone" placeholder="(00) 00000-0000">
-        </div>
-      </div>
-
-      <hr>
-      <h6 class="text-muted mb-3">Orçamento</h6>
-
-      <div class="mb-3">
-        <label class="form-label">Descrição do serviço</label>
-        <textarea class="form-control" rows="3" [(ngModel)]="form.descricaoservico"
-                  placeholder="Descreva o serviço ou produto orçado..."></textarea>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Prazo</label>
-        <input type="text" class="form-control" [(ngModel)]="form.prazo"
-               placeholder="Ex: 5 dias úteis, 30/05/2025">
-      </div>
-
-      <!-- Itens -->
-      <hr>
-      <h6 class="text-muted mb-3">Itens do orçamento</h6>
-
-      <!-- Seletor de produto -->
-      <div class="card mb-3">
         <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-5">Cliente</dt>
+                <dd class="col-7">{{ preview.nome }}</dd>
 
-          <div class="mb-3">
-            <label class="form-label form-label-sm fw-semibold">Produto</label>
-            <select class="form-select form-select-sm"
-                    [(ngModel)]="produtoSelecionadoId"
-                    (ngModelChange)="onProdutoChange()">
-              <option value="">Selecione um produto...</option>
-              <option *ngFor="let p of produtos" [value]="p.produtoid">{{ p.nome }}</option>
-            </select>
-            <div *ngIf="produtos.length === 0" class="text-muted small mt-1">
-              Nenhum produto cadastrado para este tenant.
+                <dt class="col-5">E-mail</dt>
+                <dd class="col-7">{{ preview.email || '—' }}</dd>
+
+                <dt class="col-5">Telefone</dt>
+                <dd class="col-7">{{ preview.telefone || '—' }}</dd>
+
+                <dt class="col-5">Vendedor</dt>
+                <dd class="col-7">{{ preview.nomevendedor || '—' }}</dd>
+
+                <dt class="col-5">Valor estimado</dt>
+                <dd class="col-7">{{ formatarValor(preview.valorestimado) }}</dd>
+
+                <dt class="col-5">Prazo</dt>
+                <dd class="col-7">{{ preview.prazo || '—' }}</dd>
+            </dl>
+
+            <!-- Itens compostos -->
+            <ng-container *ngIf="preview.itensCompostos?.length > 0">
+                <hr>
+                <strong>Itens</strong>
+                <table class="table table-sm mt-2 mb-0">
+                    <thead>
+                        <tr>
+                            <th>Produto / Opções</th>
+                            <th class="text-center">Qtd</th>
+                            <th class="text-end">Vlr Unit.</th>
+                            <th>Mão de Obra</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of preview.itensCompostos">
+                            <td>
+                                <div class="fw-semibold small">{{ item.produtoNome }}</div>
+                                <div class="text-muted" style="font-size:0.75rem">
+                                    <ng-container *ngFor="let s of item.selecoes; let last = last">
+                                        {{ s.atributoNome }}: {{ s.opcaoNome }}<span *ngIf="!last"> | </span>
+                                    </ng-container>
+                                </div>
+                            </td>
+                            <td class="text-center small">{{ item.quantidade }}</td>
+                            <td class="text-end small">{{ formatarValor(item.valorUnitario) }}</td>
+                            <td class="small">
+                                <ng-container *ngIf="item.maosDeObra?.length > 0; else semMo">
+                                    <div *ngFor="let mo of item.maosDeObra" style="white-space:nowrap">
+                                        <span class="text-muted">{{ mo.descricao }}</span>
+                                        <span class="ms-2 text-info fw-semibold">{{ formatarValor(calcMoItemCost(mo, item.quantidade)) }}</span>
+                                    </div>
+                                </ng-container>
+                                <ng-template #semMo><span class="text-muted">—</span></ng-template>
+                            </td>
+                            <td class="text-end small fw-semibold">{{ formatarValor(item.valorTotal) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </ng-container>
+
+            <!-- Itens avulsos -->
+            <ng-container *ngIf="preview.itens?.length > 0">
+                <hr>
+                <strong>Itens avulsos</strong>
+                <table class="table table-sm mt-2 mb-0">
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th class="text-center">Qtd</th>
+                            <th class="text-end">Valor unit.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of preview.itens">
+                            <td>{{ item.descricao }}</td>
+                            <td class="text-center">{{ item.quantidade }}</td>
+                            <td class="text-end">{{ formatarValor(item.valor) }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </ng-container>
+
+            <hr>
+            <div class="mb-3">
+                <label class="form-label">Observações</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="form.descricaoservico"
+                          placeholder="Observações adicionais..."></textarea>
             </div>
-          </div>
-
-          <ng-container *ngIf="produtoSelecionado">
-
-            <!-- Selects em cascata -->
-            <div *ngFor="let cadeia of cadeias; let ci = index; trackBy: trackByIndex" class="mb-3">
-              <div *ngIf="cadeia.grupoLabel" class="fw-semibold small text-secondary mb-1 mt-2">{{ cadeia.grupoLabel }}</div>
-              <div class="d-flex flex-wrap gap-2">
-                <div *ngFor="let level of cadeia.levels; let li = index; trackBy: trackByIndex"
-                     style="flex: 1 1 140px; min-width: 140px;">
-                  <label class="form-label form-label-sm fw-semibold">{{ level.label }}</label>
-                  <select class="form-select form-select-sm"
-                          [(ngModel)]="level.selecionado"
-                          (ngModelChange)="onLevelChange(ci, li)">
-                    <option value="">Selecione...</option>
-                    <option *ngFor="let item of level.itens" [value]="item.id">
-                      {{ item.nome }}<ng-container *ngIf="level.isLeaf && item.valorAdicional > 0"> (+{{ item.valorAdicional | currency:'BRL':'symbol':'1.2-2' }})</ng-container>
-                    </option>
-                  </select>
-                </div>
-              </div>
+            <div class="d-grid">
+                <button type="button" class="btn btn-success btn-lg" (click)="salvar()" [disabled]="enviando">
+                    {{ enviando ? 'Salvando...' : 'Salvar orçamento' }}
+                </button>
             </div>
-
-            <!-- Checkboxes de atributos standalone -->
-            <div *ngIf="checkboxAtribs.length > 0" class="mb-3">
-              <div class="fw-semibold small mb-1">Atributos</div>
-              <div class="d-flex flex-wrap gap-3">
-                <div *ngFor="let cb of checkboxAtribs; let ci = index; trackBy: trackByIndex"
-                     class="form-check">
-                  <input class="form-check-input" type="checkbox"
-                         [id]="'cb_' + ci"
-                         [(ngModel)]="cb.selecionado">
-                  <label class="form-check-label small" [for]="'cb_' + ci">
-                    {{ cb.label }} <span class="text-muted">(+{{ cb.valorAdicional | currency:'BRL':'symbol':'1.2-2' }})</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Resumo de valor -->
-            <div class="d-flex gap-3 mb-3 small text-muted">
-              <span *ngIf="produtoSelecionado!.unidadeVenda">
-                Unidade: <strong>{{ produtoSelecionado!.unidadeVenda }}</strong>
-              </span>
-              <span>
-                Valor base: <strong>{{ produtoSelecionado!.valor | currency:'BRL':'symbol':'1.2-2' }}</strong>
-              </span>
-            </div>
-
-            <div *ngIf="erroSelecao" class="text-danger small mb-2">{{ erroSelecao }}</div>
-
-            <button type="button" class="btn btn-sm btn-outline-primary" (click)="adicionarItem()">
-              + Adicionar item
-            </button>
-
-          </ng-container>
-
         </div>
-      </div>
-
-      <!-- Lista de itens -->
-      <div *ngIf="itensCompostos.length === 0 && itens.length === 0" class="text-muted small mb-3">
-        Nenhum item adicionado.
-      </div>
-
-      <div class="table-responsive mb-3" *ngIf="itensCompostos.length > 0 || itens.length > 0">
-        <table class="table table-sm align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Produto / Opções</th>
-              <th style="width:90px">Qtd</th>
-              <th style="width:110px">Vlr Unit.</th>
-              <th style="width:110px">Total</th>
-              <th style="width:40px"></th>
-            </tr>
-          </thead>
-          <tbody>
-
-            <tr *ngFor="let item of itensCompostos; let i = index">
-              <td>
-                <div class="small fw-semibold">{{ item.produtoNome }}</div>
-                <div class="text-muted" style="font-size:0.75rem">
-                  <ng-container *ngFor="let s of item.selecoes; let last = last">
-                    {{ s.atributoNome }}: {{ s.opcaoNome }}<span *ngIf="!last"> | </span>
-                  </ng-container>
-                </div>
-              </td>
-              <td>
-                <input type="number" class="form-control form-control-sm"
-                       [(ngModel)]="item.quantidade"
-                       (ngModelChange)="onQuantidadeCompostoChange(item)"
-                       min="0.01" step="0.01">
-              </td>
-              <td class="text-muted small">
-                <div>{{ item.valorUnitario | currency:'BRL':'symbol':'1.2-2' }}</div>
-                <div *ngIf="item.totalMo > 0" class="text-info" style="font-size:0.7rem">
-                  + MO: {{ item.totalMo | currency:'BRL':'symbol':'1.2-2' }}
-                </div>
-              </td>
-              <td class="fw-semibold small">
-                {{ item.valorTotal | currency:'BRL':'symbol':'1.2-2' }}
-              </td>
-              <td>
-                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeItemComposto(i)">&#x2715;</button>
-              </td>
-            </tr>
-
-            <tr *ngFor="let item of itens; let i = index">
-              <td class="small">{{ item.descricao }}</td>
-              <td>
-                <input type="number" class="form-control form-control-sm"
-                       [(ngModel)]="item.quantidade"
-                       (ngModelChange)="atualizarTotal()"
-                       min="0.01" step="0.01">
-              </td>
-              <td class="text-muted small">{{ item.valor | currency:'BRL':'symbol':'1.2-2' }}</td>
-              <td class="fw-semibold small">{{ calcularValorLinha(item) | currency:'BRL':'symbol':'1.2-2' }}</td>
-              <td>
-                <button type="button" class="btn btn-sm btn-outline-danger"
-                        (click)="itens.splice(i, 1); atualizarTotal()">&#x2715;</button>
-              </td>
-            </tr>
-
-          </tbody>
-          <tfoot>
-            <tr class="table-light">
-              <td colspan="3" class="text-end fw-semibold">Valor estimado:</td>
-              <td class="fw-semibold">{{ form.valorestimado | currency:'BRL':'symbol':'1.2-2' }}</td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      <hr>
-      <h6 class="text-muted mb-3">Vendedor</h6>
-
-      <div class="mb-4">
-        <label class="form-label">Nome do vendedor</label>
-        <input type="text" class="form-control" [(ngModel)]="form.nomevendedor" placeholder="Seu nome">
-      </div>
-
-      <div class="d-grid">
-        <button type="button" class="btn btn-primary btn-lg" (click)="salvar()" [disabled]="enviando">
-          {{ enviando ? 'Salvando...' : 'Salvar orçamento' }}
-        </button>
-      </div>
-
-    </fieldset>
-  </div>
+    </div>
 
 </div>

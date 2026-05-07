@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMSAPI.Publica", "CMSAPI.Pu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PublicUI", "PublicUI\PublicUI.csproj", "{130B117C-F5C0-412A-8C8D-36898BDFC323}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMSX.Tests", "CMSX.Tests\CMSX.Tests.csproj", "{DBC318D4-C0F0-4378-A878-BB73C20B51FE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,18 @@ Global
 		{130B117C-F5C0-412A-8C8D-36898BDFC323}.Release|x64.Build.0 = Release|Any CPU
 		{130B117C-F5C0-412A-8C8D-36898BDFC323}.Release|x86.ActiveCfg = Release|Any CPU
 		{130B117C-F5C0-412A-8C8D-36898BDFC323}.Release|x86.Build.0 = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|x64.Build.0 = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Debug|x86.Build.0 = Debug|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|x64.ActiveCfg = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|x64.Build.0 = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{DBC318D4-C0F0-4378-A878-BB73C20B51FE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

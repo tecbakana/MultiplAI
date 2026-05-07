@@ -5,27 +5,27 @@ using System.Text;
 
 namespace CMSXBLL
 {
-    public class RoteiroBLL
+    public class RoteiroBll
     {
         #region PROPERTIES
-        public int idRoteiro { get; set; }
-        public int idCidade { get; set; }
-        public int idFornecedor { get; set; }
-        public int idTabrot { get; set; }
-        public int idCidOrig { get; set; }
-        public string chaveId { get; set; }
-        public string textoRoteiro { get; set; }
-        public string tipoRoteiro { get; set; }
-        public string fornecedor { get; set; }
-        public string cidade { get; set; }
-        public string imagem { get; set; }
-        public string cidadeorigem { get; set; }
+        public int IdRoteiro { get; set; }
+        public int IdCidade { get; set; }
+        public int IdFornecedor { get; set; }
+        public int IdTabrot { get; set; }
+        public int IdCidOrig { get; set; }
+        public string? ChaveId { get; set; }
+        public string? TextoRoteiro { get; set; }
+        public string? TipoRoteiro { get; set; }
+        public string? Fornecedor { get; set; }
+        public string? Cidade { get; set; }
+        public string? Imagem { get; set; }
+        public string? CidadeOrigem { get; set; }
 
         #endregion
 
-        public static RoteiroBLL ObtemRoteiro()
+        public static RoteiroBll ObtemRoteiro()
         {
-            return new RoteiroBLL();
+            return new RoteiroBll();
         }
     }
 }

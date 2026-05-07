@@ -8,41 +8,43 @@ public class OrcamentoRepositorio : BaseRepositorio, IOrcamentoRepositorio
 {
     public OrcamentoRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<OrcamentoCabecalho> Lista(string aplicacaoid) =>
-        _db.OrcamentoCabecalhos
+    public async Task<IEnumerable<OrcamentoCabecalho>> ListaAsync(string aplicacaoid) =>
+        await _db.OrcamentoCabecalhos
+            .AsNoTracking()
             .Where(o => o.Aplicacaoid == aplicacaoid)
             .OrderByDescending(o => o.Datainclusao)
-            .ToList();
+            .ToListAsync();
 
-    public OrcamentoCabecalho? BuscaPorId(Guid id) =>
-        _db.OrcamentoCabecalhos
+    public async Task<OrcamentoCabecalho?> BuscaPorIdAsync(Guid id) =>
+        await _db.OrcamentoCabecalhos
             .Include(o => o.OrcamentoDetalhes)
             .Include(o => o.OrcamentoDetalheCompostos)
             .AsSplitQuery()
-            .FirstOrDefault(o => o.Orcamentoid == id);
+            .FirstOrDefaultAsync(o => o.Orcamentoid == id);
 
-    public void Criar(OrcamentoCabecalho cabecalho, IEnumerable<OrcamentoDetalhe> itens)
+    public async Task CriarAsync(OrcamentoCabecalho cabecalho, IEnumerable<OrcamentoDetalhe> itens)
     {
         _db.OrcamentoCabecalhos.Add(cabecalho);
         _db.OrcamentoDetalhes.AddRange(itens);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public IEnumerable<Produto> ListaProdutosPublicos(string aplicacaoid) =>
-        _db.Produtos
+    public async Task<IEnumerable<Produto>> ListaProdutosPublicosAsync(string aplicacaoid) =>
+        await _db.Produtos
+            .AsNoTracking()
             .Where(p => p.Aplicacaoid == aplicacaoid)
-            .ToList();
+            .ToListAsync();
 
-    public void ToggleAprovado(OrcamentoCabecalho orcamento)
+    public async Task ToggleAprovadoAsync(OrcamentoCabecalho orcamento)
     {
         orcamento.Aprovado = !orcamento.Aprovado;
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 
-    public void Remove(OrcamentoCabecalho orcamento)
+    public async Task RemoveAsync(OrcamentoCabecalho orcamento)
     {
         _db.OrcamentoDetalhes.RemoveRange(orcamento.OrcamentoDetalhes);
         _db.OrcamentoCabecalhos.Remove(orcamento);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

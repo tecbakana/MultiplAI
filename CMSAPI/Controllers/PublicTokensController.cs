@@ -1,4 +1,5 @@
 using CMSXData.Models;
+using ICMSX;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,11 +12,11 @@ namespace CMSAPI.Controllers;
 [Authorize]
 public class PublicTokensController : Controller
 {
-    private readonly CmsxDbContext _context;
+    private readonly IPublicTokenRepositorio _repo;
 
-    public PublicTokensController(CmsxDbContext context)
+    public PublicTokensController(IPublicTokenRepositorio repo)
     {
-        _context = context;
+        _repo = repo;
     }
 
     private (bool acessoTotal, string? aplicacaoid) UserContext() =>
@@ -23,23 +24,21 @@ public class PublicTokensController : Controller
          User.FindFirstValue("aplicacaoid"));
 
     [HttpGet]
-    public IActionResult Get([FromQuery] string? aplicacaoid = null)
+    public  async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
 
-        var lista = _context.PublicTokens
-            .Where(t => t.Aplicacaoid == appId)
-            .OrderByDescending(t => t.Datainclusao)
-            .Select(t => new
-            {
-                t.PublicTokenId,
-                t.Token,
-                t.Ativo,
-                t.Datainclusao,
-                t.Datavencimento
-            })
-            .ToList();
+        if (string.IsNullOrEmpty(appId)) return Forbid();
+
+        var lista = (await _repo.ListaAsync(appId)).Select(t => new
+        {
+            t.PublicTokenId,
+            t.Token,
+            t.Ativo,
+            t.Datainclusao,
+            t.Datavencimento
+        });
 
         return Ok(lista);
     }
@@ -51,7 +50,7 @@ public class PublicTokensController : Controller
     }
 
     [HttpPost]
-    public IActionResult Gerar([FromBody] GerarTokenDto dto)
+    public  async Task<IActionResult> Gerar([FromBody] GerarTokenDto dto)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(dto?.Aplicacaoid) ? dto.Aplicacaoid : claimAppId;
@@ -68,24 +67,21 @@ public class PublicTokensController : Controller
             Datavencimento = dto?.Datavencimento
         };
 
-        _context.PublicTokens.Add(token);
-        _context.SaveChanges();
+        await _repo.CriarAsync(token);
 
         return Ok(new { token.PublicTokenId, token.Token, token.Datainclusao });
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Revogar(Guid id)
+    public  async Task<IActionResult> Revogar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
 
-        var token = _context.PublicTokens.FirstOrDefault(t => t.PublicTokenId == id);
+        var token = await _repo.BuscaPorIdAsync(id);
         if (token == null) return NotFound();
         if (!acessoTotal && token.Aplicacaoid != claimAppId) return Forbid();
 
-        token.Ativo = false;
-        _context.SaveChanges();
-
+        await _repo.RevogarAsync(token);
         return Ok();
     }
 

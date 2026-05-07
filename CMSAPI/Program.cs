@@ -70,12 +70,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IAgentIAFactory, AgentIAFactory>();
 // builder.Services.AddHostedService<PedidosServiceBusConsumer>(); // ServiceBus desabilitado — namespace excluído
-builder.Services.AddScoped<PedidoServiceBusPublisher>(ps =>
-{
-    var config = ps.GetRequiredService<IConfiguration>();
-    var logger = ps.GetRequiredService<ILogger<PedidoServiceBusPublisher>>();
-    return new PedidoServiceBusPublisher(config, logger);
-});
+builder.Services.AddScoped<IEventPublisher, PedidoServiceBusPublisher>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -108,13 +103,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddHttpClient<SalematicHttpService>(client =>
+builder.Services.AddHttpClient<ISalematicHttpService, SalematicHttpService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Salematic:BaseUrl"]!);
 });
 
 builder.Services.AddMemoryCache();
-builder.Services.AddHttpClient<MarketHubHttpService>(client =>
+builder.Services.AddHttpClient<IMarketHubHttpService, MarketHubHttpService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["MarketHub:BaseUrl"]!);
 });

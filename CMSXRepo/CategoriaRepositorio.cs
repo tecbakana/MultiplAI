@@ -1,25 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class CategoriaRepositorio : BaseRepositorio, ICategoriaRepositorio
 {
-    public class CategoriaRepositorio : BaseRepositorio, ICategoriaRepositorio
+    public CategoriaRepositorio(CmsxDbContext db) : base(db) { }
+
+    public async Task<IEnumerable<Caterium>> ListaAsync(string? aplicacaoid) =>
+        string.IsNullOrEmpty(aplicacaoid)
+            ? await _db.Cateria.AsNoTracking().OrderBy(c => c.Nome).ToListAsync()
+            : await _db.Cateria.AsNoTracking().Where(c => c.Aplicacaoid == aplicacaoid).OrderBy(c => c.Nome).ToListAsync();
+
+    public async Task<Caterium?> BuscaPorIdAsync(string id) =>
+        await _db.Cateria.AsNoTracking().FirstOrDefaultAsync(c => c.Cateriaid == id);
+
+    public async Task CriarAsync(Caterium item)
     {
-        private readonly ICategoriaDAL _dal;
+        _db.Cateria.Add(item);
+        await _db.SaveChangesAsync();
+    }
 
-        public CategoriaRepositorio(CmsxDbContext db, ICategoriaDAL dal) : base(db) { _dal = dal; }
+    public async Task AtualizarAsync(Caterium item)
+    {
+        _db.Cateria.Update(item);
+        await _db.SaveChangesAsync();
+    }
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
-
-        public Caterium ObtemCategoriaPorId() => throw new NotImplementedException();
-        public void CriaNovaCategoria() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoria() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoriaFull() => throw new NotImplementedException();
-        public List<Caterium> ListaCategoriaPai() => throw new NotImplementedException();
-        public List<Caterium> ListaSubCategoria() => throw new NotImplementedException();
-        public void InativaCategorias() => throw new NotImplementedException();
+    public async Task RemoverAsync(Caterium item)
+    {
+        _db.Cateria.Remove(item);
+        await _db.SaveChangesAsync();
     }
 }

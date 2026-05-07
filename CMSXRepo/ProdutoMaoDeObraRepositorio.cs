@@ -1,5 +1,6 @@
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMSXRepo;
 
@@ -7,31 +8,32 @@ public class ProdutoMaoDeObraRepositorio : BaseRepositorio, IProdutoMaoDeObraRep
 {
     public ProdutoMaoDeObraRepositorio(CmsxDbContext db) : base(db) { }
 
-    public List<ProdutoMaoDeObra> ListarPorProduto(string produtoid) =>
-        _db.ProdutoMaoDeObras
+    public async Task<List<ProdutoMaoDeObra>> ListarPorProdutoAsync(string produtoid) =>
+        await _db.ProdutoMaoDeObras
+            .AsNoTracking()
             .Where(m => m.Produtoid == produtoid)
             .OrderBy(m => m.Descricao)
-            .ToList();
+            .ToListAsync();
 
-    public ProdutoMaoDeObra? BuscarPorId(Guid id) =>
-        _db.ProdutoMaoDeObras.FirstOrDefault(m => m.Id == id);
+    public async Task<ProdutoMaoDeObra?> BuscarPorIdAsync(Guid id) =>
+        await _db.ProdutoMaoDeObras.FirstOrDefaultAsync(m => m.Id == id);
 
-    public ProdutoMaoDeObra Criar(ProdutoMaoDeObra mo)
+    public async Task<ProdutoMaoDeObra> CriarAsync(ProdutoMaoDeObra mo)
     {
         _db.ProdutoMaoDeObras.Add(mo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
         return mo;
     }
 
-    public ProdutoMaoDeObra Atualizar(ProdutoMaoDeObra mo)
+    public async Task<ProdutoMaoDeObra> AtualizarAsync(ProdutoMaoDeObra mo)
     {
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
         return mo;
     }
 
-    public void Remover(ProdutoMaoDeObra mo)
+    public async Task RemoverAsync(ProdutoMaoDeObra mo)
     {
         _db.ProdutoMaoDeObras.Remove(mo);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
     }
 }

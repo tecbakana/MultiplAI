@@ -1,27 +1,48 @@
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
 {
-    public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
+    public AplicacaoRepositorio(CmsxDbContext db) : base(db) { }
+
+    public async Task<IEnumerable<Aplicacao>> ListaAsync(string? aplicacaoid) =>
+        string.IsNullOrEmpty(aplicacaoid)
+            ? await _db.Aplicacaos.AsNoTracking().OrderBy(a => a.Nome).ToListAsync()
+            : await _db.Aplicacaos.AsNoTracking().Where(a => a.Aplicacaoid == aplicacaoid).ToListAsync();
+
+    public async Task<Aplicacao?> BuscaPorIdAsync(string id) =>
+        await _db.Aplicacaos.AsNoTracking().FirstOrDefaultAsync(a => a.Aplicacaoid == id);
+
+    public async Task<LayoutTemplate?> BuscaTemplatePadraoAsync() =>
+        await _db.LayoutTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Tipo == "home" && t.Padrao);
+
+    public async Task CriarAsync(Aplicacao aplicacao, Area homeArea)
     {
-        private readonly IAplicacaoDAL _dal;
+        _db.Aplicacaos.Add(aplicacao);
+        _db.Areas.Add(homeArea);
+        await _db.SaveChangesAsync();
+    }
 
-        public AplicacaoRepositorio(CmsxDbContext db, IAplicacaoDAL dal) : base(db) { _dal = dal; }
+    public async Task AtualizarAsync(Aplicacao aplicacao)
+    {
+        _db.Aplicacaos.Update(aplicacao);
+        await _db.SaveChangesAsync();
+    }
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
+    public async Task AlterarStatusAsync(Aplicacao aplicacao, bool ativo)
+    {
+        aplicacao.Isactive = ativo;
+        aplicacao.Datafinal = ativo ? null : DateTime.UtcNow;
+        _db.Aplicacaos.Update(aplicacao);
+        await _db.SaveChangesAsync();
+    }
 
-        public Aplicacao ObtemAplicacaoPorId(Guid id) => throw new NotImplementedException();
-        public Aplicacao RegistraAplicacao() => throw new NotImplementedException();
-        public bool CriaAplicacao() => throw new NotImplementedException();
-        public void ExcluiAplicacao() => throw new NotImplementedException();
-        public void Edita() => throw new NotImplementedException();
-        public string AtivaAplicacao() => throw new NotImplementedException();
-        public List<Aplicacao> ListaAplicacao() => throw new NotImplementedException();
-        public List<Aplicacao> ListaAplicacaoForAutocomplete() => throw new NotImplementedException();
-        public string[] ListaAplicacaoPorNome() => throw new NotImplementedException();
+    public async Task RemoverAsync(Aplicacao aplicacao)
+    {
+        _db.Aplicacaos.Remove(aplicacao);
+        await _db.SaveChangesAsync();
     }
 }

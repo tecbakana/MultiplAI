@@ -723,7 +723,8 @@ public partial class CmsxDbContext : DbContext
             entity.HasOne(e => e.Atributo)
                 .WithMany()
                 .HasForeignKey(e => e.Atributoid)
-                .HasConstraintName("FK_Selecao_Atributo");
+                .HasConstraintName("FK_Selecao_Atributo")
+                .OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(e => e.Opcao)
                 .WithMany()
                 .HasForeignKey(e => e.Opcaoid)

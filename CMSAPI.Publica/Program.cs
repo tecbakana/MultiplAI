@@ -97,6 +97,13 @@ builder.Services.AddControllers()
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<CmsxDbContext>();
+    if (dbProvider != "SqlServer")
+        db.Database.Migrate();
+}
+
 app.UseRouting();
 app.UseCors("Publica");
 app.UseRateLimiter();

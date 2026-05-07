@@ -11,7 +11,7 @@ namespace CMSAPI.Controllers;
 [Route("[controller]")]
 [Authorize]
 public class MarketplaceController(
-    MarketHubHttpService marketHub,
+    IMarketHubHttpService marketHub,
     IConfiguration config,
     IHttpClientFactory httpClientFactory) : Controller
 {

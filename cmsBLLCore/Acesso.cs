@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CMSXBLL
 {
-    public class Acesso : UsuarioBLL
+    public class Acesso : UsuarioBll
     {
     }
 }
