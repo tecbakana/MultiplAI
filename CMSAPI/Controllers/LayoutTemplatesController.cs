@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -11,26 +12,25 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class LayoutTemplatesController : ControllerBase
     {
-        private readonly CmsxDbContext _context;
-        public LayoutTemplatesController(CmsxDbContext context) => _context = context;
+        private readonly ILayoutTemplateRepositorio _repo;
+        public LayoutTemplatesController(ILayoutTemplateRepositorio repo) { _repo = repo; }
 
         private bool IsAdmin() => User.FindFirstValue("acessoTotal") == "True";
 
         [HttpGet]
-        public IActionResult Get() =>
-            Ok(_context.LayoutTemplates.OrderBy(t => t.Nome).ToList());
+        public  async Task<IActionResult> Get() => Ok(await _repo.ListaAsync());
 
         [HttpGet("{id}")]
-        public IActionResult Get(string id)
+        public  async Task<IActionResult> Get(string id)
         {
-            var t = _context.LayoutTemplates.Find(id);
+            var t = await _repo.BuscaPorIdAsync(id);
             return t == null ? NotFound() : Ok(t);
         }
 
         [HttpGet("padrao")]
-        public IActionResult GetPadrao([FromQuery] string tipo = "home")
+        public  async Task<IActionResult> GetPadrao([FromQuery] string tipo = "home")
         {
-            var t = _context.LayoutTemplates.FirstOrDefault(x => x.Tipo == tipo && x.Padrao);
+            var t = await _repo.BuscaPadraoAsync(tipo);
             return t == null ? NotFound() : Ok(t);
         }
 
@@ -44,18 +44,15 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] SalvarTemplateDto dto)
+        public  async Task<IActionResult> Post([FromBody] SalvarTemplateDto dto)
         {
             if (!IsAdmin()) return Forbid();
 
-            // Se for padrão, remove o padrão anterior do mesmo tipo
-            if (dto.Padrao)
-                foreach (var t in _context.LayoutTemplates.Where(x => x.Tipo == dto.Tipo && x.Padrao))
-                    t.Padrao = false;
-
-            // Valida o JSON do layout
             try { JsonDocument.Parse(dto.Layout); }
             catch { return BadRequest(new { erro = "Layout JSON inválido." }); }
+
+            if (dto.Padrao)
+                await _repo.DesmarcarPadraoDoTipoAsync(dto.Tipo, null);
 
             var item = new LayoutTemplate
             {
@@ -67,40 +64,37 @@ namespace CMSAPI.Controllers
                 Padrao       = dto.Padrao,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.LayoutTemplates.Add(item);
-            _context.SaveChanges();
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] SalvarTemplateDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] SalvarTemplateDto dto)
         {
             if (!IsAdmin()) return Forbid();
 
-            var item = _context.LayoutTemplates.Find(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
 
             if (dto.Padrao)
-                foreach (var t in _context.LayoutTemplates.Where(x => x.Tipo == dto.Tipo && x.Padrao && x.Templateid != id))
-                    t.Padrao = false;
+                await _repo.DesmarcarPadraoDoTipoAsync(dto.Tipo, id);
 
             item.Nome      = dto.Nome;
             item.Descricao = dto.Descricao;
             item.Tipo      = dto.Tipo;
             item.Layout    = dto.Layout;
             item.Padrao    = dto.Padrao;
-            _context.SaveChanges();
+            await _repo.AtualizarAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             if (!IsAdmin()) return Forbid();
-            var item = _context.LayoutTemplates.Find(id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
-            _context.LayoutTemplates.Remove(item);
-            _context.SaveChanges();
+            await _repo.RemoverAsync(item);
             return Ok();
         }
     }

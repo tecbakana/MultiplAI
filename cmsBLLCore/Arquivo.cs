@@ -11,7 +11,7 @@ namespace CMSXBLL
         public Guid ArquivoId { get; set; }
         public Guid AreaId { get; set; }
         public Guid ConteudoId { get; set; }
-        public string Nome { get; set; }
+        public string? Nome { get; set; }
         public Guid TipoId { get; set; }
         #endregion
 

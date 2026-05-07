@@ -1,18 +1,14 @@
 using CMSXData.Models;
 
-namespace ICMSX
+namespace ICMSX;
+
+public interface IAplicacaoRepositorio
 {
-    public interface IAplicacaoRepositorio
-    {
-        Aplicacao ObtemAplicacaoPorId(Guid id);
-        Aplicacao RegistraAplicacao();
-        bool CriaAplicacao();
-        void ExcluiAplicacao();
-        void Edita();
-        string AtivaAplicacao();
-        void MakeConnection(dynamic prop);
-        List<Aplicacao> ListaAplicacao();
-        List<Aplicacao> ListaAplicacaoForAutocomplete();
-        string[] ListaAplicacaoPorNome();
-    }
+    Task<IEnumerable<Aplicacao>> ListaAsync(string? aplicacaoid);
+    Task<Aplicacao?> BuscaPorIdAsync(string id);
+    Task<LayoutTemplate?> BuscaTemplatePadraoAsync();
+    Task CriarAsync(Aplicacao aplicacao, Area homeArea);
+    Task AtualizarAsync(Aplicacao aplicacao);
+    Task AlterarStatusAsync(Aplicacao aplicacao, bool ativo);
+    Task RemoverAsync(Aplicacao aplicacao);
 }

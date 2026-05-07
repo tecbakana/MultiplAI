@@ -1,18 +1,27 @@
-using System.Collections.Generic;
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
-namespace CMSXRepo
+namespace CMSXRepo;
+
+public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
 {
-    public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
-    {
-        private readonly IModuloDAL _dal;
+    public ModuloRepositorio(CmsxDbContext db) : base(db) { }
 
-        public ModuloRepositorio(CMSXData.Models.CmsxDbContext db, IModuloDAL dal) : base(db) { _dal = dal; }
+    public async Task<IEnumerable<Modulo>> ListaTodosAsync() =>
+        await _db.Modulos.AsNoTracking().OrderBy(m => m.Posicao).ToListAsync();
 
-        public void MakeConnection(dynamic prop) => _dal.MakeConnection((ExpandoObject)prop);
-        public List<Modulo> ListaModulos() => throw new NotImplementedException();
-        public void CriaModulo() => throw new NotImplementedException();
-    }
+    public async Task<IEnumerable<Modulo>> ListaPorAplicacaoAsync(string aplicacaoid) =>
+        await _db.Relmoduloaplicacaos.AsNoTracking()
+            .Where(r => r.Aplicacaoid == aplicacaoid)
+            .Join(_db.Modulos.AsNoTracking(), r => r.Moduloid, m => m.Moduloid, (r, m) => m)
+            .OrderBy(m => m.Posicao)
+            .ToListAsync();
+
+    public async Task<IEnumerable<Modulo>> ListaPorUsuarioAsync(string usuarioid) =>
+        await _db.Relmodulousuarios.AsNoTracking()
+            .Where(r => r.Usuarioid == usuarioid)
+            .Join(_db.Modulos.AsNoTracking(), r => r.Moduloid, m => m.Moduloid, (r, m) => m)
+            .OrderBy(m => m.Posicao)
+            .ToListAsync();
 }

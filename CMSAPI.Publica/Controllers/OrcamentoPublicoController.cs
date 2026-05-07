@@ -2,6 +2,7 @@ using CMSXData.Models;
 using ICMSX;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -43,7 +44,7 @@ public class OrcamentoPublicoController : ControllerBase
     }
 
     [HttpGet("produtos")]
-    public IActionResult GetProdutos([FromQuery] string @ref)
+    public async Task<IActionResult> GetProdutos([FromQuery] string @ref)
     {
         if (string.IsNullOrWhiteSpace(@ref)) return BadRequest("token obrigatório");
 
@@ -58,7 +59,7 @@ public class OrcamentoPublicoController : ControllerBase
 
         var produtoIds = produtos.Select(p => p.Produtoid).ToList();
 
-        var todosAtributos = _atributoRepo.ListaAtributosArvore(produtoIds);
+        var todosAtributos = await _atributoRepo.ListaAtributosArvoreAsync(produtoIds);
         var todosAtributoIds = todosAtributos.Select(a => a.Atributoid).ToList();
 
         var opcoes = _context.Opcaos
@@ -122,7 +123,7 @@ public class OrcamentoPublicoController : ControllerBase
     }
 
     [HttpGet("modelos")]
-    public IActionResult GetModelos([FromQuery] string produto, [FromQuery] string @ref)
+    public async Task<IActionResult> GetModelos([FromQuery] string produto, [FromQuery] string @ref)
     {
         if (string.IsNullOrWhiteSpace(@ref)) return BadRequest("token obrigatório");
         if (string.IsNullOrWhiteSpace(produto)) return BadRequest("produto obrigatório");
@@ -130,7 +131,7 @@ public class OrcamentoPublicoController : ControllerBase
         var aplicacaoid = ResolverAplicacaoid(@ref);
         if (aplicacaoid == null) return NotFound("token inválido ou expirado");
 
-        var modelos = _modeloRepo.ListarPorProduto(aplicacaoid, produto)
+        var modelos = (await _modeloRepo.ListarPorProdutoAsync(aplicacaoid, produto))
             .Select(m => new
             {
                 m.ModeloCompostoId,
@@ -179,7 +180,7 @@ public class OrcamentoPublicoController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Criar([FromBody] NovoOrcamentoPublicoDto dto)
+    public async Task<IActionResult> Criar([FromBody] NovoOrcamentoPublicoDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Token))
             return BadRequest("token obrigatório");
@@ -224,19 +225,19 @@ public class OrcamentoPublicoController : ControllerBase
             });
         }
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
 
         // Processar itens compostos
         foreach (var itemComposto in dto.ItensCompostos.Where(i => !string.IsNullOrWhiteSpace(i.Produtoid) && i.Selecoes.Count > 0))
         {
-            var produto = _compostoRepo.BuscarProduto(itemComposto.Produtoid);
+            var produto = (await _compostoRepo.BuscarProdutoAsync(itemComposto.Produtoid));
             if (produto == null) continue;
 
             var opcaoIds = itemComposto.Selecoes.Select(s => s.Opcaoid).ToList();
-            var opcoes = _compostoRepo.BuscarOpcoes(opcaoIds).ToDictionary(o => o.Opcaoid);
+            var opcoes = (await _compostoRepo.BuscarOpcoesAsync(opcaoIds)).ToDictionary(o => o.Opcaoid);
 
             var atributoIds = itemComposto.Selecoes.Select(s => s.Atributoid).ToList();
-            var atributos = _compostoRepo.BuscarAtributos(atributoIds).ToDictionary(a => a.Atributoid);
+            var atributos = (await _compostoRepo.BuscarAtributosAsync(atributoIds)).ToDictionary(a => a.Atributoid);
 
             // Calcular valor server-side — nunca confiar no cliente
             var valorBase = produto.Valor ?? 0m;
@@ -246,7 +247,7 @@ public class OrcamentoPublicoController : ControllerBase
 
             var checkboxAtributoIds = itemComposto.CheckboxAtributos ?? new();
             var checkboxAtributosMap = checkboxAtributoIds.Count > 0
-                ? _compostoRepo.BuscarAtributos(checkboxAtributoIds).ToDictionary(a => a.Atributoid)
+                ? (await _compostoRepo.BuscarAtributosAsync(checkboxAtributoIds)).ToDictionary(a => a.Atributoid)
                 : new Dictionary<Guid, Atributo>();
             var somaCheckboxes = checkboxAtributosMap.Values.Sum(a => a.ValorAdicional ?? 0m);
 
@@ -282,7 +283,7 @@ public class OrcamentoPublicoController : ControllerBase
                 }
             }
 
-            var todosAtributos = _compostoRepo.BuscarAtributos(todosAncestralIds)
+            var todosAtributos = (await _compostoRepo.BuscarAtributosAsync(todosAncestralIds))
                 .ToDictionary(a => a.Atributoid);
             foreach (var (k, v) in atributos) todosAtributos.TryAdd(k, v);
 
@@ -352,7 +353,7 @@ public class OrcamentoPublicoController : ControllerBase
                 })
                 .ToList();
 
-            _compostoRepo.Criar(detalhe, selecoes);
+            await _compostoRepo.CriarAsync(detalhe, selecoes);
 
             // Deduplica ModeloComposto pelo hash das opções + checkboxes
             var hashEntries = opcaoIds.Concat(checkboxAtributoIds.Select(id => "cb:" + id.ToString("N")));
@@ -381,7 +382,7 @@ public class OrcamentoPublicoController : ControllerBase
                 Opcaoid          = s.Opcaoid
             }).ToList();
 
-            _modeloRepo.CriarOuIncrementar(modelo, modeloSelecoes);
+            await _modeloRepo.CriarOuIncrementarAsync(modelo, modeloSelecoes);
         }
 
         return Ok(new { orcamento.Orcamentoid });

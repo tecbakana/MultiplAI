@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Text.Json;
-using CMSXData.Models;
 using CMSAPI.Services;
 using ICMSX;
+using CMSXData.Models;
 
 namespace CMSAPI.Controllers
 {
@@ -13,14 +13,18 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class ProdutosController : Controller
     {
-        private readonly CmsxDbContext _context;
+        private readonly IProdutosRepositorio _repo;
         private readonly IAgentIAFactory _agentFactory;
         private readonly IWebHostEnvironment _env;
         private readonly IProdutoMaoDeObraRepositorio _moRepo;
 
-        public ProdutosController(CmsxDbContext context, IAgentIAFactory agentFactory, IWebHostEnvironment env, IProdutoMaoDeObraRepositorio moRepo)
+        public ProdutosController(
+            IProdutosRepositorio repo,
+            IAgentIAFactory agentFactory,
+            IWebHostEnvironment env,
+            IProdutoMaoDeObraRepositorio moRepo)
         {
-            _context = context;
+            _repo = repo;
             _agentFactory = agentFactory;
             _env = env;
             _moRepo = moRepo;
@@ -29,23 +33,16 @@ namespace CMSAPI.Controllers
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
 
-        // ── CRUD Produto ─────────────────────────────────────────────────────
+        // ── CRUD Produto ─────────────────────────────────────────────────────────
 
         [HttpGet]
-        public IEnumerable<Produto> Get([FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<Produto>> Get([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Produtos.AsQueryable();
-            if (acessoTotal)
-            {
-                if (!string.IsNullOrEmpty(aplicacaoid))
-                    q = q.Where(p => p.Aplicacaoid == aplicacaoid);
-            }
-            else
-            {
-                q = q.Where(p => p.Aplicacaoid == claimAppId);
-            }
-            return q.OrderBy(p => p.Nome).ToArray();
+            var resolvedAppId = acessoTotal
+                ? (string.IsNullOrEmpty(aplicacaoid) ? null : aplicacaoid)
+                : claimAppId;
+            return await _repo.ListaAsync(resolvedAppId);
         }
 
         public class NovoProdutoDto
@@ -65,7 +62,7 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] NovoProdutoDto dto)
+        public  async Task<IActionResult> Post([FromBody] NovoProdutoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
             var item = new Produto
@@ -85,18 +82,18 @@ namespace CMSAPI.Controllers
                 UnidadeVenda   = dto.UnidadeVenda,
                 Datainicio     = DateTime.UtcNow
             };
-            _context.Produtos.Add(item);
-            _context.SaveChanges();
+            await _repo.CriarAsync(item);
             return Ok(item);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(string id, [FromBody] NovoProdutoDto dto)
+        public  async Task<IActionResult> Put(string id, [FromBody] NovoProdutoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
+
             item.Nome           = dto.Nome;
             item.Descricao      = dto.Descricao;
             item.Descricacurta  = dto.Descricacurta;
@@ -107,23 +104,22 @@ namespace CMSAPI.Controllers
             item.Destaque       = dto.Destaque;
             item.Cateriaid      = dto.Cateriaid;
             item.UnidadeVenda   = dto.UnidadeVenda;
-            _context.SaveChanges();
+            await _repo.AtualizarAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("{id}")]
-        public IActionResult Delete(string id)
+        public  async Task<IActionResult> Delete(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var item = await _repo.BuscaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
-            _context.Produtos.Remove(item);
-            _context.SaveChanges();
+            await _repo.RemoverAsync(item);
             return Ok();
         }
 
-        // ── Atributos ────────────────────────────────────────────────────────
+        // ── Atributos ────────────────────────────────────────────────────────────
 
         private record OpcaoResponse(string Opcaoid, string? Nome, string? Descricao, int Qtd, int? Estoque, decimal? ValorAdicional);
         private record AtributoResponse(Guid Atributoid, string Nome, string Descricao, int? Ordem, Guid? ParentAtributoId,
@@ -147,47 +143,22 @@ namespace CMSAPI.Controllers
         }
 
         [HttpGet("{id}/atributos")]
-        public IActionResult GetAtributos(string id)
+        public  async Task<IActionResult> GetAtributos(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var todosAtribs = _context.Atributos
-                .Where(a => a.Produtoid == id || _context.Atributos
-                    .Where(r => r.Produtoid == id)
-                    .Select(r => r.Atributoid)
-                    .Contains(a.ParentAtributoId!.Value))
-                .ToList();
-
-            // coleta todos descendentes iterativamente para cobrir N níveis
-            var idsConhecidos = todosAtribs.Select(a => a.Atributoid).ToHashSet();
-            bool achouMais;
-            do
-            {
-                achouMais = false;
-                var novos = _context.Atributos
-                    .Where(a => a.ParentAtributoId.HasValue && idsConhecidos.Contains(a.ParentAtributoId.Value) && !idsConhecidos.Contains(a.Atributoid))
-                    .ToList();
-                if (novos.Count > 0)
-                {
-                    todosAtribs.AddRange(novos);
-                    foreach (var n in novos) idsConhecidos.Add(n.Atributoid);
-                    achouMais = true;
-                }
-            } while (achouMais);
-
-            var opcoesPorAtributo = _context.Opcaos
-                .Where(o => idsConhecidos.Contains(o.Atributoid))
-                .ToList()
+            var arvore = await _repo.BuscaArvoreComOpcoesAsync(id);
+            var opcoesPorAtributo = arvore.Opcoes
                 .GroupBy(o => o.Atributoid)
                 .ToDictionary(
                     g => g.Key,
                     g => g.Select(o => new OpcaoResponse(o.Opcaoid, o.Nome, o.Descricao, o.Qtd, o.Estoque, o.ValorAdicional)).ToList()
                 );
 
-            return Ok(BuildAtributoTree(todosAtribs, opcoesPorAtributo, null));
+            return Ok(BuildAtributoTree(arvore.Atributos.ToList(), opcoesPorAtributo, null));
         }
 
         public class AtributoDto
@@ -200,94 +171,69 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("{id}/atributos")]
-        public IActionResult PostAtributo(string id, [FromBody] AtributoDto dto)
+        public  async Task<IActionResult> PostAtributo(string id, [FromBody] AtributoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            if (dto.ParentAtributoId.HasValue)
-            {
-                var parent = _context.Atributos.FirstOrDefault(a => a.Atributoid == dto.ParentAtributoId.Value);
-                if (parent == null) return BadRequest("ParentAtributoId não encontrado.");
-            }
+            if (dto.ParentAtributoId.HasValue && await _repo.BuscaAtributoAsync(dto.ParentAtributoId.Value) == null)
+                return BadRequest("ParentAtributoId não encontrado.");
 
             var a = new Atributo
             {
-                Atributoid      = Guid.NewGuid(),
-                Produtoid       = dto.ParentAtributoId.HasValue ? null : id,
+                Atributoid       = Guid.NewGuid(),
+                Produtoid        = dto.ParentAtributoId.HasValue ? null : id,
                 ParentAtributoId = dto.ParentAtributoId,
-                Nome            = dto.Nome,
-                Descricao       = dto.Descricao ?? "",
-                Ordem           = dto.Ordem,
-                ValorAdicional  = dto.ValorAdicional
+                Nome             = dto.Nome,
+                Descricao        = dto.Descricao ?? "",
+                Ordem            = dto.Ordem,
+                ValorAdicional   = dto.ValorAdicional
             };
-            _context.Atributos.Add(a);
-            _context.SaveChanges();
+            await _repo.CriarAtributoAsync(a);
             return Ok(new { a.Atributoid, a.Nome, a.Descricao, a.Ordem, a.ParentAtributoId, a.Produtoid });
         }
 
         [HttpPut("{id}/atributos/{atributoid}")]
-        public IActionResult PutAtributo(string id, Guid atributoid, [FromBody] AtributoDto dto)
+        public  async Task<IActionResult> PutAtributo(string id, Guid atributoid, [FromBody] AtributoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var a = _context.Atributos.FirstOrDefault(x => x.Atributoid == atributoid);
+            var a = await _repo.BuscaAtributoAsync(atributoid);
             if (a == null) return NotFound();
 
-            if (dto.ParentAtributoId.HasValue && dto.ParentAtributoId != a.ParentAtributoId)
-            {
-                var parent = _context.Atributos.FirstOrDefault(x => x.Atributoid == dto.ParentAtributoId.Value);
-                if (parent == null) return BadRequest("ParentAtributoId não encontrado.");
-            }
+            if (dto.ParentAtributoId.HasValue && dto.ParentAtributoId != a.ParentAtributoId &&
+                await _repo.BuscaAtributoAsync(dto.ParentAtributoId.Value) == null)
+                return BadRequest("ParentAtributoId não encontrado.");
 
-            a.Nome            = dto.Nome;
-            a.Descricao       = dto.Descricao ?? a.Descricao;
-            a.Ordem           = dto.Ordem ?? a.Ordem;
+            a.Nome             = dto.Nome;
+            a.Descricao        = dto.Descricao ?? a.Descricao;
+            a.Ordem            = dto.Ordem ?? a.Ordem;
             a.ParentAtributoId = dto.ParentAtributoId;
-            a.ValorAdicional  = dto.ValorAdicional;
-            _context.SaveChanges();
+            a.ValorAdicional   = dto.ValorAdicional;
+            await _repo.AtualizarAtributoAsync(a);
             return Ok(new { a.Atributoid, a.Nome, a.Descricao, a.Ordem, a.ParentAtributoId, a.Produtoid });
         }
 
         [HttpDelete("{id}/atributos/{atributoid}")]
-        public IActionResult DeleteAtributo(string id, Guid atributoid)
+        public  async Task<IActionResult> DeleteAtributo(string id, Guid atributoid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var a = _context.Atributos.FirstOrDefault(x => x.Atributoid == atributoid);
-            if (a == null) return NotFound();
+            if (await _repo.BuscaAtributoAsync(atributoid) == null) return NotFound();
 
-            // coleta todos os descendentes
-            var todosIds = new List<Guid> { atributoid };
-            var queue = new Queue<Guid>();
-            queue.Enqueue(atributoid);
-            while (queue.Count > 0)
-            {
-                var pid = queue.Dequeue();
-                var filhos = _context.Atributos
-                    .Where(x => x.ParentAtributoId == pid)
-                    .Select(x => x.Atributoid)
-                    .ToList();
-                foreach (var fid in filhos) { todosIds.Add(fid); queue.Enqueue(fid); }
-            }
-
-            var opcoes = _context.Opcaos.Where(o => todosIds.Contains(o.Atributoid)).ToList();
-            _context.Opcaos.RemoveRange(opcoes);
-            var atribs = _context.Atributos.Where(x => todosIds.Contains(x.Atributoid)).ToList();
-            _context.Atributos.RemoveRange(atribs);
-            _context.SaveChanges();
+            await _repo.RemoverAtributoComDescendentesAsync(atributoid);
             return Ok();
         }
 
-        // ── Opções ───────────────────────────────────────────────────────────
+        // ── Opções ───────────────────────────────────────────────────────────────
 
         public class OpcaoDto
         {
@@ -299,10 +245,10 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("{id}/atributos/{atributoid}/opcoes")]
-        public IActionResult PostOpcao(string id, Guid atributoid, [FromBody] OpcaoDto dto)
+        public  async Task<IActionResult> PostOpcao(string id, Guid atributoid, [FromBody] OpcaoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
@@ -316,20 +262,19 @@ namespace CMSAPI.Controllers
                 Estoque        = dto.Estoque,
                 ValorAdicional = dto.ValorAdicional
             };
-            _context.Opcaos.Add(o);
-            _context.SaveChanges();
+            await _repo.CriarOpcaoAsync(o);
             return Ok(o);
         }
 
         [HttpPut("{id}/atributos/{atributoid}/opcoes/{opcaoid}")]
-        public IActionResult PutOpcao(string id, Guid atributoid, string opcaoid, [FromBody] OpcaoDto dto)
+        public  async Task<IActionResult> PutOpcao(string id, Guid atributoid, string opcaoid, [FromBody] OpcaoDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var o = _context.Opcaos.FirstOrDefault(x => x.Opcaoid == opcaoid && x.Atributoid == atributoid);
+            var o = await _repo.BuscaOpcaoAsync(opcaoid, atributoid);
             if (o == null) return NotFound();
 
             o.Nome           = dto.Nome;
@@ -337,45 +282,44 @@ namespace CMSAPI.Controllers
             o.Qtd            = dto.Qtd;
             o.Estoque        = dto.Estoque;
             o.ValorAdicional = dto.ValorAdicional;
-            _context.SaveChanges();
+            await _repo.AtualizarOpcaoAsync(o);
             return Ok(o);
         }
 
         [HttpDelete("{id}/atributos/{atributoid}/opcoes/{opcaoid}")]
-        public IActionResult DeleteOpcao(string id, Guid atributoid, string opcaoid)
+        public  async Task<IActionResult> DeleteOpcao(string id, Guid atributoid, string opcaoid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var o = _context.Opcaos.FirstOrDefault(x => x.Opcaoid == opcaoid && x.Atributoid == atributoid);
+            var o = await _repo.BuscaOpcaoAsync(opcaoid, atributoid);
             if (o == null) return NotFound();
-            _context.Opcaos.Remove(o);
-            _context.SaveChanges();
+            await _repo.RemoverOpcaoAsync(o);
             return Ok();
         }
 
-        // ── Galeria de Imagens ────────────────────────────────────────────────
+        // ── Galeria de Imagens ────────────────────────────────────────────────────
 
         [HttpGet("{id}/imagens")]
-        public IActionResult GetImagens(string id)
+        public  async Task<IActionResult> GetImagens(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            return Ok(_context.Imagems.Where(i => i.Parentid == id && i.Tipoid == "produto").ToArray());
+            return Ok(await _repo.ListaImagensPorProdutoAsync(id));
         }
 
         public class ImagemDto { public string? Url { get; set; } public string? Descricao { get; set; } }
 
         [HttpPost("{id}/imagens")]
-        public IActionResult PostImagem(string id, [FromBody] ImagemDto dto)
+        public  async Task<IActionResult> PostImagem(string id, [FromBody] ImagemDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
@@ -387,12 +331,25 @@ namespace CMSAPI.Controllers
                 Url       = dto.Url,
                 Descricao = dto.Descricao
             };
-            _context.Imagems.Add(img);
-            _context.SaveChanges();
+            await _repo.CriarImagemAsync(img);
             return Ok(img);
         }
 
-        // ── Geração de descrição via IA (visão) ──────────────────────────────
+        [HttpDelete("{id}/imagens/{imagemid}")]
+        public  async Task<IActionResult> DeleteImagem(string id, string imagemid)
+        {
+            var (acessoTotal, claimAppId) = UserContext();
+            var produto = await _repo.BuscaPorIdAsync(id);
+            if (produto == null) return NotFound();
+            if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
+
+            var img = await _repo.BuscaImagemAsync(imagemid, id);
+            if (img == null) return NotFound();
+            await _repo.RemoverImagemAsync(img);
+            return Ok();
+        }
+
+        // ── Geração de descrição via IA (visão) ──────────────────────────────────
 
         [HttpPost("gerar-descricao")]
         [RequestSizeLimit(20 * 1024 * 1024)]
@@ -416,7 +373,6 @@ namespace CMSAPI.Controllers
                 imageBytes = ms.ToArray();
                 mimeType = arquivo.ContentType ?? "image/jpeg";
 
-                // Salva o arquivo em wwwroot/uploads/{aplicacaoid}/
                 var appFolder = claimAppId ?? "geral";
                 var uploadsPath = Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", appFolder);
                 Directory.CreateDirectory(uploadsPath);
@@ -425,13 +381,12 @@ namespace CMSAPI.Controllers
                 await System.IO.File.WriteAllBytesAsync(Path.Combine(uploadsPath, fileName), imageBytes);
                 imagemSalvaUrl = $"/uploads/{appFolder}/{fileName}";
 
-                // Adiciona à galeria se o produto já existe
                 if (!string.IsNullOrEmpty(produtoid))
                 {
-                    var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == produtoid);
+                    var produto = await _repo.BuscaPorIdAsync(produtoid);
                     if (produto != null && (acessoTotal || produto.Aplicacaoid == claimAppId))
                     {
-                        _context.Imagems.Add(new Imagem
+                        await _repo.CriarImagemAsync(new Imagem
                         {
                             Imagemid  = Guid.NewGuid().ToString(),
                             Parentid  = produtoid,
@@ -439,7 +394,6 @@ namespace CMSAPI.Controllers
                             Url       = imagemSalvaUrl,
                             Descricao = "Gerado por IA"
                         });
-                        _context.SaveChanges();
                     }
                 }
             }
@@ -516,11 +470,11 @@ Responda em português do Brasil.";
             return texto.Trim();
         }
 
-        // ── Mão de Obra ──────────────────────────────────────────────────────
+        // ── Mão de Obra ──────────────────────────────────────────────────────────
 
         public class MaoDeObraDto
         {
-            public string Tipo { get; set; } = "";          // "capacidade_dia" | "milheiro"
+            public string Tipo { get; set; } = "";
             public string Descricao { get; set; } = "";
             public int? CapacidadeDia { get; set; }
             public decimal? ValorDia { get; set; }
@@ -528,21 +482,21 @@ Responda em português do Brasil.";
         }
 
         [HttpGet("{id}/maodeobra")]
-        public IActionResult GetMaoDeObra(string id)
+        public  async Task<IActionResult> GetMaoDeObra(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            return Ok(_moRepo.ListarPorProduto(id));
+            return Ok(await _moRepo.ListarPorProdutoAsync(id));
         }
 
         [HttpPost("{id}/maodeobra")]
-        public IActionResult PostMaoDeObra(string id, [FromBody] MaoDeObraDto dto)
+        public  async Task<IActionResult> PostMaoDeObra(string id, [FromBody] MaoDeObraDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
@@ -559,18 +513,18 @@ Responda em português do Brasil.";
                 ValorDia      = dto.ValorDia,
                 ValorMilheiro = dto.ValorMilheiro
             };
-            return Ok(_moRepo.Criar(mo));
+            return Ok(await _moRepo.CriarAsync(mo));
         }
 
         [HttpPut("{id}/maodeobra/{moid}")]
-        public IActionResult PutMaoDeObra(string id, Guid moid, [FromBody] MaoDeObraDto dto)
+        public  async Task<IActionResult> PutMaoDeObra(string id, Guid moid, [FromBody] MaoDeObraDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var mo = _moRepo.BuscarPorId(moid);
+            var mo = await _moRepo.BuscarPorIdAsync(moid);
             if (mo == null || mo.Produtoid != id) return NotFound();
 
             if (dto.Tipo != "capacidade_dia" && dto.Tipo != "milheiro")
@@ -581,36 +535,21 @@ Responda em português do Brasil.";
             mo.CapacidadeDia = dto.CapacidadeDia;
             mo.ValorDia      = dto.ValorDia;
             mo.ValorMilheiro = dto.ValorMilheiro;
-            return Ok(_moRepo.Atualizar(mo));
+            return Ok(await _moRepo.AtualizarAsync(mo));
         }
 
         [HttpDelete("{id}/maodeobra/{moid}")]
-        public IActionResult DeleteMaoDeObra(string id, Guid moid)
+        public  async Task<IActionResult> DeleteMaoDeObra(string id, Guid moid)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
+            var produto = await _repo.BuscaPorIdAsync(id);
             if (produto == null) return NotFound();
             if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
 
-            var mo = _moRepo.BuscarPorId(moid);
+            var mo = await _moRepo.BuscarPorIdAsync(moid);
             if (mo == null || mo.Produtoid != id) return NotFound();
 
-            _moRepo.Remover(mo);
-            return Ok();
-        }
-
-        [HttpDelete("{id}/imagens/{imagemid}")]
-        public IActionResult DeleteImagem(string id, string imagemid)
-        {
-            var (acessoTotal, claimAppId) = UserContext();
-            var produto = _context.Produtos.FirstOrDefault(p => p.Produtoid == id);
-            if (produto == null) return NotFound();
-            if (!acessoTotal && produto.Aplicacaoid != claimAppId) return Forbid();
-
-            var img = _context.Imagems.FirstOrDefault(i => i.Imagemid == imagemid && i.Parentid == id);
-            if (img == null) return NotFound();
-            _context.Imagems.Remove(img);
-            _context.SaveChanges();
+            await _moRepo.RemoverAsync(mo);
             return Ok();
         }
     }

@@ -4,9 +4,9 @@ namespace ICMSX;
 
 public interface IProdutoMaoDeObraRepositorio
 {
-    List<ProdutoMaoDeObra> ListarPorProduto(string produtoid);
-    ProdutoMaoDeObra? BuscarPorId(Guid id);
-    ProdutoMaoDeObra Criar(ProdutoMaoDeObra mo);
-    ProdutoMaoDeObra Atualizar(ProdutoMaoDeObra mo);
-    void Remover(ProdutoMaoDeObra mo);
+    Task<List<ProdutoMaoDeObra>> ListarPorProdutoAsync(string produtoid);
+    Task<ProdutoMaoDeObra?> BuscarPorIdAsync(Guid id);
+    Task<ProdutoMaoDeObra> CriarAsync(ProdutoMaoDeObra mo);
+    Task<ProdutoMaoDeObra> AtualizarAsync(ProdutoMaoDeObra mo);
+    Task RemoverAsync(ProdutoMaoDeObra mo);
 }

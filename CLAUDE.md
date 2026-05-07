@@ -310,6 +310,25 @@ Documento completo: `docs/plano-refatoracao-arquitetura.md`
 
 ---
 
+## Débito técnico e vulnerabilidades
+
+- Débito técnico identificado fora do escopo da task: abrir impeditivo com descrição completa — nunca ignorar.
+- Antes de encerrar: `dotnet list package --vulnerable` — atualizar tudo ou impeditivo com risco detalhado.
+
+## Testes antes de encerrar
+
+Após qualquer implementação que altere `CMSXRepo` ou `CMSXData`, execute os testes de integração:
+
+```bash
+dotnet test CMSX.Tests/CMSX.Tests.csproj --filter "Integration"
+```
+
+- Se houver falhas: interprete cada erro, corrija o código e rode novamente até passar.
+- Só encerre a tarefa após os testes passarem — testes vermelhos não são entregáveis.
+- O revisor (Opus) verifica conformidade arquitetural; você (Sonnet) é responsável por garantir que os testes passam antes de sinalizar conclusão.
+
+---
+
 ## Se estiver em dúvida
 
 Pare. Releia este arquivo. Se a dúvida persistir, sinalize como **impeditivo** e aguarde instrução.

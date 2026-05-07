@@ -8,23 +8,23 @@ public class LojaRepositorio : BaseRepositorio, ILojaRepositorio
 {
     public LojaRepositorio(CmsxDbContext db) : base(db) { }
 
-    public Aplicacao? ResolveAplicacao(string slug) =>
-        _db.Aplicacaos.FirstOrDefault(a => a.Url == slug);
+    public async Task<Aplicacao?> ResolveAplicacaoAsync(string slug) =>
+        await _db.Aplicacaos.FirstOrDefaultAsync(a => a.Url == slug);
 
-    public string? ResolvePublicToken(string token) =>
-        _db.PublicTokens
+    public async Task<string?> ResolvePublicTokenAsync(string token) =>
+        await _db.PublicTokens
             .Where(t => t.Token == token && t.Ativo &&
                    (t.Datavencimento == null || t.Datavencimento > DateTime.UtcNow))
             .Select(t => t.Aplicacaoid)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
-    public string? GetActiveTokenForApp(string aplicacaoid) =>
-        _db.PublicTokens
+    public async Task<string?> GetActiveTokenForAppAsync(string aplicacaoid) =>
+        await _db.PublicTokens
             .Where(t => t.Aplicacaoid == aplicacaoid && t.Ativo &&
                    (t.Datavencimento == null || t.Datavencimento > DateTime.UtcNow))
             .OrderByDescending(t => t.Datainclusao)
             .Select(t => t.Token)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
 
     public async Task<IEnumerable<Produto>> ListaCatalogoAsync(string aplicacaoid) =>
         await _db.Produtos
@@ -71,9 +71,10 @@ public class LojaRepositorio : BaseRepositorio, ILojaRepositorio
             .Include(p => p.Statuspedidos)
             .FirstOrDefaultAsync(p => p.Pedidoid == pedidoId);
 
-    public IEnumerable<Pedido> ListaPedidosPorCliente(string clienteEmail) =>
-        _db.Pedidos
+    public async Task<IEnumerable<Pedido>> ListaPedidosPorClienteAsync(string clienteEmail) =>
+        await _db.Pedidos
+            .AsNoTracking()
             .Where(p => p.Clienteemail == clienteEmail)
             .OrderByDescending(p => p.Datainclusao)
-            .ToArray();
+            .ToListAsync();
 }

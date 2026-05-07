@@ -8,7 +8,7 @@ public class MarketHubHttpService(
     HttpClient http,
     IConfiguration config,
     IMemoryCache cache,
-    ILogger<MarketHubHttpService> logger)
+    ILogger<MarketHubHttpService> logger) : IMarketHubHttpService
 {
     private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true };
     private static readonly TimeSpan _tokenTtl = TimeSpan.FromHours(1);

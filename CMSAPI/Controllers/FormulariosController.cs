@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using CMSXData.Models;
+using ICMSX;
 
 namespace CMSAPI.Controllers
 {
@@ -10,8 +11,8 @@ namespace CMSAPI.Controllers
     [Authorize]
     public class FormulariosController : Controller
     {
-        private readonly CmsxDbContext _context;
-        public FormulariosController(CmsxDbContext context) { _context = context; }
+        private readonly IFormularioRepositorio _repo;
+        public FormulariosController(IFormularioRepositorio repo) { _repo = repo; }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
             (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
@@ -19,34 +20,12 @@ namespace CMSAPI.Controllers
         // ── Definições de formulário ─────────────────────────────────────────
 
         [HttpGet("defs")]
-        public IEnumerable<object> GetDefs([FromQuery] string? areaid = null, [FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<object>> GetDefs([FromQuery] string? areaid = null, [FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Formularios.AsQueryable();
-
-            if (!acessoTotal)
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == claimAppId)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(f => f.Areaid != null && areasIds.Contains(f.Areaid));
-            }
-            else if (!string.IsNullOrEmpty(aplicacaoid))
-            {
-                var areasIds = _context.Areas
-                    .Where(a => a.Aplicacaoid == aplicacaoid)
-                    .Select(a => a.Areaid)
-                    .ToHashSet();
-                q = q.Where(f => f.Areaid != null && areasIds.Contains(f.Areaid));
-            }
-
-            if (!string.IsNullOrEmpty(areaid))
-                q = q.Where(f => f.Areaid == areaid);
-
-            return q.OrderBy(f => f.Nome)
-                    .Select(f => new { f.Formularioid, f.Nome, f.Valor, f.Ativo, f.Datainclusao, f.Areaid, f.Categoriaid })
-                    .ToArray();
+            var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
+            return (await _repo.ListaDefsAsync(filtroApp, areaid))
+                .Select(f => new { f.Formularioid, f.Nome, f.Valor, f.Ativo, f.Datainclusao, f.Areaid, f.Categoriaid });
         }
 
         public class FormularioDefDto
@@ -58,13 +37,13 @@ namespace CMSAPI.Controllers
         }
 
         [HttpPost("defs")]
-        public IActionResult PostDef([FromBody] FormularioDefDto dto)
+        public  async Task<IActionResult> PostDef([FromBody] FormularioDefDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
             if (!acessoTotal && !string.IsNullOrEmpty(dto.Areaid))
             {
-                var area = _context.Areas.Find(dto.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = await _repo.AplicacaoidDaAreaAsync(dto.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
 
             var item = new Formulario
@@ -77,43 +56,41 @@ namespace CMSAPI.Controllers
                 Ativo        = true,
                 Datainclusao = DateTime.UtcNow
             };
-            _context.Formularios.Add(item);
-            _context.SaveChanges();
+            await _repo.CriarDefAsync(item);
             return Ok(item);
         }
 
         [HttpPut("defs/{id}")]
-        public IActionResult PutDef(string id, [FromBody] FormularioDefDto dto)
+        public  async Task<IActionResult> PutDef(string id, [FromBody] FormularioDefDto dto)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Formularios.FirstOrDefault(f => f.Formularioid == id);
+            var item = await _repo.BuscaDefPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
             item.Nome       = dto.Nome ?? item.Nome;
             item.Valor      = dto.Valor;
             item.Areaid     = dto.Areaid;
             item.Categoriaid = dto.Categoriaid;
-            _context.SaveChanges();
+            await _repo.AtualizarDefAsync(item);
             return Ok(item);
         }
 
         [HttpDelete("defs/{id}")]
-        public IActionResult DeleteDef(string id)
+        public  async Task<IActionResult> DeleteDef(string id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Formularios.FirstOrDefault(f => f.Formularioid == id);
+            var item = await _repo.BuscaDefPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Areas.Find(item.Areaid);
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = await _repo.AplicacaoidDaAreaAsync(item.Areaid);
+                if (appId != claimAppId) return Forbid();
             }
-            _context.Formularios.Remove(item);
-            _context.SaveChanges();
+            await _repo.RemoverDefAsync(item);
             return Ok();
         }
 
@@ -121,9 +98,9 @@ namespace CMSAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("{formularioid}/submit")]
-        public IActionResult Submit(string formularioid, [FromBody] Dictionary<string, string> campos)
+        public  async Task<IActionResult> Submit(string formularioid, [FromBody] Dictionary<string, string> campos)
         {
-            var formulario = _context.Formularios.FirstOrDefault(f => f.Formularioid == formularioid);
+            var formulario = await _repo.BuscaFormularioPorIdAsync(formularioid);
             if (formulario == null) return NotFound();
 
             var item = new Formularionew
@@ -135,70 +112,48 @@ namespace CMSAPI.Controllers
                 Telefone     = campos.GetValueOrDefault("telefone") ?? campos.GetValueOrDefault("Telefone"),
                 Ativo        = 1
             };
-            _context.Formularionews.Add(item);
-            _context.SaveChanges();
+            await _repo.SubmeterAsync(item);
             return Ok();
         }
 
         // ── Respostas ────────────────────────────────────────────────────────
 
         [HttpGet("respostas")]
-        public IEnumerable<Formularionew> GetRespostas([FromQuery] string? aplicacaoid = null)
+        public async Task<IEnumerable<Formularionew>> GetRespostas([FromQuery] string? aplicacaoid = null)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var q = _context.Formularionews.AsQueryable();
-
-            var filtroAppId = !acessoTotal ? claimAppId : (acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : null);
-            if (filtroAppId != null)
-            {
-                var formularioIds = _context.Formularios
-                    .Where(f => _context.Areas
-                        .Where(a => a.Aplicacaoid == filtroAppId)
-                        .Select(a => a.Areaid)
-                        .Contains(f.Areaid))
-                    .Select(f => f.Formularioid)
-                    .ToHashSet();
-                q = q.Where(r => r.Formularioid != null && formularioIds.Contains(r.Formularioid));
-            }
-
-            return q.OrderByDescending(f => f.Idform).ToArray();
+            var filtroApp = acessoTotal ? aplicacaoid : claimAppId;
+            return await _repo.ListaRespostasAsync(filtroApp);
         }
 
         [HttpPatch("respostas/{id}/ativo")]
-        public IActionResult PatchAtivo(int id, [FromBody] int ativo)
+        public  async Task<IActionResult> PatchAtivo(int id, [FromBody] int ativo)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Formularionews.Find(id);
+            var item = await _repo.BuscaRespostaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Formularios
-                    .Where(f => f.Formularioid == item.Formularioid)
-                    .Join(_context.Areas, f => f.Areaid, a => a.Areaid, (f, a) => a)
-                    .FirstOrDefault();
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = await _repo.AplicacaoidDaRespostaAsync(item.Formularioid);
+                if (appId != claimAppId) return Forbid();
             }
             item.Ativo = ativo;
-            _context.SaveChanges();
+            await _repo.AtualizarRespostaAtivoAsync(item);
             return Ok();
         }
 
         [HttpDelete("respostas/{id}")]
-        public IActionResult DeleteResposta(int id)
+        public  async Task<IActionResult> DeleteResposta(int id)
         {
             var (acessoTotal, claimAppId) = UserContext();
-            var item = _context.Formularionews.Find(id);
+            var item = await _repo.BuscaRespostaPorIdAsync(id);
             if (item == null) return NotFound();
             if (!acessoTotal)
             {
-                var area = _context.Formularios
-                    .Where(f => f.Formularioid == item.Formularioid)
-                    .Join(_context.Areas, f => f.Areaid, a => a.Areaid, (f, a) => a)
-                    .FirstOrDefault();
-                if (area?.Aplicacaoid != claimAppId) return Forbid();
+                var appId = await _repo.AplicacaoidDaRespostaAsync(item.Formularioid);
+                if (appId != claimAppId) return Forbid();
             }
-            _context.Formularionews.Remove(item);
-            _context.SaveChanges();
+            await _repo.RemoverRespostaAsync(item);
             return Ok();
         }
     }
