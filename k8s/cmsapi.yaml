@@ -38,6 +38,16 @@ spec:
                 secretKeyRef:
                   name: multiplai-secrets
                   key: SALEMATIC_JWT_KEY
+            - name: AgentIA__Gemini__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: multiplai-secrets
+                  key: GEMINI_API_KEY
+            - name: MarketHub__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: multiplai-secrets
+                  key: MARKETHUB_SECRET
             - name: DatabaseProvider
               value: "PostgreSQL"
             - name: Cors__AllowedOrigins__0
