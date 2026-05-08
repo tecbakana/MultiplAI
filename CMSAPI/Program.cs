@@ -21,6 +21,7 @@ var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? [];
 
+// Permite CORS para o frontend Angular
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Angular", policy =>
