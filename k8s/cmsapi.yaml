@@ -18,6 +18,7 @@ spec:
       containers:
         - name: cmsapi
           image: gru.ocir.io/grvzruvkeyil/multiplai/cmsapi:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
@@ -48,6 +49,8 @@ spec:
                 secretKeyRef:
                   name: multiplai-secrets
                   key: MARKETHUB_SECRET
+            - name: MarketHub__BaseUrl
+              value: "http://163.176.129.152:4000"
             - name: DatabaseProvider
               value: "PostgreSQL"
             - name: Cors__AllowedOrigins__0
