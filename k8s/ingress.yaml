@@ -12,10 +12,25 @@ spec:
   tls:
     - hosts:
         - multiplai.com.br
+        - www.multiplai.com.br
         - admin.multiplai.com.br
         - api.multiplai.com.br
       secretName: multiplai-tls
   rules:
+    # -----------------------------------------------
+    # www.multiplai.com.br — redireciona para multiplai.com.br
+    # -----------------------------------------------
+    - host: www.multiplai.com.br
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: publicui
+                port:
+                  number: 8080
+
     # -----------------------------------------------
     # multiplai.com.br — PublicUI + CMSAPI.Publica
     # -----------------------------------------------
