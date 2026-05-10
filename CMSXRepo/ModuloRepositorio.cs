@@ -24,4 +24,25 @@ public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
             .Join(_db.Modulos.AsNoTracking(), r => r.Moduloid, m => m.Moduloid, (r, m) => m)
             .OrderBy(m => m.Posicao)
             .ToListAsync();
+
+    public async Task<Modulo?> BuscaPorIdAsync(string moduloid) =>
+        await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == moduloid);
+
+    public async Task CriarAsync(Modulo modulo)
+    {
+        _db.Modulos.Add(modulo);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task AtualizarAsync(Modulo modulo)
+    {
+        _db.Modulos.Update(modulo);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task RemoverAsync(Modulo modulo)
+    {
+        _db.Modulos.Remove(modulo);
+        await _db.SaveChangesAsync();
+    }
 }
