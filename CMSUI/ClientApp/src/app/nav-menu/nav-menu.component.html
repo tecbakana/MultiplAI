@@ -27,24 +27,11 @@
       {{ m.nome }}
     </a>
 
-    <!-- Orçamentos -->
-    <div class="nav-separator" *ngIf="usuario"></div>
-    <a class="nav-item" *ngIf="usuario"
-      [routerLink]="['/orcamentos']" routerLinkActive="active">
-      <span class="nav-icon">◻</span> Orçamentos
-    </a>
-
     <!-- Minha Aplicação -->
     <div class="nav-separator" *ngIf="usuario?.aplicacaoid"></div>
     <a class="nav-item" *ngIf="usuario?.aplicacaoid"
       [routerLink]="['/minha-aplicacao']" routerLinkActive="active">
       <span class="nav-icon">⚙</span> Minha Aplicação
-    </a>
-
-    <!-- Integrações Marketplace -->
-    <a class="nav-item" *ngIf="usuario?.aplicacaoid"
-      [routerLink]="['/marketplace']" routerLinkActive="active">
-      <span class="nav-icon">◈</span> Integrações Marketplace
     </a>
 
     <!-- Admin (colapsável) -->
@@ -67,6 +54,9 @@
         </a>
         <a class="nav-item nav-item-sub" [routerLink]="['/vinculosmodulo']" routerLinkActive="active">
           <span class="nav-icon">▪</span> Módulos/Usuário
+        </a>
+        <a class="nav-item nav-item-sub" [routerLink]="['/modulos-admin']" routerLinkActive="active">
+          <span class="nav-icon">▪</span> Módulos
         </a>
       </div>
 

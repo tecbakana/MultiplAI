@@ -32,11 +32,16 @@ CMSAPI/Controllers  →  ICMSX (interfaces)  →  CMSXRepo (implementações)  �
 
 - **NUNCA** usar `Microsoft.EntityFrameworkCore` ou `DbContext` fora de `CMSXData` e `CMSXRepo`
 - **NUNCA** injetar `CmsxDbContext` em controllers ou services
+- **NUNCA** usar `using CMSXData.Models` em controllers — a única referência de dados permitida em controllers é `using ICMSX`
+- **NUNCA** instanciar entidades de banco (`new Modulo { }`, `new Produto { }`, etc.) fora de `CMSXRepo` — construção de entidade é responsabilidade exclusiva do repositório
+- **NUNCA** definir métodos de criação/atualização em interfaces com entidades como parâmetro de entrada (`CriarAsync(Modulo m)`) — use DTOs definidos em `ICMSX` (`CriarAsync(ModuloInput input)`); o repositório constrói a entidade internamente
 - **NUNCA** expor `IQueryable<T>` fora do repositório — LINQ to Entities é vazamento de estrutura
 - **NUNCA** tomar atalhos para "fazer funcionar" em detrimento da arquitetura
 - **NUNCA** usar `.ToString()` dentro de expressões LINQ/EF Core (quebra no PostgreSQL)
 - **NUNCA** usar `DateTime.Now` em qualquer campo que será persistido no banco (dentro ou fora de query) — sempre `DateTime.UtcNow`. Um valor `Kind=Local` grava sem erro no SQL Server e falha explicitamente no PostgreSQL.
 - **NUNCA** implementar antes de criar a interface em ICMSX e ter aprovação
+- **NUNCA** expor endpoint que aceita query parameter com ID externo (`usuarioid`, `aplicacaoid`, etc.) sem verificar a autorização do caller primeiro — ausência de gate é BOLA/IDOR (OWASP API Security #1), violação de segurança bloqueante
+- **NUNCA** remover uma entidade sem verificar se há registros relacionados em outras tabelas: ou deletar explicitamente os vínculos antes, ou confirmar no schema que CASCADE DELETE está configurado — omissão gera dados órfãos silenciosos
 
 ---
 
@@ -45,6 +50,10 @@ CMSAPI/Controllers  →  ICMSX (interfaces)  →  CMSXRepo (implementações)  �
 - Toda persistência via interface definida em `ICMSX`
 - Se a interface não existir: **criar em ICMSX primeiro**, apresentar ao responsável, depois implementar em `CMSXRepo`
 - Queries encapsuladas em métodos semânticos: `Lista(string aplicacaoid)`, `BuscaPorId(Guid id)` — nunca expor predicados
+- DTOs declarados como `record` em `ICMSX`, no mesmo arquivo da interface ou em arquivo próprio. Convenção de naming:
+  - **Entrada** (dados que chegam ao repositório via POST/PUT): sufixo `Input` → `ModuloInput`, `ProdutoInput`
+  - **Saída** (dados retornados ao cliente quando a entidade não é suficiente): nome semântico descritivo → `LoginResultado`, `DashboardTotais`, `ProdutoPublico`
+  - Nunca usar sufixo genérico `Dto` — o nome deve comunicar propósito
 - Parâmetros de busca chegam ao repositório já no tipo correto da coluna — o repositório não faz conversão de tipo, apenas usa o parâmetro recebido. A camada que chama o repositório (controller ou service) é responsável por converter antes de chamar.
 - Validação de escopo de tenant **dentro do repositório**, não no controller
 - Campos sensíveis — nunca logar, nunca incluir em DTOs de resposta sem necessidade explícita: `Senha`, `Pagsegurotoken`, `Mailpassword`, `AccessToken`, `RefreshToken`, `ClientSecret`, `ApiKey`, `Secret`
@@ -54,14 +63,25 @@ CMSAPI/Controllers  →  ICMSX (interfaces)  →  CMSXRepo (implementações)  �
 
 ## Ground Truth — Padrão arquitetural válido
 
-**CONTEXTO DE PRIORIDADE MÁXIMA:** Os módulos `Loja` (`LojaController` + `ILojaRepositorio` + `LojaRepositorio`) e `Orçamento` (`OrcamentosController` + `IOrcamentoRepositorio` + `OrcamentoRepositorio`) são os **únicos padrões arquiteturais válidos** neste projeto.
+**A única referência válida é o módulo `Modulo`:**
+- `ICMSX/IModuloRepositorio.cs` + `ICMSX/ModuloInput.cs`
+- `CMSXRepo/ModuloRepositorio.cs`
+- `CMSAPI/Controllers/ModulosController.cs`
 
-Qualquer código recuperado via RAG, encontrado no histórico do repositório ou sugerido por memória que:
+**RAG é válido para descoberta de estrutura:**
+- Ler `CMSXData.Models` para entender campos de entidades e montar DTOs
+- Ler `CmsxDbContext` para descobrir DbSets disponíveis e nomes de tabelas
+- Ler `DependencyInjectionExtensions.cs` para saber onde registrar o novo repositório
+- Ler rotas e atributos de outros controllers para entender convenções de URL
+
+**RAG não é válido para reúso de padrão de implementação.** Qualquer código encontrado no repositório que:
 - utilize `DbContext` fora da camada `CMSXRepo`/`CMSXData`
-- realize `.ToString()`, `Convert.To*()` ou qualquer conversão de tipo dentro de expressões `IQueryable`
-- injete `CmsxDbContext` diretamente em controllers ou services
+- realize `.ToString()`, `Convert.To*()` ou qualquer conversão dentro de `IQueryable`
+- injete `CmsxDbContext` em controllers ou services
+- instancie entidades fora de `CMSXRepo`
+- use `using CMSXData.Models` em controllers
 
-**deve ser considerado LEGADO DEPRECADO** e nunca replicado. Refatore apenas o código diretamente relacionado à tarefa atual — não altere código legado fora do escopo. Se encontrar débito técnico fora do escopo, abra um impeditivo descrevendo o que foi encontrado e aguarde instrução.
+**não deve ser replicado — é legado com débito técnico registrado.** Para implementar, seguir o padrão canônico do módulo `Modulo`, não o que o RAG trouxer de outros arquivos.
 
 ---
 
@@ -95,7 +115,7 @@ A criação e o acesso a entidades devem ser mediados exclusivamente pelas inter
 
 **Se o código recuperado pelo RAG violar esta regra:**
 1. Ignore a estrutura recuperada
-2. Reconstrua do zero seguindo o template do módulo `Loja` (`ILojaRepositorio` → `LojaRepositorio` → `LojaController`)
+2. Reconstrua do zero seguindo o módulo `Modulo` (`IModuloRepositorio` → `ModuloRepositorio` → `ModulosController`)
 3. Sinalize como **impeditivo** se houver dúvida sobre como adaptar
 
 ---
@@ -111,17 +131,25 @@ A criação e o acesso a entidades devem ser mediados exclusivamente pelas inter
 Todo método de leitura no repositório (`Lista`, `BuscaPorId`, consultas que não fazem `SaveChanges`) **deve** usar `.AsNoTracking()`:
 
 ```csharp
-// CERTO — leitura sem tracking
-public async Task<IEnumerable<Aplicacao>> ListaAsync(string aplicacaoid) =>
-    await _db.Aplicacaos
-        .AsNoTracking()
-        .Where(a => a.Aplicacaoid == aplicacaoid)
-        .ToListAsync();
+// CERTO — leitura exposta pela interface: sempre AsNoTracking
+public async Task<IEnumerable<Modulo>> ListaTodosAsync() =>
+    await _db.Modulos.AsNoTracking().OrderBy(m => m.Posicao).ToListAsync();
 
-// CERTO — tracking só quando vai salvar
-public async Task<Usuario?> BuscaParaEdicaoAsync(string id) =>
-    await _db.Usuarios.FirstOrDefaultAsync(u => u.Userid == id); // sem AsNoTracking
+public async Task<Modulo?> BuscaPorIdAsync(string moduloid) =>
+    await _db.Modulos.AsNoTracking().FirstOrDefaultAsync(m => m.Moduloid == moduloid);
+
+// CERTO — busca interna de escrita (dentro do próprio método de atualização): sem AsNoTracking
+public async Task<bool> AtualizarAsync(string id, ModuloInput input)
+{
+    var modulo = await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == id); // tracking ativo
+    if (modulo == null) return false;
+    modulo.Nome = input.Nome;
+    await _db.SaveChangesAsync();
+    return true;
+}
 ```
+
+**Regra:** todo método público da interface que retorna dados usa `AsNoTracking`. Buscas internas dentro de métodos de escrita (que chamam `SaveChangesAsync` na sequência) não usam `AsNoTracking` — o tracking é necessário para o EF Core detectar as mudanças.
 
 **Motivo:** sem `AsNoTracking()` em leituras o EF Core mantém snapshots de cada entidade em memória, degradando performance em listas e criando risco de `SaveChanges()` persistir dados não intencionais.
 
@@ -150,76 +178,94 @@ public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
 
 ## Exemplos canônicos — SEGUIR OBRIGATORIAMENTE
 
-Estes são os dois controllers que implementam o padrão correto. Todo novo código deve seguir este modelo. Os arquivos reais estão em:
+**Leia os arquivos reais antes de implementar — eles são a fonte de verdade:**
+- `ICMSX/IModuloRepositorio.cs` + `ICMSX/ModuloInput.cs`
+- `CMSXRepo/ModuloRepositorio.cs`
+- `CMSAPI/Controllers/ModulosController.cs`
 
-- `ICMSX/IOrcamentoRepositorio.cs` + `ICMSX/ILojaRepositorio.cs`
-- `CMSXRepo/OrcamentoRepositorio.cs` + `CMSXRepo/LojaRepositorio.cs`
-- `CMSAPI/Controllers/OrcamentosController.cs` + `CMSAPI/Controllers/LojaController.cs`
+### DTO de entrada (ICMSX)
 
-**Leia os arquivos reais antes de implementar — eles são a fonte de verdade, não apenas os snippets abaixo.**
+```csharp
+// ICMSX/ModuloInput.cs
+namespace ICMSX;
+
+public record ModuloInput(string? Nome, string? Url, int? Posicao);
+```
 
 ### Interface (ICMSX)
 
 ```csharp
-// ICMSX/IOrcamentoRepositorio.cs
+// ICMSX/IModuloRepositorio.cs
 using CMSXData.Models;
 
 namespace ICMSX;
 
-public interface IOrcamentoRepositorio
+public interface IModuloRepositorio
 {
-    IEnumerable<OrcamentoCabecalho> Lista(string aplicacaoid);
-    OrcamentoCabecalho? BuscaPorId(Guid id);
-    void Criar(OrcamentoCabecalho cabecalho, IEnumerable<OrcamentoDetalhe> itens);
-    void ToggleAprovado(OrcamentoCabecalho orcamento);
-    void Remove(OrcamentoCabecalho orcamento);
+    Task<IEnumerable<Modulo>> ListaTodosAsync();
+    Task<IEnumerable<Modulo>> ListaPorAplicacaoAsync(string aplicacaoid);
+    Task<IEnumerable<Modulo>> ListaPorUsuarioAsync(string usuarioid);
+    Task<Modulo?> BuscaPorIdAsync(string moduloid);
+    Task<string> CriarAsync(ModuloInput input);              // ← retorna o ID gerado
+    Task<bool> AtualizarAsync(string id, ModuloInput input); // ← retorna false se não encontrado
+    Task<bool> RemoverAsync(string id);                       // ← retorna false se não encontrado
 }
 ```
 
 ### Implementação (CMSXRepo)
 
 ```csharp
-// CMSXRepo/OrcamentoRepositorio.cs
+// CMSXRepo/ModuloRepositorio.cs
 using CMSXData.Models;
 using ICMSX;
 using Microsoft.EntityFrameworkCore;  // ← permitido APENAS aqui
 
 namespace CMSXRepo;
 
-public class OrcamentoRepositorio : BaseRepositorio, IOrcamentoRepositorio
+public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
 {
-    public OrcamentoRepositorio(CmsxDbContext db) : base(db) { }
+    public ModuloRepositorio(CmsxDbContext db) : base(db) { }
 
-    public IEnumerable<OrcamentoCabecalho> Lista(string aplicacaoid) =>
-        _db.OrcamentoCabecalhos
-            .Where(o => o.Aplicacaoid == aplicacaoid)   // string == string, sem ToString()
-            .OrderByDescending(o => o.Datainclusao)
-            .ToList();                                   // retorna List<T>, nunca IQueryable
+    public async Task<IEnumerable<Modulo>> ListaTodosAsync() =>
+        await _db.Modulos.AsNoTracking().OrderBy(m => m.Posicao).ToListAsync();
 
-    public OrcamentoCabecalho? BuscaPorId(Guid id) =>
-        _db.OrcamentoCabecalhos
-            .Include(o => o.OrcamentoDetalhes)
-            .AsSplitQuery()
-            .FirstOrDefault(o => o.Orcamentoid == id);
+    public async Task<Modulo?> BuscaPorIdAsync(string moduloid) =>
+        await _db.Modulos.AsNoTracking().FirstOrDefaultAsync(m => m.Moduloid == moduloid);
 
-    public void Criar(OrcamentoCabecalho cabecalho, IEnumerable<OrcamentoDetalhe> itens)
+    public async Task<string> CriarAsync(ModuloInput input)
     {
-        _db.OrcamentoCabecalhos.Add(cabecalho);
-        _db.OrcamentoDetalhes.AddRange(itens);
-        _db.SaveChanges();
+        var modulo = new Modulo           // ← entidade construída AQUI, nunca no controller
+        {
+            Moduloid = Guid.NewGuid().ToString(),
+            Nome     = input.Nome,
+            Url      = input.Url,
+            Posicao  = input.Posicao
+        };
+        _db.Modulos.Add(modulo);
+        await _db.SaveChangesAsync();
+        return modulo.Moduloid;
     }
 
-    public void ToggleAprovado(OrcamentoCabecalho orcamento)
+    public async Task<bool> AtualizarAsync(string id, ModuloInput input)
     {
-        orcamento.Aprovado = !orcamento.Aprovado;
-        _db.SaveChanges();
+        var modulo = await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == id);
+        if (modulo == null) return false;  // ← tracking implícito: sem AsNoTracking
+
+        modulo.Nome    = input.Nome;
+        modulo.Url     = input.Url;
+        modulo.Posicao = input.Posicao;
+        await _db.SaveChangesAsync();
+        return true;
     }
 
-    public void Remove(OrcamentoCabecalho orcamento)
+    public async Task<bool> RemoverAsync(string id)
     {
-        _db.OrcamentoDetalhes.RemoveRange(orcamento.OrcamentoDetalhes);
-        _db.OrcamentoCabecalhos.Remove(orcamento);
-        _db.SaveChanges();
+        var modulo = await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == id);
+        if (modulo == null) return false;  // ← tracking implícito: sem AsNoTracking
+
+        _db.Modulos.Remove(modulo);
+        await _db.SaveChangesAsync();
+        return true;
     }
 }
 ```
@@ -227,7 +273,7 @@ public class OrcamentoRepositorio : BaseRepositorio, IOrcamentoRepositorio
 ### Controller (CMSAPI)
 
 ```csharp
-// CMSAPI/Controllers/OrcamentosController.cs
+// CMSAPI/Controllers/ModulosController.cs
 using ICMSX;  // ← única referência de dados permitida no controller
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -238,57 +284,69 @@ namespace CMSAPI.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class OrcamentosController : Controller
+public class ModulosController : Controller
 {
-    private readonly IOrcamentoRepositorio _orcamentoRepo;
-    private readonly IOrcamentoCompostoRepositorio _compostoRepo;
-
-    // ← injeta interfaces, nunca CmsxDbContext
-    public OrcamentosController(
-        IOrcamentoRepositorio orcamentoRepo,
-        IOrcamentoCompostoRepositorio compostoRepo)
-    {
-        _orcamentoRepo = orcamentoRepo;
-        _compostoRepo = compostoRepo;
-    }
-
-    [HttpGet]
-    public IActionResult Get([FromQuery] string? aplicacaoid = null)
-    {
-        var (acessoTotal, claimAppId) = UserContext();
-        var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
-
-        // ← chama método semântico, não monta query
-        var lista = _orcamentoRepo.Lista(appId!)
-            .Select(o => new { o.Orcamentoid, o.Nome, o.Valorestimado });
-
-        return Ok(lista);
-    }
-
-    [HttpGet("{id}")]
-    public IActionResult GetById(Guid id)
-    {
-        var (acessoTotal, claimAppId) = UserContext();
-        var orcamento = _orcamentoRepo.BuscaPorId(id);
-        if (orcamento == null) return NotFound();
-
-        // ← validação de tenant no controller só para autorização HTTP
-        if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
-
-        return Ok(orcamento);
-    }
+    private readonly IModuloRepositorio _repo;
+    public ModulosController(IModuloRepositorio repo) { _repo = repo; }
 
     private (bool acessoTotal, string? aplicacaoid) UserContext() =>
-        (User.FindFirstValue("acessoTotal") == "True",
-         User.FindFirstValue("aplicacaoid"));
+        (User.FindFirstValue("acessoTotal") == "True", User.FindFirstValue("aplicacaoid"));
+
+    [HttpGet]
+    public async Task<IActionResult> Get([FromQuery] string? usuarioid = null)
+    {
+        var (acessoTotal, claimAppId) = UserContext();
+        // usuarioid externo: exclusivo para admin — não-admin não pode enumerar outro usuário
+        if (!string.IsNullOrEmpty(usuarioid))
+        {
+            if (!acessoTotal) return Forbid();  // ← BOLA/IDOR: gate obrigatório
+            return Ok(await _repo.ListaPorUsuarioAsync(usuarioid));
+        }
+        if (acessoTotal)
+            return Ok(await _repo.ListaTodosAsync());
+        // não-admin: userid vem do JWT, nunca do cliente
+        var claimUserId = User.FindFirstValue("userid");
+        return Ok(await _repo.ListaPorUsuarioAsync(claimUserId!));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] ModuloInput input)
+    {
+        var (acessoTotal, _) = UserContext();
+        if (!acessoTotal) return Forbid();
+
+        var moduloid = await _repo.CriarAsync(input);  // ← DTO passa direto; repositório constrói a entidade
+        return Ok(new { moduloid });
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(string id, [FromBody] ModuloInput input)
+    {
+        var (acessoTotal, _) = UserContext();
+        if (!acessoTotal) return Forbid();
+
+        var atualizado = await _repo.AtualizarAsync(id, input);
+        if (!atualizado) return NotFound();
+        return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var (acessoTotal, _) = UserContext();
+        if (!acessoTotal) return Forbid();
+
+        var removido = await _repo.RemoverAsync(id);  // ← repositório busca e remove internamente
+        if (!removido) return NotFound();
+        return NoContent();
+    }
 }
 ```
 
 ### Registro de DI (CMSXRepo/DependencyInjectionExtensions.cs)
 
 ```csharp
-services.AddScoped<IOrcamentoRepositorio, OrcamentoRepositorio>();
-services.AddScoped<IOrcamentoCompostoRepositorio, OrcamentoCompostoRepositorio>();
+services.AddScoped<IModuloRepositorio, ModuloRepositorio>();
 ```
 
 ---
@@ -310,10 +368,24 @@ Documento completo: `docs/plano-refatoracao-arquitetura.md`
 
 ---
 
+## Erros e problemas identificados durante a execução de uma task
+
+O escopo da dev-request define o que deve ser implementado, mas a qualidade da implementação como um todo é prioridade superior. Ao identificar um problema fora do escopo:
+
+**1. É impeditivo** (bloqueia a implementação atual, gera risco de regressão ou impede o correto funcionamento do que está sendo entregue):
+→ Corrigir imediatamente no mesmo PR/commit e registrar no campo `resultado` da dev-request o que foi corrigido e por quê.
+
+**2. Não é impeditivo** (débito técnico, melhoria, aviso de qualidade):
+→ Não corrigir agora. Sinalizar para criação de nova dev-request descrevendo o problema, o arquivo/linha, o risco de deixar e a ação necessária.
+
+**Nunca:**
+- ignorar silenciosamente um problema identificado
+- deixar comentário TODO sem dev-request associada
+- abrir impeditivo na dev-request atual por problema não impeditivo (isso trava a entrega sem necessidade)
+
 ## Débito técnico e vulnerabilidades
 
-- Débito técnico identificado fora do escopo da task: abrir impeditivo com descrição completa — nunca ignorar.
-- Antes de encerrar: `dotnet list package --vulnerable` — atualizar tudo ou impeditivo com risco detalhado.
+- Antes de encerrar: `dotnet list package --vulnerable` — atualizar tudo ou nova dev-request com risco detalhado.
 
 ## Testes antes de encerrar
 
@@ -326,6 +398,16 @@ dotnet test CMSX.Tests/CMSX.Tests.csproj --filter "Integration"
 - Se houver falhas: interprete cada erro, corrija o código e rode novamente até passar.
 - Só encerre a tarefa após os testes passarem — testes vermelhos não são entregáveis.
 - O revisor (Opus) verifica conformidade arquitetural; você (Sonnet) é responsável por garantir que os testes passam antes de sinalizar conclusão.
+
+### Cobertura obrigatória para novas classes de repositório
+
+Toda nova classe criada em `CMSXRepo` **exige avaliação explícita** da necessidade de testes de integração com Testcontainers. A avaliação deve responder:
+
+1. O repositório persiste ou lê do banco? → **criar testes de integração**
+2. Há comportamento implícito do EF Core sendo explorado (tracking, lazy loading, cascade)? → **obrigatório cobrir com teste**
+3. O repositório é puramente em memória ou delega para outro serviço? → testes unitários bastam
+
+Se a criação dos testes estiver fora do escopo da task atual, abrir task separada descrevendo os cenários a cobrir antes de encerrar. Nunca entregar repositório novo sem ao menos registrar a task de cobertura.
 
 ---
 

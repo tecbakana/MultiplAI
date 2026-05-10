@@ -53,10 +53,7 @@ export class NavMenuComponent implements OnInit, OnDestroy {
     this.aplicacoes = [];
 
     if (this.usuario) {
-      const url = this.usuario.acessoTotal
-        ? this.baseUrl + 'modulos'
-        : this.baseUrl + 'modulos?usuarioid=' + this.usuario.userid;
-      this.http.get<any[]>(url).subscribe(m => this.modulos = m);
+      this.http.get<any[]>(this.baseUrl + 'modulos').subscribe(m => this.modulos = m);
 
       if (this.usuario.acessoTotal) {
         this.http.get<any[]>(this.baseUrl + 'aplicacaos').subscribe(a => this.aplicacoes = a);

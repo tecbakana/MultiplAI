@@ -28,6 +28,7 @@ import { LandingComponent } from './landing/landing.component';
 import { PedidoComponent } from './pedido/pedido.component';
 import { OrcamentoComponent } from './orcamento/orcamento.component';
 import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
+import { ModuloComponent } from './modulo/modulo.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -51,7 +52,8 @@ import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
     LandingComponent,
     PedidoComponent,
     OrcamentoComponent,
-    NovoOrcamentoComponent
+    NovoOrcamentoComponent,
+    ModuloComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -77,6 +79,7 @@ import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
       { path: 'formularios', component: FormularioComponent },
       { path: 'grupos', component: GrupoComponent },
       { path: 'vinculos', component: VinculoComponent },
+      { path: 'modulos-admin', component: ModuloComponent },
       { path: 'vinculosmodulo', component: VinculoModuloComponent },
       { path: 'pedidos', component: PedidoComponent },
       { path: 'orcamentos', component: OrcamentoComponent },
