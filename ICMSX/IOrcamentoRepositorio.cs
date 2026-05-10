@@ -6,8 +6,8 @@ public interface IOrcamentoRepositorio
 {
     Task<IEnumerable<OrcamentoCabecalho>> ListaAsync(string aplicacaoid);
     Task<OrcamentoCabecalho?> BuscaPorIdAsync(Guid id);
-    Task CriarAsync(OrcamentoCabecalho cabecalho, IEnumerable<OrcamentoDetalhe> itens);
+    Task<Guid> CriarAsync(OrcamentoInput input);
+    Task<bool> ToggleAprovadoAsync(Guid id);
+    Task<bool> RemoveAsync(Guid id);
     Task<IEnumerable<Produto>> ListaProdutosPublicosAsync(string aplicacaoid);
-    Task ToggleAprovadoAsync(OrcamentoCabecalho orcamento);
-    Task RemoveAsync(OrcamentoCabecalho orcamento);
 }

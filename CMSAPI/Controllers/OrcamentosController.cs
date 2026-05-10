@@ -26,7 +26,7 @@ public class OrcamentosController : Controller
          User.FindFirstValue("aplicacaoid"));
 
     [HttpGet]
-    public  async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null)
+    public async Task<IActionResult> Get([FromQuery] string? aplicacaoid = null)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var appId = acessoTotal && !string.IsNullOrEmpty(aplicacaoid) ? aplicacaoid : claimAppId;
@@ -49,7 +49,7 @@ public class OrcamentosController : Controller
     }
 
     [HttpGet("{id}")]
-    public  async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
 
@@ -65,7 +65,7 @@ public class OrcamentosController : Controller
                 d.Quantidade,
                 d.ValorBase,
                 d.ValorTotal,
-                ConfiguracaoJson = d.ConfiguracaoJson,
+                d.ConfiguracaoJson,
                 d.Versao
             })
             .ToList();
@@ -96,27 +96,28 @@ public class OrcamentosController : Controller
     }
 
     [HttpPut("{id}/aprovar")]
-    public  async Task<IActionResult> Aprovar(Guid id)
+    public async Task<IActionResult> Aprovar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
+
         var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id);
         if (orcamento == null) return NotFound();
         if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
 
-        await _orcamentoRepo.ToggleAprovadoAsync(orcamento);
-        return Ok(new { orcamento.Aprovado });
+        await _orcamentoRepo.ToggleAprovadoAsync(id);
+        return Ok(new { Aprovado = !orcamento.Aprovado });
     }
 
     [HttpDelete("{id}")]
-    public  async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
+
         var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id);
         if (orcamento == null) return NotFound();
         if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
 
-        await _compostoRepo.RemoverPorOrcamentoAsync(orcamento.Orcamentoid);
-        await _orcamentoRepo.RemoveAsync(orcamento);
-        return Ok();
+        await _orcamentoRepo.RemoveAsync(id);
+        return NoContent();
     }
 }

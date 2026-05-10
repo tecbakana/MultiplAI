@@ -26,23 +26,41 @@ public class ModuloRepositorio : BaseRepositorio, IModuloRepositorio
             .ToListAsync();
 
     public async Task<Modulo?> BuscaPorIdAsync(string moduloid) =>
-        await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == moduloid);
+        await _db.Modulos.AsNoTracking().FirstOrDefaultAsync(m => m.Moduloid == moduloid);
 
-    public async Task CriarAsync(Modulo modulo)
+    public async Task<string> CriarAsync(ModuloInput input)
     {
+        var modulo = new Modulo
+        {
+            Moduloid = Guid.NewGuid().ToString(),
+            Nome = input.Nome,
+            Url = input.Url,
+            Posicao = input.Posicao
+        };
         _db.Modulos.Add(modulo);
         await _db.SaveChangesAsync();
+        return modulo.Moduloid;
     }
 
-    public async Task AtualizarAsync(Modulo modulo)
+    public async Task<bool> AtualizarAsync(string id, ModuloInput input)
     {
-        _db.Modulos.Update(modulo);
+        var modulo = await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == id);
+        if (modulo == null) return false;
+
+        modulo.Nome = input.Nome;
+        modulo.Url = input.Url;
+        modulo.Posicao = input.Posicao;
         await _db.SaveChangesAsync();
+        return true;
     }
 
-    public async Task RemoverAsync(Modulo modulo)
+    public async Task<bool> RemoverAsync(string id)
     {
+        var modulo = await _db.Modulos.FirstOrDefaultAsync(m => m.Moduloid == id);
+        if (modulo == null) return false;
+
         _db.Modulos.Remove(modulo);
         await _db.SaveChangesAsync();
+        return true;
     }
 }
