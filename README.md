@@ -1,4 +1,4 @@
-# CMSX — CMS Multi-Tenant com Page Builder IA
+# MultiplAI — CMS Multi-Tenant com Page Builder IA
 ![.NET](https://img.shields.io/badge/.NET-6-blue)
 ![AI](https://img.shields.io/badge/AI-LLM-green)
 
