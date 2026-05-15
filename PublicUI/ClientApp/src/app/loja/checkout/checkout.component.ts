@@ -58,6 +58,7 @@ export class CheckoutComponent implements OnInit {
     this.erro = '';
 
     const pedido: NovoPedido = {
+      token: this.ctx.token,
       numeropedido: `PED-${Date.now()}`,
       clientenome: this.cliente.nome,
       clienteemail: this.cliente.email,

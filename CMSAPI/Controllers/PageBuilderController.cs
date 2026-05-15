@@ -101,8 +101,7 @@ namespace CMSAPI.Controllers
             if (area == null) return NotFound();
             if (!acessoTotal && area.Aplicacaoid != claimAppId) return Forbid();
 
-            area.Layout = payload.GetRawText();
-            await _areasRepo.AtualizarAsync(area);
+            await _areasRepo.AtualizarLayoutAsync(areaid, payload.GetRawText());
             return Ok();
         }
 
@@ -542,8 +541,7 @@ Regras importantes:
             if (dto.Version != "v1" && dto.Version != "v2")
                 return BadRequest("Versão inválida. Use 'v1' ou 'v2'.");
 
-            area.PageBuilderVersion = dto.Version;
-            await _areasRepo.AtualizarAsync(area);
+            await _areasRepo.AtualizarPageBuilderVersionAsync(areaid, dto.Version);
             return Ok();
         }
 

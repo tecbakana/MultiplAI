@@ -40,6 +40,11 @@
             <i class="bi bi-shop me-1"></i>Marketplace
           </a>
         </li>
+        <li class="nav-item" *ngIf="selecionado?.aplicacaoid">
+          <a class="nav-link" [class.active]="abaAtiva==='segmentos'" (click)="abrirAbaSegmentos()" href="javascript:void(0)">
+            <i class="bi bi-diagram-3 me-1"></i>Segmentos
+          </a>
+        </li>
       </ul>
 
       <div class="p-3">
@@ -317,6 +322,26 @@
           <div class="col-12">
             <label class="form-label">Código Google AdSense</label>
             <textarea class="form-control" rows="5" [(ngModel)]="selecionado.ogleadsense" placeholder="Cole aqui o script do Google AdSense"></textarea>
+          </div>
+        </div>
+
+        <!-- ABA SEGMENTOS -->
+        <div *ngIf="abaAtiva==='segmentos'">
+          <p class="text-muted small mb-3">Selecione os segmentos deste tenant. Os templates base de cada segmento ficam disponíveis automaticamente.</p>
+          <div *ngIf="segmentosDisponiveis.length === 0" class="text-muted">Nenhum segmento disponível.</div>
+          <div class="row g-2">
+            <div class="col-md-6 col-lg-4" *ngFor="let seg of segmentosDisponiveis">
+              <div class="form-check border rounded p-3" [class.border-primary]="temSegmento(seg.segmentoTenantId)">
+                <input class="form-check-input" type="checkbox"
+                  [id]="'seg-' + seg.segmentoTenantId"
+                  [checked]="temSegmento(seg.segmentoTenantId)"
+                  (change)="toggleSegmento(seg.segmentoTenantId)">
+                <label class="form-check-label ms-1" [for]="'seg-' + seg.segmentoTenantId">
+                  <strong>{{ seg.nome }}</strong>
+                  <div class="text-muted small" *ngIf="seg.descricao">{{ seg.descricao }}</div>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 

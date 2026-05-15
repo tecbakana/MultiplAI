@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { AuthInterceptor } from './auth.interceptor';
+import { AuthGuard } from './auth.guard';
 
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
@@ -29,6 +30,9 @@ import { PedidoComponent } from './pedido/pedido.component';
 import { OrcamentoComponent } from './orcamento/orcamento.component';
 import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
 import { ModuloComponent } from './modulo/modulo.component';
+import { SegmentoComponent } from './segmento/segmento.component';
+import { VitrineComponent } from './vitrine/vitrine.component';
+import { VitrineAdminComponent } from './vitrine-admin/vitrine-admin.component';
 @NgModule({
   declarations: [
     AppComponent,
@@ -53,7 +57,10 @@ import { ModuloComponent } from './modulo/modulo.component';
     PedidoComponent,
     OrcamentoComponent,
     NovoOrcamentoComponent,
-    ModuloComponent
+    ModuloComponent,
+    SegmentoComponent,
+    VitrineComponent,
+    VitrineAdminComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -62,33 +69,35 @@ import { ModuloComponent } from './modulo/modulo.component';
     DragDropModule,
     RouterModule.forRoot([
       { path: '', component: LandingComponent, pathMatch: 'full' },
-      { path: 'dashboard', component: HomeComponent },
+      { path: 'dashboard', component: HomeComponent, canActivate: [AuthGuard] },
       { path: 'login', component: LoginComponent },
       { path: 'signup', component: SignupComponent },
-      { path: 'usuario', component: UsuarioComponent },
-      { path: 'usuarios', component: UsuarioComponent },
-      { path: 'aplicacao', component: AplicacaoComponent },
-      { path: 'aplicacoes', component: AplicacaoComponent },
-      { path: 'minha-aplicacao', component: AplicacaoComponent },
-      { path: 'conteudo', component: ConteudoComponent },
-      { path: 'area', component: AreaComponent },
-      { path: 'areas', component: AreaComponent },
-      { path: 'categoria', component: CategoriaComponent },
-      { path: 'categorias', component: CategoriaComponent },
-      { path: 'produtos', component: ProdutoComponent },
-      { path: 'formularios', component: FormularioComponent },
-      { path: 'grupos', component: GrupoComponent },
-      { path: 'vinculos', component: VinculoComponent },
-      { path: 'modulos-admin', component: ModuloComponent },
-      { path: 'vinculosmodulo', component: VinculoModuloComponent },
-      { path: 'pedidos', component: PedidoComponent },
-      { path: 'orcamentos', component: OrcamentoComponent },
-      { path: 'orcamento/novo', component: NovoOrcamentoComponent },
-      { path: 'marketplace', loadChildren: () => import('./marketplace/marketplace.module').then(m => m.MarketplaceModule) },
-      { path: 'loja', loadChildren: () => import('./loja/loja.module').then(m => m.LojaModule) },
-      { path: 's/:slug/loja', loadChildren: () => import('./loja/loja.module').then(m => m.LojaModule) },
-      { path: 'page-builder', component: PageBuilderComponent },
-      { path: 'page-builder-v2', loadChildren: () => import('./page-builder-v2/page-builder-v2.module').then(m => m.PageBuilderV2Module) },
+      { path: 'usuario', component: UsuarioComponent, canActivate: [AuthGuard] },
+      { path: 'usuarios', component: UsuarioComponent, canActivate: [AuthGuard] },
+      { path: 'aplicacao', component: AplicacaoComponent, canActivate: [AuthGuard] },
+      { path: 'aplicacoes', component: AplicacaoComponent, canActivate: [AuthGuard] },
+      { path: 'minha-aplicacao', component: AplicacaoComponent, canActivate: [AuthGuard] },
+      { path: 'conteudo', component: ConteudoComponent, canActivate: [AuthGuard] },
+      { path: 'area', component: AreaComponent, canActivate: [AuthGuard] },
+      { path: 'areas', component: AreaComponent, canActivate: [AuthGuard] },
+      { path: 'categoria', component: CategoriaComponent, canActivate: [AuthGuard] },
+      { path: 'categorias', component: CategoriaComponent, canActivate: [AuthGuard] },
+      { path: 'produtos', component: ProdutoComponent, canActivate: [AuthGuard] },
+      { path: 'formularios', component: FormularioComponent, canActivate: [AuthGuard] },
+      { path: 'grupos', component: GrupoComponent, canActivate: [AuthGuard] },
+      { path: 'vinculos', component: VinculoComponent, canActivate: [AuthGuard] },
+      { path: 'modulos-admin', component: ModuloComponent, canActivate: [AuthGuard] },
+      { path: 'segmentos', component: SegmentoComponent, canActivate: [AuthGuard] },
+      { path: 'vitrine-admin', component: VitrineAdminComponent, canActivate: [AuthGuard] },
+      { path: 'vitrine', component: VitrineComponent, canActivate: [AuthGuard] },
+      { path: 'vitrine/:areaid', redirectTo: 'vitrine', pathMatch: 'full' },
+      { path: 'vinculosmodulo', component: VinculoModuloComponent, canActivate: [AuthGuard] },
+      { path: 'pedidos', component: PedidoComponent, canActivate: [AuthGuard] },
+      { path: 'orcamentos', component: OrcamentoComponent, canActivate: [AuthGuard] },
+      { path: 'orcamento/novo', component: NovoOrcamentoComponent, canActivate: [AuthGuard] },
+      { path: 'marketplace', loadChildren: () => import('./marketplace/marketplace.module').then(m => m.MarketplaceModule), canActivate: [AuthGuard] },
+      { path: 'page-builder', component: PageBuilderComponent, canActivate: [AuthGuard] },
+      { path: 'page-builder-v2', loadChildren: () => import('./page-builder-v2/page-builder-v2.module').then(m => m.PageBuilderV2Module), canActivate: [AuthGuard] },
       { path: 's/:slug', component: SiteComponent },
       { path: 's/:slug/:area', component: SiteComponent },
       { path: 'preview/:id', component: SiteComponent },

@@ -8,7 +8,7 @@ export class ProdutoComponent implements OnInit {
   categorias: any[] = [];
   selecionado: any = null;
   modoEdicao = false;
-  aba: 'geral' | 'atributos' | 'galeria' | 'maodeobra' = 'geral';
+  aba: 'geral' | 'atributos' | 'galeria' | 'maodeobra' | 'modelos' = 'geral';
   private usuario: any;
 
   // Atributos
@@ -29,6 +29,17 @@ export class ProdutoComponent implements OnInit {
   maosDeObra: any[] = [];
   novaMo = { tipo: 'capacidade_dia', descricao: '', capacidadeDia: null as number | null, valorDia: null as number | null, valorMilheiro: null as number | null };
   editandoMo: any = null;
+
+  // Modelos
+  templates: any[] = [];
+  modeloDescricao = '';
+  modeloNome = '';
+  modeloInterpretando = false;
+  modeloSalvando = false;
+  modeloAplicando = false;
+  modeloPreview: any = null;
+  modeloErro = '';
+  modeloSelecionadoId = '';
 
   // IA
   iaImageUrl = '';
@@ -78,6 +89,7 @@ export class ProdutoComponent implements OnInit {
     };
     this.atributos = []; this.imagens = [];
     this.aba = 'geral'; this.modoEdicao = true;
+    this.carregarTemplates();
   }
 
   editar(item: any) {
@@ -86,6 +98,7 @@ export class ProdutoComponent implements OnInit {
     this.carregarAtributos();
     this.carregarImagens();
     this.carregarMaosDeObra();
+    this.carregarTemplates();
   }
 
   salvarGeral() {
@@ -106,7 +119,12 @@ export class ProdutoComponent implements OnInit {
       this.http.delete(this.baseUrl + 'produtos/' + id).subscribe(() => this.carregar());
   }
 
-  cancelar() { this.modoEdicao = false; this.selecionado = null; this.atributos = []; this.imagens = []; this.maosDeObra = []; }
+  cancelar() {
+    this.modoEdicao = false; this.selecionado = null;
+    this.atributos = []; this.imagens = []; this.maosDeObra = [];
+    this.templates = []; this.modeloDescricao = ''; this.modeloNome = '';
+    this.modeloPreview = null; this.modeloErro = ''; this.modeloSelecionadoId = '';
+  }
 
   // ── IA ─────────────────────────────────────────────────────────────
 
@@ -317,6 +335,60 @@ export class ProdutoComponent implements OnInit {
   removerImagem(imagemid: string) {
     this.http.delete(this.baseUrl + 'produtos/' + this.selecionado.produtoid + '/imagens/' + imagemid)
       .subscribe(() => this.carregarImagens());
+  }
+
+  // ── Modelos ────────────────────────────────────────────────────────
+
+  carregarTemplates() {
+    this.http.get<any[]>(this.baseUrl + 'produtos/templates')
+      .subscribe({ next: r => this.templates = r, error: () => {} });
+  }
+
+  interpretarModelo() {
+    if (!this.modeloDescricao.trim()) return;
+    this.modeloInterpretando = true;
+    this.modeloErro = '';
+    this.modeloPreview = null;
+    this.http.post<any>(this.baseUrl + 'produtos/templates/interpretar', { descricao: this.modeloDescricao })
+      .subscribe({
+        next: r => {
+          this.modeloInterpretando = false;
+          try { this.modeloPreview = JSON.parse(r.conteudoJson); }
+          catch { this.modeloPreview = r.conteudoJson; }
+        },
+        error: () => { this.modeloInterpretando = false; this.modeloErro = 'Erro ao interpretar descrição.'; }
+      });
+  }
+
+  salvarModelo() {
+    if (!this.modeloNome.trim() || !this.modeloPreview) return;
+    this.modeloSalvando = true;
+    const body = { nome: this.modeloNome, conteudoJson: JSON.stringify(this.modeloPreview) };
+    this.http.post(this.baseUrl + 'produtos/templates', body)
+      .subscribe({
+        next: () => {
+          this.modeloSalvando = false;
+          this.modeloNome = ''; this.modeloPreview = null; this.modeloDescricao = '';
+          this.carregarTemplates();
+        },
+        error: () => { this.modeloSalvando = false; this.modeloErro = 'Erro ao salvar modelo.'; }
+      });
+  }
+
+  aplicarModelo() {
+    if (!this.modeloSelecionadoId || !this.selecionado?.produtoid) return;
+    this.modeloAplicando = true;
+    this.http.post(this.baseUrl + 'produtos/' + this.selecionado.produtoid + '/aplicar-template/' + this.modeloSelecionadoId, {})
+      .subscribe({
+        next: () => { this.modeloAplicando = false; this.modeloSelecionadoId = ''; this.carregarAtributos(); },
+        error: () => { this.modeloAplicando = false; this.modeloErro = 'Erro ao aplicar modelo.'; }
+      });
+  }
+
+  removerModelo(id: string) {
+    if (!confirm('Remover este modelo?')) return;
+    this.http.delete(this.baseUrl + 'produtos/templates/' + id)
+      .subscribe(() => this.carregarTemplates());
   }
 
   // ── Mão de Obra ────────────────────────────────────────────────────

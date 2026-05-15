@@ -36,6 +36,9 @@ export class AplicacaoComponent implements OnInit {
   mlErro = false;
   conectandoMl = false;
 
+  segmentosDisponiveis: any[] = [];
+  meusSegmentos: string[] = [];
+
   constructor(
     private http: HttpClient,
     @Inject('BASE_URL') private baseUrl: string,
@@ -146,6 +149,34 @@ export class AplicacaoComponent implements OnInit {
     this.selecionado = null;
     this.configuracoes = [];
     this.marketplaceSelecionado = null;
+  }
+
+  abrirAbaSegmentos() {
+    this.abaAtiva = 'segmentos';
+    if (!this.segmentosDisponiveis.length) {
+      this.http.get<any[]>(this.baseUrl + 'segmentos/disponiveis')
+        .subscribe(r => this.segmentosDisponiveis = r);
+    }
+    this.carregarMeusSegmentos();
+  }
+
+  carregarMeusSegmentos() {
+    this.http.get<any[]>(this.baseUrl + 'segmentos/minha-aplicacao')
+      .subscribe(r => this.meusSegmentos = r.map((s: any) => s.segmentoTenantId));
+  }
+
+  temSegmento(id: string): boolean {
+    return this.meusSegmentos.includes(id);
+  }
+
+  toggleSegmento(id: string) {
+    if (this.temSegmento(id)) {
+      this.http.delete(this.baseUrl + `segmentos/minha-aplicacao/${id}`)
+        .subscribe(() => this.meusSegmentos = this.meusSegmentos.filter(s => s !== id));
+    } else {
+      this.http.post(this.baseUrl + `segmentos/minha-aplicacao/${id}`, {})
+        .subscribe(() => this.meusSegmentos = [...this.meusSegmentos, id]);
+    }
   }
 
   abrirAbaMarketplace() {

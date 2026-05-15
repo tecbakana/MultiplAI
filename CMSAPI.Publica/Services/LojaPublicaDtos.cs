@@ -34,7 +34,7 @@ public class SalematicAuthResponse
 
 public class CriarPedidoLojaRequest
 {
-    public string? Aplicacaoid { get; set; }
+    public string Token { get; set; } = string.Empty;
     public string Numeropedido { get; set; } = string.Empty;
     public string Clientenome { get; set; } = string.Empty;
     public string Clienteemail { get; set; } = string.Empty;

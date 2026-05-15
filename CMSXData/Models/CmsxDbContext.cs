@@ -69,6 +69,12 @@ public partial class CmsxDbContext : DbContext
     public virtual DbSet<ModeloSelecao> ModeloSelecaos { get; set; }
     public virtual DbSet<PublicToken> PublicTokens { get; set; }
     public virtual DbSet<ProdutoMaoDeObra> ProdutoMaoDeObras { get; set; }
+    public virtual DbSet<ProdutoTemplate> ProdutoTemplates { get; set; }
+    public virtual DbSet<SegmentoTenant> SegmentoTenants { get; set; }
+    public virtual DbSet<AplicacaoSegmento> AplicacaoSegmentos { get; set; }
+    public virtual DbSet<VitrineTemplate> VitrineTemplates { get; set; }
+    public virtual DbSet<VitrineConfigurada> VitrineConfiguradas { get; set; }
+    public virtual DbSet<ClienteLoja> ClienteLojas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -145,6 +151,7 @@ public partial class CmsxDbContext : DbContext
             entity.Property(e => e.Tipoarea).HasColumnName("TipoArea");
             entity.Property(e => e.Url).HasMaxLength(300).HasColumnName("Url");
             entity.Property(e => e.Layout).HasColumnName("layout");
+            entity.Property(e => e.Tipo).HasMaxLength(20).HasColumnName("Tipo").HasDefaultValue("pagina");
         });
 
         modelBuilder.Entity<LayoutTemplate>(entity =>
@@ -187,8 +194,8 @@ public partial class CmsxDbContext : DbContext
             entity.HasKey(e => e.Atributoid).HasName("PK_atributo");
             entity.ToTable("atributo");
             entity.Property(e => e.Atributoid).ValueGeneratedNever().HasColumnName("AtributoId");
-            entity.Property(e => e.Descricao).HasMaxLength(45).HasColumnName("Descricao");
-            entity.Property(e => e.Nome).HasMaxLength(45).HasColumnName("Nome");
+            entity.Property(e => e.Descricao).HasMaxLength(500).HasColumnName("Descricao");
+            entity.Property(e => e.Nome).HasMaxLength(255).HasColumnName("Nome");
             entity.Property(e => e.Produtoid).HasMaxLength(64).HasColumnName("ProdutoId");
             entity.Property(e => e.ParentAtributoId).HasColumnName("ParentAtributoId");
             entity.Property(e => e.Ordem).HasColumnName("Ordem");
@@ -778,6 +785,77 @@ public partial class CmsxDbContext : DbContext
                 .HasForeignKey(e => e.Produtoid)
                 .HasPrincipalKey(p => p.Produtoid)
                 .HasConstraintName("FK_ProdutoMaoDeObra_Produto");
+        });
+
+        modelBuilder.Entity<ProdutoTemplate>(entity =>
+        {
+            entity.HasKey(e => e.ProdutoTemplateid).HasName("PK_produto_template");
+            entity.ToTable("produto_template");
+            entity.Property(e => e.ProdutoTemplateid).HasMaxLength(64).HasColumnName("produto_template_id");
+            entity.Property(e => e.Aplicacaoid).HasMaxLength(64).HasColumnName("aplicacao_id");
+            entity.Property(e => e.SegmentoTenantId).HasMaxLength(64).HasColumnName("segmento_tenant_id");
+            entity.Property(e => e.Nome).HasMaxLength(200).HasColumnName("nome");
+            entity.Property(e => e.Descricao).HasColumnName("descricao");
+            entity.Property(e => e.ConteudoJson).HasColumnName("conteudo_json");
+            entity.Property(e => e.DataCriacao).HasColumnName("data_criacao");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<SegmentoTenant>(entity =>
+        {
+            entity.HasKey(e => e.SegmentoTenantId).HasName("PK_segmento_tenant");
+            entity.ToTable("segmento_tenant");
+            entity.Property(e => e.SegmentoTenantId).HasMaxLength(64).HasColumnName("segmento_tenant_id");
+            entity.Property(e => e.Nome).HasMaxLength(100).HasColumnName("nome");
+            entity.Property(e => e.Descricao).HasColumnName("descricao");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<AplicacaoSegmento>(entity =>
+        {
+            entity.HasKey(e => new { e.AplicacaoId, e.SegmentoTenantId }).HasName("PK_aplicacao_segmento");
+            entity.ToTable("aplicacao_segmento");
+            entity.Property(e => e.AplicacaoId).HasMaxLength(64).HasColumnName("aplicacao_id");
+            entity.Property(e => e.SegmentoTenantId).HasMaxLength(64).HasColumnName("segmento_tenant_id");
+        });
+
+        modelBuilder.Entity<VitrineTemplate>(entity =>
+        {
+            entity.HasKey(e => e.VitrineTemplateId).HasName("PK_vitrine_template");
+            entity.ToTable("vitrine_template");
+            entity.Property(e => e.VitrineTemplateId).HasColumnName("vitrine_template_id");
+            entity.Property(e => e.Nome).HasMaxLength(200).HasColumnName("nome");
+            entity.Property(e => e.Descricao).HasColumnName("descricao");
+            entity.Property(e => e.SegmentoTenantId).HasMaxLength(64).HasColumnName("segmento_tenant_id");
+            entity.Property(e => e.HtmlCss).HasColumnName("html_css");
+            entity.Property(e => e.VariaveisJson).HasColumnName("variaveis_json");
+            entity.Property(e => e.ThumbnailUrl).HasMaxLength(500).HasColumnName("thumbnail_url");
+            entity.Property(e => e.DataCriacao).HasColumnName("data_criacao");
+            entity.Property(e => e.Ativo).HasColumnName("ativo").HasDefaultValue(true);
+        });
+
+        modelBuilder.Entity<VitrineConfigurada>(entity =>
+        {
+            entity.HasKey(e => e.VitrineConfiguradaId).HasName("PK_vitrine_configurada");
+            entity.ToTable("vitrine_configurada");
+            entity.HasIndex(e => e.AplicacaoId).IsUnique().HasDatabaseName("IX_vitrine_configurada_aplicacao_id");
+            entity.Property(e => e.VitrineConfiguradaId).HasColumnName("vitrine_configurada_id");
+            entity.Property(e => e.AplicacaoId).HasMaxLength(64).HasColumnName("aplicacao_id");
+            entity.Property(e => e.VitrineTemplateId).HasColumnName("vitrine_template_id");
+            entity.Property(e => e.ValoresJson).HasColumnName("valores_json");
+            entity.Property(e => e.Publicado).HasColumnName("publicado").HasDefaultValue(false);
+            entity.Property(e => e.CssProcessado).HasColumnName("css_processado");
+            entity.Property(e => e.DataAtualizacao).HasColumnName("data_atualizacao");
+        });
+
+        modelBuilder.Entity<ClienteLoja>(entity =>
+        {
+            entity.HasKey(e => e.ClienteLojaid).HasName("PK_clienteloja");
+            entity.ToTable("clienteloja");
+            entity.Property(e => e.ClienteLojaid).HasMaxLength(36).HasColumnName("clientelojaid");
+            entity.Property(e => e.Aplicacaoid).HasMaxLength(36).HasColumnName("aplicacaoid");
+            entity.Property(e => e.SalematicClienteId).HasColumnName("salematicClienteId");
+            entity.Property(e => e.Datainclusao).HasColumnName("datainclusao");
         });
 
         OnModelCreatingPartial(modelBuilder);

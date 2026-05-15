@@ -6,11 +6,13 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
+import { SitePublicoComponent } from './site/site-publico.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    NovoOrcamentoComponent
+    NovoOrcamentoComponent,
+    SitePublicoComponent
   ],
   imports: [
     BrowserModule,
@@ -20,6 +22,8 @@ import { NovoOrcamentoComponent } from './orcamento/novo-orcamento.component';
       { path: 'orcamento/novo', component: NovoOrcamentoComponent },
       { path: 'loja', loadChildren: () => import('./loja/loja.module').then(m => m.LojaModule) },
       { path: 's/:slug/loja', loadChildren: () => import('./loja/loja.module').then(m => m.LojaModule) },
+      { path: 's/:slug', component: SitePublicoComponent },
+      { path: 's/:slug/:areaurl', component: SitePublicoComponent },
       { path: '**', redirectTo: '/loja' }
     ])
   ],

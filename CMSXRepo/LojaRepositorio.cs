@@ -1,6 +1,7 @@
 using CMSXData.Models;
 using ICMSX;
 using Microsoft.EntityFrameworkCore;
+using static ICMSX.ILojaRepositorio;
 
 namespace CMSXRepo;
 
@@ -31,11 +32,20 @@ public class LojaRepositorio : BaseRepositorio, ILojaRepositorio
             .Where(p => p.Aplicacaoid == aplicacaoid)
             .ToListAsync();
 
-    public async Task<Pedido> CriaPedidoAsync(Pedido pedido)
+    public async Task<Pedido> CriaPedidoAsync(CriarPedidoLojaInput input)
     {
-        pedido.Pedidoid = Guid.NewGuid();
-        pedido.Statusatual = "pendente";
-        pedido.Datainclusao = DateTime.UtcNow;
+        var pedido = new Pedido
+        {
+            Pedidoid = Guid.NewGuid(),
+            Aplicacaoid = input.Aplicacaoid,
+            Numeropedido = input.Numeropedido,
+            Clientenome = input.Clientenome,
+            Clienteemail = input.Clienteemail,
+            Valorpedido = input.Valorpedido,
+            MetodoPagamento = input.MetodoPagamento,
+            Statusatual = "pendente",
+            Datainclusao = DateTime.UtcNow
+        };
 
         _db.Pedidos.Add(pedido);
         _db.Statuspedidos.Add(new Statuspedido

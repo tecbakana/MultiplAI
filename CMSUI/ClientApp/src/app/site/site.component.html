@@ -20,7 +20,8 @@
   <!-- Header customizado (HTML livre) -->
   <div *ngIf="site.header" [innerHTML]="site.header"></div>
 
-  <!-- ── Menu de navegação global ── -->
+  <!-- ── Menu de navegação global (apenas quando não há vitrine ativa) ── -->
+  <ng-container *ngIf="!getAreaHtml()">
   <ng-container *ngFor="let bloco of getMenuNavegacao()">
     <nav class="navbar navbar-expand-md sticky-top"
       [style.background-color]="bloco.config.cor_fundo || '#1a1a2e'"
@@ -45,8 +46,13 @@
       </div>
     </nav>
   </ng-container>
+  </ng-container><!-- /!getAreaHtml() menu -->
 
-  <!-- ── Blocos ── -->
+  <!-- ── Vitrine Snapshot (área home publicada) ── -->
+  <div *ngIf="getAreaHtml() as html" [innerHTML]="html"></div>
+
+  <!-- ── Blocos PB (áreas pagina) ── -->
+  <ng-container *ngIf="!getAreaHtml()">
   <ng-container *ngFor="let linha of getLinhas()">
 
     <!-- ════ Full-bleed blocks ════ -->
@@ -326,9 +332,10 @@
     </div><!-- /container -->
 
   </ng-container>
+  </ng-container><!-- /!getAreaHtml() -->
 
   <!-- Sem conteúdo -->
-  <div *ngIf="!getBlocosConteudo().length && getMenuNavegacao().length === 0" class="container py-5 text-center text-muted">
+  <div *ngIf="!getBlocosConteudo().length && !getAreaHtml() && getMenuNavegacao().length === 0" class="container py-5 text-center text-muted">
     <i class="bi bi-layout-wtf" style="font-size:3rem"></i>
     <p class="mt-2">Esta página ainda não tem conteúdo configurado.</p>
   </div>

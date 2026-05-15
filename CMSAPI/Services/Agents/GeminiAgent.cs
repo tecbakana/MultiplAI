@@ -32,7 +32,7 @@ public class GeminiAgent : IAgentIA
             {
                 new { parts = new[] { new { text = prompt } } }
             },
-            generationConfig = new { temperature = 0.2, maxOutputTokens = 2048 }
+            generationConfig = new { temperature = 0.2, maxOutputTokens = 8192 }
         };
 
         var response = await http.PostAsJsonAsync(url, body);

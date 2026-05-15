@@ -1,6 +1,6 @@
-import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, Renderer2 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { HttpClient } from '@angular/common/http';
 import { StringService } from '../services/string.service';
 
@@ -18,6 +18,7 @@ export class SiteComponent implements OnInit, OnDestroy {
 
   private _timerInterval: any = null;
   private _contadores: Map<string, any> = new Map();
+  private _vitrineLink: HTMLLinkElement | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -25,7 +26,8 @@ export class SiteComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private sanitizer: DomSanitizer,
     @Inject('BASE_URL') private baseUrl: string,
-    private stringService: StringService
+    private stringService: StringService,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit() {
@@ -74,10 +76,29 @@ export class SiteComponent implements OnInit, OnDestroy {
 
   getAreaAtual(): any {
     const areas: any[] = this.site?.areas ?? [];
-    if (!this.areaAtualUrl) return areas.find(a => a.temLayout) ?? null;
+    if (!this.areaAtualUrl) return areas.find(a => a.temLayout || a.htmlSnapshot) ?? null;
     return areas.find(a => a.url === this.areaAtualUrl)
-        ?? areas.find(a => a.temLayout)
+        ?? areas.find(a => a.temLayout || a.htmlSnapshot)
         ?? null;
+  }
+
+  getAreaHtml(): SafeHtml | null {
+    const html = this.getAreaAtual()?.htmlSnapshot;
+    if (!html) return null;
+    return this.sanitizer.bypassSecurityTrustHtml(this._injetarCssVitrine(html));
+  }
+
+  private _injetarCssVitrine(html: string): string {
+    const match = html.match(/<link[^>]+href="(\/vitrine\/css\/[^"]+)"[^>]*>/i);
+    if (!match) return html;
+    if (!this._vitrineLink) {
+      const link: HTMLLinkElement = this.renderer.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = match[1];
+      this.renderer.appendChild(document.head, link);
+      this._vitrineLink = link;
+    }
+    return html.replace(match[0], '');
   }
 
   getMenuNavegacao(): any[] {
@@ -192,5 +213,6 @@ export class SiteComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this._timerInterval) clearInterval(this._timerInterval);
+    if (this._vitrineLink) this.renderer.removeChild(document.head, this._vitrineLink);
   }
 }

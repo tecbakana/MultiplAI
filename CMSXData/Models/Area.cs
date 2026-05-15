@@ -43,4 +43,6 @@ public partial class Area
     public string? Layout { get; set; }
 
     public string? PageBuilderVersion { get; set; }
+
+    public string Tipo { get; set; } = "pagina"; // "home" | "pagina"
 }

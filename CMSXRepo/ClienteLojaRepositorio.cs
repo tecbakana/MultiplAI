@@ -1,26 +1,26 @@
-using System.Dynamic;
 using CMSXData.Models;
 using ICMSX;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMSXRepo;
 
 public class ClienteLojaRepositorio : BaseRepositorio, IClienteLojaRepositorio
 {
-    private readonly IClienteLojaDAL _dal;
+    public ClienteLojaRepositorio(CmsxDbContext db) : base(db) { }
 
-    public ClienteLojaRepositorio(CmsxDbContext db, IClienteLojaDAL dal) : base(db) { _dal = dal; }
-
-    public Task MakeConnectionAsync(dynamic prop) { _dal.MakeConnection((ExpandoObject)prop); return Task.CompletedTask; }
-
-    public Task CriaClienteLojaAsync(ClienteLoja cliente)
+    public async Task CriaClienteLojaAsync(ICMSX.IClienteLojaRepositorio.CriaClienteLojaInput cliente)
     {
-        _dal.CriaClienteLoja(
-            Guid.NewGuid(),
-            Guid.TryParse(cliente.Aplicacaoid, out var aid) ? aid : Guid.Empty,
-            cliente.SalematicClienteId);
-        return Task.CompletedTask;
+        var clienteLoja = new ClienteLoja
+        {
+            ClienteLojaid = Guid.NewGuid().ToString(),
+            Aplicacaoid = cliente.Aplicacaoid,
+            SalematicClienteId = cliente.salematicClienteId
+        };
+
+        _db.Add(clienteLoja);
+        await _db.SaveChangesAsync();
     }
 
-    public Task<IEnumerable<ClienteLoja>> ListaClienteLojaAsync() =>
-        Task.FromResult(_dal.ListaClienteLoja());
+    public async Task<IEnumerable<ClienteLoja>> ListaClienteLojaAsync() =>
+        await _db.ClienteLojas.AsNoTracking().ToListAsync();
 }

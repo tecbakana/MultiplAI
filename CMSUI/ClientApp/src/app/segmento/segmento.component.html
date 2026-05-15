@@ -1,0 +1,115 @@
+<div class="container-fluid py-3">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <h4>Segmentos de Tenant</h4>
+    <button class="btn btn-primary btn-sm" (click)="novo()" *ngIf="!modoEdicao && !segmentoTemplates">+ Novo Segmento</button>
+  </div>
+  <p class="text-muted small mb-3" *ngIf="!modoEdicao && !segmentoTemplates">
+    Segmentos classificam os tenants por tipo de negócio (ex: Confeiteiro, Esteticista, Artesão).
+    Cada segmento pode ter <strong>templates de produto</strong> gerados por IA — estruturas pré-definidas de nome,
+    descrição e atributos que agilizam o cadastro de produtos para aquele nicho.
+    <strong>Não confundir com templates de vitrine</strong>, que são gerenciados na seção Vitrine (Admin).
+  </p>
+
+  <!-- FORMULÁRIO -->
+  <div *ngIf="modoEdicao" class="card mb-4">
+    <div class="card-header">
+      <strong>{{ selecionado?.segmentoTenantId ? 'Editar' : 'Novo' }} Segmento</strong>
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <label class="form-label">Nome</label>
+          <input class="form-control" [(ngModel)]="selecionado.nome" placeholder="Ex: Confeiteiro, Artesão, Esteticista...">
+        </div>
+        <div class="col-md-7">
+          <label class="form-label">Descrição</label>
+          <input class="form-control" [(ngModel)]="selecionado.descricao" placeholder="Descrição do segmento">
+        </div>
+      </div>
+    </div>
+    <div class="card-footer d-flex gap-2">
+      <button class="btn btn-success btn-sm" (click)="salvar()">Salvar</button>
+      <button class="btn btn-secondary btn-sm" (click)="cancelar()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- GESTÃO DE TEMPLATES DO SEGMENTO -->
+  <div *ngIf="segmentoTemplates" class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>Templates — {{ selecionado?.nome }}</strong>
+      <button class="btn btn-outline-secondary btn-sm" (click)="fecharTemplates()">Fechar</button>
+    </div>
+    <div class="card-body">
+
+      <div class="alert alert-info py-2 px-3 mb-3 small">
+        <strong>Templates de produto</strong> — estruturas pré-definidas (nome, descrição, atributos) geradas por IA
+        para facilitar o cadastro de produtos neste segmento. São diferentes dos <strong>templates de vitrine</strong>,
+        que definem o layout visual da loja do tenant.
+      </div>
+
+      <!-- Gerador de templates via IA -->
+      <div class="mb-4 p-3 border rounded bg-light">
+        <div class="fw-semibold mb-2">Gerar templates via IA</div>
+        <div class="row g-2 align-items-end">
+          <div class="col">
+            <textarea class="form-control" rows="2" [(ngModel)]="promptSegmento"
+              placeholder="Descreva os produtos para este segmento. Ex: Gere templates para confeiteiros: bolos, tortas, doces, salgados..."></textarea>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-primary btn-sm" (click)="gerarTemplates()" [disabled]="gerando || !promptSegmento.trim()">
+              {{ gerando ? 'Gerando...' : 'Gerar via IA' }}
+            </button>
+          </div>
+        </div>
+        <div *ngIf="geradoCount > 0" class="mt-2 text-success small">{{ geradoCount }} template(s) gerado(s) com sucesso.</div>
+      </div>
+
+      <!-- Lista de templates -->
+      <div *ngIf="carregandoTemplates" class="text-muted">Carregando...</div>
+      <div *ngIf="!carregandoTemplates && templates.length === 0" class="text-muted">Nenhum template para este segmento.</div>
+      <table *ngIf="templates.length > 0" class="table table-sm">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Criado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of templates">
+            <td>{{ t.nome }}</td>
+            <td>{{ t.descricao }}</td>
+            <td>{{ t.dataCriacao | date:'dd/MM/yyyy' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LISTA -->
+  <div *ngIf="!modoEdicao && !segmentoTemplates">
+    <div *ngIf="lista.length === 0" class="text-muted">Nenhum segmento cadastrado.</div>
+    <table *ngIf="lista.length > 0" class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Descrição</th>
+          <th>Ativo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of lista">
+          <td>{{ s.nome }}</td>
+          <td>{{ s.descricao }}</td>
+          <td>{{ s.ativo ? 'Sim' : 'Não' }}</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-outline-secondary me-1" (click)="abrirTemplates(s)">Templates</button>
+            <button class="btn btn-sm btn-outline-primary me-1" (click)="editar(s)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="excluir(s.segmentoTenantId)">Remover</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

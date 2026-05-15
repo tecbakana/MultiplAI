@@ -1,0 +1,148 @@
+<div class="container-fluid py-3">
+
+  <!-- CABEÇALHO -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Vitrine — Templates</h4>
+    <div *ngIf="modo === 'lista'">
+      <button class="btn btn-outline-primary btn-sm me-2" (click)="abrirGerador()">Gerar via IA</button>
+      <button class="btn btn-primary btn-sm" (click)="novo()">+ Novo Template</button>
+    </div>
+    <button *ngIf="modo !== 'lista'" class="btn btn-secondary btn-sm" (click)="cancelar()">← Voltar</button>
+  </div>
+
+  <!-- LISTA -->
+  <ng-container *ngIf="modo === 'lista'">
+    <div *ngIf="carregando" class="text-muted">Carregando...</div>
+    <div *ngIf="!carregando && lista.length === 0" class="text-muted">Nenhum template cadastrado.</div>
+
+    <table class="table table-striped table-hover" *ngIf="lista.length > 0">
+      <thead class="table-dark">
+        <tr>
+          <th>Nome</th>
+          <th>Segmento</th>
+          <th>Criado em</th>
+          <th style="width:160px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let t of lista">
+          <td>
+            <strong>{{ t.nome }}</strong>
+            <div class="text-muted small" *ngIf="t.descricao">{{ t.descricao }}</div>
+          </td>
+          <td>{{ t.segmentoTenantId || '—' }}</td>
+          <td>{{ t.dataCriacao | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <button class="btn btn-outline-primary btn-sm me-1" (click)="editar(t.vitrineTemplateId)">Editar</button>
+            <button class="btn btn-outline-danger btn-sm" (click)="desativar(t.vitrineTemplateId)">Desativar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </ng-container>
+
+  <!-- GERAR VIA IA -->
+  <ng-container *ngIf="modo === 'gerar'">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">Geração via IA</h5>
+            <div class="mb-3">
+              <label class="form-label">Prompt</label>
+              <textarea class="form-control" rows="5" [(ngModel)]="promptIA"
+                placeholder="Ex: Landing page para restaurante japonês sofisticado, com seção de cardápio e reservas"></textarea>
+            </div>
+            <button class="btn btn-primary" (click)="gerarViaIA()" [disabled]="gerando || !promptIA.trim()">
+              {{ gerando ? 'Gerando...' : 'Gerar' }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="htmlGerado" class="d-grid">
+          <button class="btn btn-success" (click)="usarGerado()">Usar este template →</button>
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card h-100">
+          <div class="card-header">Preview</div>
+          <div class="card-body p-0" style="min-height:500px">
+            <div *ngIf="gerando" class="d-flex align-items-center justify-content-center h-100 text-muted" style="min-height:500px">
+              Gerando...
+            </div>
+            <div *ngIf="!gerando && !previewSrc" class="d-flex align-items-center justify-content-center h-100 text-muted" style="min-height:500px">
+              O preview aparecerá aqui após a geração.
+            </div>
+            <iframe *ngIf="previewSrc" [src]="previewSrc" style="width:100%;height:500px;border:none"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- EDITAR / NOVO -->
+  <ng-container *ngIf="modo === 'editar'">
+    <div class="row">
+      <div class="col-md-5">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title mb-3">{{ editandoId ? 'Editar Template' : 'Novo Template' }}</h5>
+
+            <div class="mb-3">
+              <label class="form-label">Nome <span class="text-danger">*</span></label>
+              <input class="form-control" [(ngModel)]="form.nome" placeholder="Nome do template">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Descrição</label>
+              <input class="form-control" [(ngModel)]="form.descricao" placeholder="Descrição breve">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Segmento</label>
+              <select class="form-select" [(ngModel)]="form.segmentoTenantId">
+                <option value="">Universal (todos os tenants)</option>
+                <option *ngFor="let s of segmentos" [value]="s.segmentoTenantId">{{ s.nome }}</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">URL Thumbnail</label>
+              <input class="form-control" [(ngModel)]="form.thumbnailUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">HTML/CSS <span class="text-danger">*</span></label>
+              <textarea class="form-control font-monospace" rows="10" [(ngModel)]="form.htmlCss"
+                placeholder="Cole o HTML completo com <style> interno"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Variáveis JSON</label>
+              <textarea class="form-control font-monospace" rows="4" [(ngModel)]="form.variaveisJson"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-success" (click)="salvar()" [disabled]="salvando || !form.nome?.trim() || !form.htmlCss?.trim()">
+                {{ salvando ? 'Salvando...' : 'Salvar' }}
+              </button>
+              <button class="btn btn-outline-secondary" (click)="previsualizar()" [disabled]="!form.htmlCss?.trim()">
+                Pré-visualizar
+              </button>
+              <button class="btn btn-secondary ms-auto" (click)="cancelar()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-7">
+        <div class="card h-100">
+          <div class="card-header">Preview</div>
+          <div class="card-body p-0" style="min-height:500px">
+            <div *ngIf="!previewSrc" class="d-flex align-items-center justify-content-center h-100 text-muted" style="min-height:500px">
+              Clique em "Pré-visualizar" para ver o resultado.
+            </div>
+            <iframe *ngIf="previewSrc" [src]="previewSrc" style="width:100%;height:500px;border:none"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

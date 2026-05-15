@@ -13,7 +13,7 @@ export class AppComponent {
     this.router.events.subscribe(e => {
       if (e instanceof NavigationEnd) {
         const url = e.urlAfterRedirects;
-        this.rotaPublica = url.startsWith('/s/') || url.startsWith('/preview/') || url.startsWith('/loja');
+        this.rotaPublica = url.startsWith('/s/') || url.startsWith('/preview/');
       }
     });
   }

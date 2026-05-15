@@ -1,0 +1,343 @@
+<!-- Loading -->
+<div *ngIf="carregando" class="d-flex justify-content-center align-items-center" style="min-height:200px">
+  <div class="spinner-border text-primary"></div>
+</div>
+
+<!-- Erro -->
+<div *ngIf="!carregando && erro" class="container py-5 text-center">
+  <i class="bi bi-exclamation-triangle text-warning" style="font-size:3rem"></i>
+  <h4 class="mt-3">{{ erro }}</h4>
+</div>
+
+<!-- Site -->
+<div *ngIf="!carregando && site">
+
+  <!-- Header customizado (HTML livre) -->
+  <div *ngIf="site.header" [innerHTML]="site.header"></div>
+
+  <!-- ── Menu de navegação global (apenas quando não há vitrine ativa) ── -->
+  <ng-container *ngIf="!getAreaHtml()">
+  <ng-container *ngFor="let bloco of getMenuNavegacao()">
+    <nav class="navbar navbar-expand-md sticky-top"
+      [style.background-color]="bloco.config.cor_fundo || '#1a1a2e'"
+      [style.color]="bloco.config.cor_texto || '#ffffff'">
+      <div class="container">
+        <span class="navbar-brand fw-bold" [style.color]="bloco.config.cor_texto || '#ffffff'"
+          style="cursor:pointer" (click)="navegarArea(site.areas[0]?.url)">
+          <img *ngIf="bloco.config.logo" [src]="bloco.config.logo"
+            [alt]="bloco.config.titulo || site.nome"
+            [style.height]="bloco.config.logo_altura || '40px'" style="object-fit:contain">
+          <ng-container *ngIf="!bloco.config.logo">{{ bloco.config.titulo || site.nome }}</ng-container>
+        </span>
+        <div class="navbar-nav flex-row flex-wrap gap-3">
+          <a *ngFor="let area of bloco.dados" class="nav-link"
+            [routerLink]="['/s', slug, area.url]"
+            [style.color]="bloco.config.cor_texto || '#ffffff'"
+            [style.font-weight]="areaAtualUrl === area.url ? '700' : '400'"
+            [style.text-decoration]="areaAtualUrl === area.url ? 'underline' : 'none'">
+            {{ area.nome }}
+          </a>
+        </div>
+      </div>
+    </nav>
+  </ng-container>
+  </ng-container><!-- /!getAreaHtml() menu -->
+
+  <!-- ── Vitrine Snapshot (área home publicada) ── -->
+  <div *ngIf="getAreaHtml() as html" [innerHTML]="html"></div>
+
+  <!-- ── Blocos PB (áreas pagina) ── -->
+  <ng-container *ngIf="!getAreaHtml()">
+  <ng-container *ngFor="let linha of getLinhas()">
+
+    <!-- ════ Full-bleed blocks ════ -->
+    <ng-container *ngIf="linha.fullBleed">
+      <ng-container *ngFor="let bloco of linha.blocos">
+
+        <!-- hero -->
+        <section *ngIf="bloco.tipo === 'hero'" class="py-5 text-center text-white"
+          [style.background-color]="bloco.config.cor || '#0d6efd'"
+          [style.background-image]="bloco.config.imagemFundo ? 'url(' + bloco.config.imagemFundo + ')' : ''"
+          style="background-size:cover;background-position:center">
+          <div class="container">
+            <h1 class="fw-bold">{{ bloco.config.titulo || site.nome }}</h1>
+            <p *ngIf="bloco.config.subtitulo" class="lead">{{ bloco.config.subtitulo }}</p>
+            <a *ngIf="bloco.config.textoBotao || bloco.config.textobotao"
+              [href]="bloco.config.linkBotao || bloco.config.urlbotao || '#'"
+              class="btn btn-light btn-lg mt-2">
+              {{ bloco.config.textoBotao || bloco.config.textobotao }}
+            </a>
+          </div>
+        </section>
+
+        <!-- hero-cta -->
+        <section *ngIf="bloco.tipo === 'hero-cta'" class="py-5 text-white text-center"
+          [style.background-color]="bloco.config.cor_fundo || '#0d6efd'"
+          [style.background-image]="bloco.config.imagem_fundo ? 'url(' + bloco.config.imagem_fundo + ')' : ''"
+          style="background-size:cover;background-position:center">
+          <div class="container" style="max-width:540px">
+            <h1 class="fw-bold">{{ bloco.config.titulo }}</h1>
+            <p *ngIf="bloco.config.subtitulo" class="lead mb-4">{{ bloco.config.subtitulo }}</p>
+            <div class="input-group">
+              <input type="email" class="form-control form-control-lg"
+                [placeholder]="bloco.config.placeholder || 'Seu melhor e-mail'">
+              <button class="btn btn-warning btn-lg fw-bold">{{ bloco.config.textobotao || 'Enviar' }}</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- banner-imagem -->
+        <section *ngIf="bloco.tipo === 'banner-imagem'">
+          <a [href]="bloco.config.linkUrl || bloco.config.link || '#'" [target]="bloco.config.linkUrl ? '_blank' : '_self'">
+            <img *ngIf="bloco.config.imagemUrl || bloco.config.url"
+              [src]="bloco.config.imagemUrl || bloco.config.url"
+              [alt]="bloco.config.altText || bloco.config.alt || ''"
+              class="img-fluid w-100" style="max-height:400px;object-fit:cover">
+          </a>
+        </section>
+
+        <!-- contador -->
+        <section *ngIf="bloco.tipo === 'contador'" class="py-4 text-center"
+          [style.background-color]="bloco.config.cor_fundo || '#0d6efd'"
+          [style.color]="bloco.config.cor_texto || '#ffffff'">
+          <div class="container">
+            <h3 *ngIf="bloco.config.titulo" class="mb-4">{{ bloco.config.titulo }}</h3>
+            <div class="d-flex justify-content-center gap-4 flex-wrap">
+              <ng-container *ngIf="getContador(bloco.config.dataAlvo) as c">
+                <ng-container *ngIf="!c.encerrado; else fimContador">
+                  <div *ngFor="let part of [['dias','Dias'],['horas','Horas'],['minutos','Min'],['segundos','Seg']]" class="text-center px-2">
+                    <div class="display-4 fw-bold">{{ c[part[0]] }}</div>
+                    <small class="text-uppercase opacity-75">{{ part[1] }}</small>
+                  </div>
+                </ng-container>
+                <ng-template #fimContador>
+                  <p class="lead mb-0">{{ bloco.config.mensagemFim || 'Oferta encerrada!' }}</p>
+                </ng-template>
+              </ng-container>
+            </div>
+          </div>
+        </section>
+
+        <!-- rodape -->
+        <footer *ngIf="bloco.tipo === 'rodape'" class="py-5"
+          [style.background-color]="bloco.config.cor_fundo || '#1a1a2e'"
+          [style.color]="bloco.config.cor_texto || '#ffffff'">
+          <div class="container">
+            <div class="row g-4">
+              <div class="col-12 col-md-4">
+                <h6 class="fw-bold text-uppercase mb-3">{{ bloco.config.empresa }}</h6>
+                <p *ngIf="bloco.config.endereco" class="small opacity-75 mb-1">
+                  <i class="bi bi-geo-alt me-1"></i>{{ bloco.config.endereco }}
+                </p>
+                <p *ngIf="bloco.config.telefone" class="small opacity-75 mb-1">
+                  <i class="bi bi-telephone me-1"></i>{{ bloco.config.telefone }}
+                </p>
+                <p *ngIf="bloco.config.email" class="small opacity-75 mb-1">
+                  <i class="bi bi-envelope me-1"></i>{{ bloco.config.email }}
+                </p>
+              </div>
+              <div class="col-12 col-md-4">
+                <h6 class="fw-bold text-uppercase mb-3">Redes sociais</h6>
+                <div class="d-flex gap-3">
+                  <a *ngIf="bloco.config.facebook" [href]="bloco.config.facebook" target="_blank" [style.color]="bloco.config.cor_texto || '#ffffff'"><i class="bi bi-facebook fs-5"></i></a>
+                  <a *ngIf="bloco.config.instagram" [href]="bloco.config.instagram" target="_blank" [style.color]="bloco.config.cor_texto || '#ffffff'"><i class="bi bi-instagram fs-5"></i></a>
+                  <a *ngIf="bloco.config.linkedin" [href]="bloco.config.linkedin" target="_blank" [style.color]="bloco.config.cor_texto || '#ffffff'"><i class="bi bi-linkedin fs-5"></i></a>
+                  <a *ngIf="bloco.config.youtube" [href]="bloco.config.youtube" target="_blank" [style.color]="bloco.config.cor_texto || '#ffffff'"><i class="bi bi-youtube fs-5"></i></a>
+                </div>
+              </div>
+              <div class="col-12 col-md-4 text-md-end d-flex align-items-end justify-content-md-end">
+                <small class="opacity-50">{{ bloco.config.copyright || ('© ' + currentYear + ' ' + bloco.config.empresa) }}</small>
+              </div>
+            </div>
+          </div>
+        </footer>
+
+      </ng-container>
+    </ng-container>
+
+    <!-- ════ Content blocks (grid responsivo) ════ -->
+    <div *ngIf="!linha.fullBleed" class="container py-4">
+      <div class="row g-4 align-items-start">
+        <div *ngFor="let bloco of linha.blocos" [ngClass]="getColClass(bloco.coluna)">
+
+          <!-- separador -->
+          <hr *ngIf="bloco.tipo === 'separador'"
+            [style.border-color]="bloco.config.cor || '#dee2e6'"
+            [style.border-width]="(bloco.config.espessura || 1) + 'px'">
+
+          <!-- texto -->
+          <div *ngIf="bloco.tipo === 'texto'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-3">{{ bloco.config.titulo }}</h2>
+            <div [innerHTML]="bloco.config.conteudo"></div>
+          </div>
+
+          <!-- imagem -->
+          <div *ngIf="bloco.tipo === 'imagem'" [style.width]="bloco.coluna === 'auto' ? 'fit-content' : null">
+            <a [href]="bloco.config.link || null" [target]="bloco.config.link ? '_blank' : null">
+              <img *ngIf="bloco.config.url" [src]="bloco.config.url" [alt]="bloco.config.alt || ''"
+                class="img-fluid rounded"
+                [style.width]="bloco.coluna === 'auto' ? (bloco.config.largura || null) : (bloco.config.largura || '100%')">
+            </a>
+          </div>
+
+          <!-- lista-conteudos -->
+          <div *ngIf="bloco.tipo === 'lista-conteudos'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4">{{ bloco.config.titulo }}</h2>
+            <div class="row g-3">
+              <div *ngFor="let item of bloco.dados" class="col-12 col-sm-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ item.titulo }}</h5>
+                    <p class="card-text text-muted small">{{ item.texto | slice:0:120 }}{{ item.texto?.length > 120 ? '…' : '' }}</p>
+                    <small class="text-muted">{{ item.datainclusao | date:'dd/MM/yyyy' }}</small>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="!bloco.dados?.length" class="col text-muted fst-italic">Nenhum conteúdo disponível.</div>
+            </div>
+          </div>
+
+          <!-- lista-produtos -->
+          <div *ngIf="bloco.tipo === 'lista-produtos'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4">{{ bloco.config.titulo }}</h2>
+            <div class="row g-3">
+              <div *ngFor="let p of bloco.dados" class="col-6 col-md-4 col-lg-3">
+                <div class="card h-100 shadow-sm border-0">
+                  <img *ngIf="p.imagem" [src]="p.imagem" [alt]="p.nome"
+                    class="card-img-top" style="height:160px;object-fit:cover">
+                  <div *ngIf="!p.imagem" class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white" style="height:160px">
+                    <i class="bi bi-image" style="font-size:2rem"></i>
+                  </div>
+                  <div class="card-body p-2">
+                    <p class="card-title mb-1 fw-semibold small">{{ p.nome }}</p>
+                    <p *ngIf="p.descricacurta" class="text-muted" style="font-size:.75rem">{{ p.descricacurta | slice:0:60 }}</p>
+                    <span *ngIf="p.valor" class="fw-bold text-success">R$ {{ p.valor | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+              </div>
+              <div *ngIf="!bloco.dados?.length" class="col text-muted fst-italic">Nenhum produto disponível.</div>
+            </div>
+          </div>
+
+          <!-- categorias -->
+          <div *ngIf="bloco.tipo === 'categorias'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4">{{ bloco.config.titulo }}</h2>
+            <div class="d-flex flex-wrap gap-2">
+              <span *ngFor="let c of bloco.dados" class="badge bg-secondary fs-6 px-3 py-2">{{ c.nome }}</span>
+              <span *ngIf="!bloco.dados?.length" class="text-muted fst-italic">Nenhuma categoria.</span>
+            </div>
+          </div>
+
+          <!-- destaques -->
+          <div *ngIf="bloco.tipo === 'destaques'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4 text-center">{{ bloco.config.titulo }}</h2>
+            <div class="row g-3 text-center">
+              <div *ngFor="let item of bloco.config.itens" class="col-12 col-sm-6 col-md-3">
+                <div class="card h-100 border-0 shadow-sm p-3">
+                  <i *ngIf="item.icone" class="bi {{ item.icone }} text-primary mb-2" style="font-size:2rem"></i>
+                  <h5>{{ item.titulo }}</h5>
+                  <p class="text-muted small">{{ item.descricao }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- faq -->
+          <div *ngIf="bloco.tipo === 'faq'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4">{{ bloco.config.titulo }}</h2>
+            <div class="accordion">
+              <div *ngFor="let f of bloco.dados; let i = index" class="accordion-item border-0 mb-2 shadow-sm">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed rounded" type="button"
+                    [attr.data-bs-toggle]="'collapse'"
+                    [attr.data-bs-target]="'#faq' + i">
+                    {{ f.pergunta }}
+                  </button>
+                </h2>
+                <div [id]="'faq' + i" class="accordion-collapse collapse">
+                  <div class="accordion-body">{{ f.resposta }}</div>
+                </div>
+              </div>
+              <div *ngIf="!bloco.dados?.length" class="text-muted fst-italic">Nenhuma pergunta cadastrada.</div>
+            </div>
+          </div>
+
+          <!-- formulario -->
+          <div *ngIf="bloco.tipo === 'formulario'">
+            <h2 *ngIf="bloco.dados?.nome" class="mb-3">{{ bloco.config.titulo || bloco.dados.nome }}</h2>
+            <p *ngIf="bloco.config.descricao" class="text-muted">{{ bloco.config.descricao }}</p>
+            <ng-container *ngIf="bloco.dados?.valor">
+              <ng-container *ngFor="let campo of parseCampos(bloco.dados.valor)">
+                <div class="mb-3">
+                  <label class="form-label">{{ campo.label }}<span *ngIf="campo.required" class="text-danger ms-1">*</span></label>
+                  <input *ngIf="campo.tipo !== 'textarea' && campo.tipo !== 'select'"
+                    [type]="campo.tipo || 'text'" class="form-control" [placeholder]="campo.placeholder || ''">
+                  <textarea *ngIf="campo.tipo === 'textarea'" class="form-control" rows="3"
+                    [placeholder]="campo.placeholder || ''"></textarea>
+                  <select *ngIf="campo.tipo === 'select'" class="form-select">
+                    <option value="">— Selecione —</option>
+                    <option *ngFor="let op of campo.opcoes" [value]="op">{{ op }}</option>
+                  </select>
+                </div>
+              </ng-container>
+              <button class="btn btn-primary">{{ bloco.config.textobotao || 'Enviar' }}</button>
+            </ng-container>
+            <p *ngIf="!bloco.dados" class="text-muted fst-italic">Formulário não encontrado.</p>
+          </div>
+
+          <!-- video -->
+          <div *ngIf="bloco.tipo === 'video'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-3 text-center">{{ bloco.config.titulo }}</h2>
+            <div *ngIf="bloco.config.url" class="ratio ratio-16x9">
+              <iframe [src]="getVideoUrl(bloco.config.url)"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            </div>
+            <p *ngIf="bloco.config.descricao" class="text-muted text-center mt-2 small">{{ bloco.config.descricao }}</p>
+          </div>
+
+          <!-- prova-social -->
+          <div *ngIf="bloco.tipo === 'prova-social'">
+            <h2 *ngIf="bloco.config.titulo" class="mb-4 text-center">{{ bloco.config.titulo }}</h2>
+            <div class="row g-3 justify-content-center">
+              <div *ngFor="let d of bloco.config.itens" class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm p-4">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3"
+                      style="width:48px;height:48px;flex-shrink:0;overflow:hidden">
+                      <img *ngIf="d.avatar" [src]="d.avatar" [alt]="d.nome" class="w-100 h-100" style="object-fit:cover">
+                      <i *ngIf="!d.avatar" class="bi bi-person-fill fs-4"></i>
+                    </div>
+                    <div>
+                      <p class="fw-bold mb-0">{{ d.nome }}</p>
+                      <small class="text-muted">{{ d.cargo }}</small>
+                    </div>
+                  </div>
+                  <p class="text-muted fst-italic mb-2">"{{ d.texto }}"</p>
+                  <div>
+                    <i *ngFor="let s of [].constructor(d.estrelas || 5)" class="bi bi-star-fill text-warning"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col -->
+      </div><!-- /row -->
+    </div><!-- /container -->
+
+  </ng-container>
+  </ng-container><!-- /!getAreaHtml() -->
+
+  <!-- Sem conteúdo -->
+  <div *ngIf="!getBlocosConteudo().length && !getAreaHtml() && getMenuNavegacao().length === 0" class="container py-5 text-center text-muted">
+    <i class="bi bi-layout-wtf" style="font-size:3rem"></i>
+    <p class="mt-2">Esta página ainda não tem conteúdo configurado.</p>
+  </div>
+
+  <!-- Footer genérico (só se não houver bloco rodape) -->
+  <footer *ngIf="!temBlocoRodape()" class="bg-dark text-white text-center py-3 mt-5 small">
+    {{ site.nome }}
+  </footer>
+
+</div>

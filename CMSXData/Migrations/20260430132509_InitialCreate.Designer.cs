@@ -29,132 +29,103 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicio")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInicio");
 
-                    b.Property<string>("Descricao")
-                        .HasColumnType("text");
+                    b.Property<string>("Descricao");
 
-                    b.Property<string>("Endereco")
-                        .HasColumnType("text");
+                    b.Property<string>("Endereco");
 
                     b.Property<string>("Header")
                         .HasMaxLength(245)
-                        .HasColumnType("character varying(245)")
                         .HasColumnName("header");
 
                     b.Property<string>("Idusuariofim")
                         .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
                         .HasColumnName("IdUsuarioFim");
 
                     b.Property<string>("Idusuarioinicio")
                         .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
                         .HasColumnName("IdUsuarioInicio");
 
-                    b.Property<bool>("IsDemo")
-                        .HasColumnType("boolean");
+                    b.Property<bool>("IsDemo");
 
                     b.Property<bool?>("Isactive")
-                        .HasColumnType("boolean")
                         .HasColumnName("isActive");
 
                     b.Property<byte?>("Issecure")
-                        .HasColumnType("smallint")
                         .HasColumnName("isSecure");
 
                     b.Property<string>("Layoutchoose")
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
                         .HasColumnName("LayoutChoose");
 
                     b.Property<byte[]>("Lotipo")
-                        .HasColumnType("bytea")
                         .HasColumnName("logotipo");
 
                     b.Property<string>("Mailpassword")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("mailPassword");
 
                     b.Property<int?>("Mailport")
-                        .HasColumnType("integer")
                         .HasColumnName("mailPort");
 
                     b.Property<string>("Mailserver")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("mailServer");
 
                     b.Property<string>("Mailuser")
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
                         .HasColumnName("mailUser");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(400)
-                        .HasColumnType("character varying(400)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Ogleadsense")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("googleAdSense");
 
                     b.Property<string>("Pagefacebook")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pageFacebook");
 
                     b.Property<string>("Pageflicker")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pageFlicker");
 
                     b.Property<string>("Pageinstagram")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pageInstagram");
 
                     b.Property<string>("Pagelinkedin")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pageLinkedin");
 
                     b.Property<string>("Pagepinterest")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pagePinterest");
 
                     b.Property<string>("Pagetwitter")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("pageTwitter");
 
                     b.Property<string>("Pagsegurotoken")
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
                         .HasColumnName("PagSeguroToken");
 
                     b.Property<int?>("Posicao")
-                        .HasColumnType("integer")
                         .HasColumnName("Posicao");
 
-                    b.Property<string>("Telefone")
-                        .HasColumnType("text");
+                    b.Property<string>("Telefone");
 
                     b.Property<string>("Url")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
                         .HasColumnName("Url");
 
                     b.HasKey("Aplicacaoid")
@@ -167,87 +138,67 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Areaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AreaId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Areaidpai")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AreaIdPai");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicial")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInicial");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Descricao");
 
                     b.Property<byte?>("Imagem")
-                        .HasColumnType("smallint")
                         .HasColumnName("Imagem");
 
                     b.Property<string>("Layout")
-                        .HasColumnType("text")
                         .HasColumnName("layout");
 
                     b.Property<byte?>("Listabanner")
-                        .HasColumnType("smallint")
                         .HasColumnName("ListaBanner");
 
                     b.Property<byte?>("Listasimples")
-                        .HasColumnType("smallint")
                         .HasColumnName("ListaSimples");
 
                     b.Property<byte?>("Listasplash")
-                        .HasColumnType("smallint")
                         .HasColumnName("ListaSplash");
 
                     b.Property<byte?>("Menucentral")
-                        .HasColumnType("smallint")
                         .HasColumnName("MenuCentral");
 
                     b.Property<byte?>("Menufixo")
-                        .HasColumnType("smallint")
                         .HasColumnName("MenuFixo");
 
                     b.Property<byte?>("Menulateral")
-                        .HasColumnType("smallint")
                         .HasColumnName("MenuLateral");
 
                     b.Property<byte?>("Menusplash")
-                        .HasColumnType("smallint")
                         .HasColumnName("MenuSplash");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("Nome");
 
-                    b.Property<string>("PageBuilderVersion")
-                        .HasColumnType("text");
+                    b.Property<string>("PageBuilderVersion");
 
                     b.Property<int?>("Posicao")
-                        .HasColumnType("integer")
                         .HasColumnName("posicao");
 
                     b.Property<int?>("Tipoarea")
-                        .HasColumnType("integer")
                         .HasColumnName("TipoArea");
 
                     b.Property<string>("Url")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Url");
 
                     b.HasKey("Areaid")
@@ -260,27 +211,22 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Arquivoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ArquivoId");
 
                     b.Property<string>("Areaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AreaId");
 
                     b.Property<string>("Conteudoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ConteudoId");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Tipoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("TipoId");
 
                     b.HasKey("Arquivoid")
@@ -292,36 +238,29 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Atributo", b =>
                 {
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("AtributoId");
 
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("Nome");
 
                     b.Property<int?>("Ordem")
-                        .HasColumnType("integer")
                         .HasColumnName("Ordem");
 
                     b.Property<Guid?>("ParentAtributoId")
-                        .HasColumnType("uuid")
                         .HasColumnName("ParentAtributoId");
 
                     b.Property<string>("Produtoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ProdutoId");
 
-                    b.Property<decimal?>("ValorAdicional")
-                        .HasColumnType("numeric");
+                    b.Property<decimal?>("ValorAdicional");
 
                     b.HasKey("Atributoid")
                         .HasName("PK_atributo");
@@ -335,20 +274,16 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Cambiogroupid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CambioGroupId");
 
                     b.Property<DateTime?>("Datacotacao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataCotacao");
 
                     b.Property<string>("Moedasxml")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
                         .HasColumnName("MoedasXml");
 
                     b.Property<byte?>("Tipo")
-                        .HasColumnType("smallint")
                         .HasColumnName("Tipo");
 
                     b.HasKey("Cambiogroupid")
@@ -361,31 +296,25 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Cateriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Cateriaidpai")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaIdPai");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("Nome");
 
                     b.Property<int?>("Tipocateria")
-                        .HasColumnType("integer")
                         .HasColumnName("TipoCategoria");
 
                     b.HasKey("Cateriaid")
@@ -398,38 +327,30 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Ciaaereaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CiaAereaId");
 
                     b.Property<byte?>("Ativo")
-                        .HasColumnType("smallint")
                         .HasColumnName("Ativo");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("DescricaoLonga")
-                        .HasColumnType("text")
                         .HasColumnName("Descricao_Longa");
 
                     b.Property<string>("Lotipo")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Logotipo");
 
                     b.Property<byte?>("Tipoint")
-                        .HasColumnType("smallint")
                         .HasColumnName("TipoInt");
 
                     b.Property<byte?>("Tiponac")
-                        .HasColumnType("smallint")
                         .HasColumnName("TipoNac");
 
                     b.Property<string>("WebticketStr")
                         .HasMaxLength(450)
-                        .HasColumnType("character varying(450)")
                         .HasColumnName("webticket_str");
 
                     b.HasKey("Ciaaereaid")
@@ -442,39 +363,31 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Conteudoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ConteudoId");
 
                     b.Property<string>("Areaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AreaId");
 
                     b.Property<string>("Autor")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("Autor");
 
                     b.Property<string>("Cateriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<string>("Texto")
-                        .HasColumnType("text")
                         .HasColumnName("Texto");
 
                     b.Property<string>("Titulo")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("Titulo");
 
                     b.HasKey("Conteudoid")
@@ -487,16 +400,13 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Conteudoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ConteudoId");
 
                     b.Property<Guid?>("Unidadeid")
-                        .HasColumnType("uuid")
                         .HasColumnName("UnidadeId");
 
                     b.Property<decimal?>("Valor")
                         .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)")
                         .HasColumnName("Valor");
 
                     b.HasKey("Conteudoid")
@@ -509,28 +419,23 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Tipobloco")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("tipobloco");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("descricao");
 
                     b.Property<string>("Icone")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("icone");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("nome");
 
                     b.Property<string>("SchemaConfig")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("schema_config");
 
                     b.HasKey("Tipobloco")
@@ -542,17 +447,14 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.DictSocialmedium", b =>
                 {
                     b.Property<int>("Socialmediaid")
-                        .HasColumnType("integer")
                         .HasColumnName("SocialMediaId");
 
                     b.Property<string>("Socialmedianame")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("SocialMediaName");
 
                     b.Property<string>("Socialmediaurl")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("SocialMediaUrl");
 
                     b.HasKey("Socialmediaid")
@@ -565,22 +467,18 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Idtemplate")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("idTemplate");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Viewrelacionada")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("viewRelacionada");
 
                     b.HasKey("Idtemplate")
@@ -592,16 +490,13 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Dictarea", b =>
                 {
                     b.Property<int>("Id")
-                        .HasColumnType("integer")
                         .HasColumnName("id");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(12)
-                        .HasColumnType("character varying(12)")
                         .HasColumnName("nome");
 
                     b.Property<int>("Tipo")
-                        .HasColumnType("integer")
                         .HasColumnName("tipo");
 
                     b.HasKey("Id")
@@ -614,36 +509,29 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Faqid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("faqid");
 
                     b.Property<bool>("Ativo")
-                        .HasColumnType("boolean")
                         .HasColumnName("ativo");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Formularioid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("formularioid");
 
                     b.Property<int>("Ordem")
-                        .HasColumnType("integer")
                         .HasColumnName("ordem");
 
                     b.Property<string>("Pergunta")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("pergunta");
 
                     b.Property<string>("Resposta")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("resposta");
 
                     b.HasKey("Faqid")
@@ -656,35 +544,28 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Formularioid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("formularioid");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("nome");
 
                     b.Property<string>("Areaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("areaid");
 
                     b.Property<bool?>("Ativo")
-                        .HasColumnType("boolean")
                         .HasColumnName("ativo");
 
                     b.Property<string>("Categoriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("categoriaid");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Valor")
                         .HasMaxLength(8000)
-                        .HasColumnType("character varying(8000)")
                         .HasColumnName("valor");
 
                     b.HasKey("Formularioid", "Nome")
@@ -697,42 +578,34 @@ namespace CMSXData.Migrations
                 {
                     b.Property<int>("Idform")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
                         .HasColumnName("IdForm");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Idform"));
 
                     b.Property<int?>("Ativo")
-                        .HasColumnType("integer")
                         .HasColumnName("Ativo");
 
                     b.Property<string>("Email")
                         .HasMaxLength(155)
-                        .HasColumnType("character varying(155)")
                         .HasColumnName("Email");
 
                     b.Property<string>("Formularioid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("formularioid");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Telefone")
                         .HasMaxLength(15)
-                        .HasColumnType("character varying(15)")
                         .HasColumnName("Telefone");
 
                     b.Property<string>("Texto")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Texto");
 
                     b.Property<int?>("Tipo")
-                        .HasColumnType("integer")
                         .HasColumnName("Tipo");
 
                     b.HasKey("Idform")
@@ -744,21 +617,17 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Grupo", b =>
                 {
                     b.Property<string>("Grupoid")
-                        .HasColumnType("text")
                         .HasColumnName("GrupoId");
 
                     b.Property<bool>("Acessototal")
-                        .HasColumnType("boolean")
                         .HasColumnName("AcessoTotal");
 
                     b.Property<string>("Descricao")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasMaxLength(255);
 
                     b.Property<string>("Nome")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasMaxLength(100);
 
                     b.HasKey("Grupoid")
                         .HasName("PK_grupo");
@@ -770,26 +639,21 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Cacheid")
                         .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
                         .HasColumnName("cacheid");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<DateTime>("Datavencimento")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datavencimento");
 
                     b.Property<string>("Hash")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("hash");
 
                     b.Property<string>("Resultado")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("resultado");
 
                     b.HasKey("Cacheid");
@@ -801,26 +665,21 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("aplicacaoid");
 
                     b.Property<string>("Apikey")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("apikey");
 
                     b.Property<int?>("LimiteDiario")
-                        .HasColumnType("integer")
                         .HasColumnName("limite_diario");
 
                     b.Property<string>("Modelo")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("modelo");
 
                     b.Property<string>("Provedor")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
                         .HasColumnName("provedor");
 
                     b.HasKey("Aplicacaoid");
@@ -832,21 +691,17 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Usoid")
                         .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
                         .HasColumnName("usoid");
 
                     b.Property<string>("Aplicacaoid")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("aplicacaoid");
 
                     b.Property<int>("Contador")
-                        .HasColumnType("integer")
                         .HasColumnName("contador");
 
                     b.Property<DateTime>("Data")
-                        .HasColumnType("date")
                         .HasColumnName("data");
 
                     b.HasKey("Usoid");
@@ -858,47 +713,38 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Imagemid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ImagemId");
 
                     b.Property<int?>("Altura")
-                        .HasColumnType("integer")
                         .HasColumnName("Altura");
 
                     b.Property<string>("Areaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AreaId");
 
                     b.Property<string>("Conteudoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ConteudoId");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Descricao");
 
                     b.Property<int?>("Largura")
-                        .HasColumnType("integer")
                         .HasColumnName("Largura");
 
                     b.Property<string>("Parentid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ParentId");
 
                     b.Property<string>("Tipoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("TipoId");
 
                     b.Property<string>("Url")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Url");
 
                     b.HasKey("Imagemid")
@@ -911,22 +757,18 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Fotoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("FotoId");
 
                     b.Property<string>("Cateriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaId");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Fotourl")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("FotoUrl");
 
                     b.HasKey("Fotoid", "Cateriaid")
@@ -939,34 +781,27 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Infoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("InfoId");
 
                     b.Property<byte?>("Ativo")
-                        .HasColumnType("smallint")
                         .HasColumnName("Ativo");
 
                     b.Property<DateTime?>("Data")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("Data");
 
                     b.Property<string>("Foto")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Foto");
 
                     b.Property<string>("Texto")
-                        .HasColumnType("text")
                         .HasColumnName("Texto");
 
                     b.Property<string>("Tipoenvio")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("TipoEnvio");
 
                     b.Property<string>("Titulo")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Titulo");
 
                     b.HasKey("Infoid")
@@ -979,35 +814,28 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Templateid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("templateid");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("descricao");
 
                     b.Property<string>("Layout")
-                        .HasColumnType("text")
                         .HasColumnName("layout");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("nome");
 
                     b.Property<bool>("Padrao")
-                        .HasColumnType("boolean")
                         .HasColumnName("padrao");
 
                     b.Property<string>("Tipo")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("tipo");
 
                     b.HasKey("Templateid")
@@ -1020,48 +848,40 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("ModeloCompostoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("ModeloCompostoId");
 
                     b.Property<string>("Aplicacaoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Aplicacaoid");
 
                     b.Property<string>("ConfiguracaoHash")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ConfiguracaoHash");
 
                     b.Property<DateTime>("Datacriacao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("Datacriacao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Produtoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Produtoid");
 
                     b.Property<int>("Usos")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
                         .HasDefaultValue(1)
                         .HasColumnName("Usos");
 
                     b.Property<decimal>("ValorUnitario")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("ValorUnitario");
 
                     b.HasKey("ModeloCompostoId")
@@ -1078,21 +898,17 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("ModeloSelecaoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("ModeloSelecaoId");
 
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("Atributoid");
 
                     b.Property<Guid>("ModeloCompostoId")
-                        .HasColumnType("uuid")
                         .HasColumnName("ModeloCompostoId");
 
                     b.Property<string>("Opcaoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Opcaoid");
 
                     b.HasKey("ModeloSelecaoId")
@@ -1107,21 +923,17 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Moduloid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ModuloId");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(400)
-                        .HasColumnType("character varying(400)")
                         .HasColumnName("Nome");
 
                     b.Property<int?>("Posicao")
-                        .HasColumnType("integer")
                         .HasColumnName("Posicao");
 
                     b.Property<string>("Url")
                         .HasMaxLength(400)
-                        .HasColumnType("character varying(400)")
                         .HasColumnName("Url");
 
                     b.HasKey("Moduloid")
@@ -1134,17 +946,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Moduloconfid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ModuloConfId");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(800)
-                        .HasColumnType("character varying(800)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("Nome");
 
                     b.HasKey("Moduloconfid")
@@ -1157,17 +966,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Moedaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("MoedaId");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Sigla")
                         .HasMaxLength(34)
-                        .HasColumnType("character(34)")
                         .HasColumnName("Sigla")
                         .IsFixedLength();
 
@@ -1181,43 +987,34 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Newsid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("NewsId");
 
                     b.Property<byte?>("Ativo")
-                        .HasColumnType("smallint")
                         .HasColumnName("Ativo");
 
                     b.Property<string>("Autor")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
                         .HasColumnName("Autor");
 
                     b.Property<string>("Cateriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Data")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("Data");
 
                     b.Property<string>("Foto")
                         .HasMaxLength(4000)
-                        .HasColumnType("character varying(4000)")
                         .HasColumnName("Foto");
 
                     b.Property<byte?>("Frente")
-                        .HasColumnType("smallint")
                         .HasColumnName("Frente");
 
                     b.Property<string>("Texto")
-                        .HasColumnType("text")
                         .HasColumnName("Texto");
 
                     b.Property<string>("Titulo")
                         .HasMaxLength(3000)
-                        .HasColumnType("character varying(3000)")
                         .HasColumnName("Titulo");
 
                     b.HasKey("Newsid")
@@ -1230,34 +1027,27 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Opcaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("OpcaoId");
 
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("AtributoId");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("Descricao");
 
                     b.Property<int?>("Estoque")
-                        .HasColumnType("integer")
                         .HasColumnName("Estoque");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("Nome");
 
                     b.Property<int>("Qtd")
-                        .HasColumnType("integer")
                         .HasColumnName("Qtd");
 
                     b.Property<decimal?>("ValorAdicional")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("ValorAdicional");
 
                     b.HasKey("Opcaoid")
@@ -1272,58 +1062,47 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("Orcamentoid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("orcamentoid");
 
                     b.Property<string>("Aplicacaoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("aplicacaoid");
 
                     b.Property<bool>("Aprovado")
-                        .HasColumnType("boolean")
                         .HasColumnName("aprovado");
 
                     b.Property<DateTime?>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Descricaoservico")
-                        .HasColumnType("text")
                         .HasColumnName("descricaoservico");
 
                     b.Property<string>("Email")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("email");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("nome");
 
                     b.Property<string>("Nomevendedor")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("nomevendedor");
 
                     b.Property<string>("Prazo")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("prazo");
 
                     b.Property<string>("Telefone")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("telefone");
 
                     b.Property<decimal?>("Valorestimado")
                         .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
                         .HasColumnName("valorestimado");
 
                     b.HasKey("Orcamentoid")
@@ -1336,31 +1115,25 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("Orcamentodetalheid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("orcamentodetalheid");
 
                     b.Property<bool>("Ativo")
-                        .HasColumnType("boolean")
                         .HasColumnName("ativo");
 
                     b.Property<string>("Descricao")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("descricao");
 
                     b.Property<Guid>("Orcamentoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("orcamentoid");
 
                     b.Property<decimal>("Quantidade")
                         .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)")
                         .HasColumnName("quantidade");
 
                     b.Property<decimal?>("Valor")
                         .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
                         .HasColumnName("valor");
 
                     b.HasKey("Orcamentodetalheid")
@@ -1375,54 +1148,44 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("OrcamentoDetalheCompostoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("OrcamentoDetalheCompostoId");
 
                     b.Property<bool>("Atual")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("Atual");
 
                     b.Property<string>("ConfiguracaoJson")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("ConfiguracaoJson");
 
                     b.Property<DateTime>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("Datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("Orcamentoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("orcamentoid");
 
                     b.Property<string>("Produtoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Produtoid");
 
                     b.Property<decimal>("Quantidade")
                         .HasPrecision(10, 2)
-                        .HasColumnType("numeric(10,2)")
                         .HasColumnName("Quantidade");
 
                     b.Property<decimal>("ValorBase")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("ValorBase");
 
                     b.Property<decimal>("ValorTotal")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("ValorTotal");
 
                     b.Property<int>("Versao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
                         .HasDefaultValue(1)
                         .HasColumnName("Versao");
 
@@ -1440,48 +1203,39 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("Pedidoid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("pedidoid");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(36)
-                        .HasColumnType("character varying(36)")
                         .HasColumnName("aplicacaoid");
 
                     b.Property<string>("Clienteemail")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("clienteemail");
 
                     b.Property<string>("Clientenome")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("clientenome");
 
                     b.Property<DateTime?>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("MetodoPagamento")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("metodopagamento");
 
                     b.Property<string>("Numeropedido")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("numeropedido");
 
                     b.Property<string>("Statusatual")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("statusatual");
 
                     b.Property<decimal?>("Valorpedido")
                         .HasPrecision(12, 2)
-                        .HasColumnType("numeric(12,2)")
                         .HasColumnName("valorpedido");
 
                     b.HasKey("Pedidoid")
@@ -1494,79 +1248,62 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Produtoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ProdutoId");
 
                     b.Property<string>("Sku")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("sku");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Cateriaid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicio")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInicio");
 
                     b.Property<string>("Descricacurta")
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
                         .HasColumnName("DescricaCurta");
 
                     b.Property<string>("Descricao")
-                        .HasColumnType("text")
                         .HasColumnName("Descricao");
 
                     b.Property<int?>("Destaque")
-                        .HasColumnType("integer")
                         .HasColumnName("Destaque");
 
                     b.Property<string>("Detalhetecnico")
-                        .HasColumnType("text")
                         .HasColumnName("DetalheTecnico");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(130)
-                        .HasColumnType("character varying(130)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Pagsegurokey")
                         .HasMaxLength(800)
-                        .HasColumnType("character varying(800)")
                         .HasColumnName("PagSeguroKey");
 
                     b.Property<string>("Produtocol")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("produtocol");
 
-                    b.Property<int?>("SalematicProdutoid")
-                        .HasColumnType("integer");
+                    b.Property<int?>("SalematicProdutoid");
 
                     b.Property<int?>("Tipo")
-                        .HasColumnType("integer")
                         .HasColumnName("Tipo");
 
                     b.Property<string>("UnidadeVenda")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("UnidadeVenda");
 
                     b.Property<decimal?>("Valor")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasColumnName("Valor");
 
                     b.HasKey("Produtoid", "Sku")
@@ -1579,33 +1316,27 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("PublicTokenId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("publictokenid");
 
                     b.Property<string>("Aplicacaoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("aplicacaoid");
 
                     b.Property<bool>("Ativo")
-                        .HasColumnType("boolean")
                         .HasColumnName("ativo");
 
                     b.Property<DateTime>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("Datavencimento")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datavencimento");
 
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
                         .HasColumnName("token");
 
                     b.HasKey("PublicTokenId")
@@ -1624,15 +1355,12 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Refatributoxopcao", b =>
                 {
                     b.Property<Guid>("Relacaoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("relacaoid");
 
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("atributoid");
 
                     b.Property<Guid>("Opcaoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("opcaoid");
 
                     b.HasKey("Relacaoid")
@@ -1644,15 +1372,12 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Relatributoxproduto", b =>
                 {
                     b.Property<Guid>("Relacaoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("Relacaoid");
 
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("Atributoid");
 
                     b.Property<Guid>("Produtoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("ProdutoId");
 
                     b.HasKey("Relacaoid")
@@ -1665,19 +1390,16 @@ namespace CMSXData.Migrations
                 {
                     b.Property<int>("Relid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
                         .HasColumnName("relid");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Relid"));
 
                     b.Property<string>("Imagemid")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("imagemid");
 
                     b.Property<string>("Parentid")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("parentid");
 
                     b.HasKey("Relid")
@@ -1690,17 +1412,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Relacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("RelacaoId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Moduloid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ModuloId");
 
                     b.HasKey("Relacaoid", "Aplicacaoid", "Moduloid")
@@ -1713,25 +1432,20 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Relacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("RelacaoId");
 
                     b.Property<string>("Moduloconfid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ModuloConfId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<DateTime>("Datafinalizacao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataFinalizacao");
 
                     b.HasKey("Relacaoid", "Moduloconfid", "Aplicacaoid", "Datainclusao", "Datafinalizacao")
@@ -1744,17 +1458,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Relacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("RelacaoId");
 
                     b.Property<string>("Moduloid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("ModuloId");
 
                     b.Property<string>("Usuarioid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("UsuarioId");
 
                     b.HasKey("Relacaoid", "Moduloid", "Usuarioid")
@@ -1767,17 +1478,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Relacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("RelacaoId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Usuarioid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("UsuarioId");
 
                     b.HasKey("Relacaoid", "Aplicacaoid", "Usuarioid")
@@ -1789,17 +1497,14 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Relusuariogrupo", b =>
                 {
                     b.Property<string>("Relacaoid")
-                        .HasColumnType("text")
                         .HasColumnName("RelacaoId");
 
                     b.Property<string>("Grupoid")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("GrupoId");
 
                     b.Property<string>("Usuarioid")
                         .IsRequired()
-                        .HasColumnType("text")
                         .HasColumnName("UsuarioId");
 
                     b.HasKey("Relacaoid")
@@ -1812,27 +1517,22 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("SelecaoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("SelecaoId");
 
                     b.Property<Guid>("Atributoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("Atributoid");
 
                     b.Property<string>("Opcaoid")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("Opcaoid");
 
                     b.Property<Guid>("OrcamentoDetalheCompostoId")
-                        .HasColumnType("uuid")
                         .HasColumnName("OrcamentoDetalheCompostoId");
 
                     b.Property<decimal>("ValorAdicional")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
                         .HasDefaultValue(0m)
                         .HasColumnName("ValorAdicional");
 
@@ -1852,21 +1552,17 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Socialmediaid")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("SocialMediaId");
 
                     b.Property<string>("Aplicacaoid")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("AplicacaoId");
 
                     b.Property<string>("Socialmedialink")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("SocialMediaLink");
 
                     b.Property<int?>("Socialmediatypeid")
-                        .HasColumnType("integer")
                         .HasColumnName("SocialMediaTypeId");
 
                     b.HasKey("Socialmediaid")
@@ -1879,27 +1575,22 @@ namespace CMSXData.Migrations
                 {
                     b.Property<Guid>("Statuspedidoid")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
                         .HasColumnName("statuspedidoid");
 
                     b.Property<DateTime>("Datahora")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("datahora")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
                         .HasColumnName("descricao");
 
                     b.Property<Guid>("Pedidoid")
-                        .HasColumnType("uuid")
                         .HasColumnName("pedidoid");
 
                     b.Property<string>("Status")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
                         .HasColumnName("status");
 
                     b.HasKey("Statuspedidoid")
@@ -1914,28 +1605,23 @@ namespace CMSXData.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<bool?>("Ativo")
-                        .HasColumnType("boolean")
                         .HasColumnName("Ativo");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(155)
-                        .HasColumnType("character varying(155)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Url")
                         .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
                         .HasColumnName("Url");
 
                     b.HasKey("Id")
@@ -1948,17 +1634,14 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Tipocotacaoid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("TipoCotacaoId");
 
                     b.Property<string>("Descricao")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
                         .HasColumnName("Nome");
 
                     b.HasKey("Tipocotacaoid")
@@ -1971,12 +1654,10 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Tipoenvioid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("TipoEnvioId");
 
                     b.Property<string>("Tipoenviodesc")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("TipoEnvioDesc");
 
                     b.HasKey("Tipoenvioid")
@@ -1988,17 +1669,14 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Unidade", b =>
                 {
                     b.Property<Guid>("Unidadeid")
-                        .HasColumnType("uuid")
                         .HasColumnName("UnidadeId");
 
                     b.Property<string>("Nome")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Sigla")
                         .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
                         .HasColumnName("Sigla");
 
                     b.HasKey("Unidadeid")
@@ -2011,37 +1689,30 @@ namespace CMSXData.Migrations
                 {
                     b.Property<string>("Userid")
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)")
                         .HasColumnName("UserId");
 
                     b.Property<string>("Apelido")
                         .HasMaxLength(6)
-                        .HasColumnType("character varying(6)")
                         .HasColumnName("Apelido");
 
                     b.Property<byte?>("Ativo")
-                        .HasColumnType("smallint")
                         .HasColumnName("Ativo");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Nome");
 
                     b.Property<string>("Senha")
                         .HasMaxLength(12)
-                        .HasColumnType("character varying(12)")
                         .HasColumnName("Senha");
 
                     b.Property<string>("Sobrenome")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
                         .HasColumnName("Sobrenome");
 
                     b.HasKey("Userid")

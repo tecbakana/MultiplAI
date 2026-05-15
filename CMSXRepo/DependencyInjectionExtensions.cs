@@ -40,6 +40,9 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IPedidoRepositorio, PedidoRepositorio>();
         services.AddScoped<IVinculoModuloUsuarioRepositorio, VinculoModuloUsuarioRepositorio>();
         services.AddScoped<IVinculoUsuarioAplicacaoRepositorio, VinculoUsuarioAplicacaoRepositorio>();
+        services.AddScoped<IProdutoTemplateRepositorio, ProdutoTemplateRepositorio>();
+        services.AddScoped<ISegmentoTenantRepositorio, SegmentoTenantRepositorio>();
+        services.AddScoped<IVitrineRepositorio, VitrineRepositorio>();
 
         return services;
     }

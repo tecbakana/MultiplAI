@@ -33,6 +33,10 @@
       [routerLink]="['/minha-aplicacao']" routerLinkActive="active">
       <span class="nav-icon">⚙</span> Minha Aplicação
     </a>
+    <a class="nav-item" *ngIf="usuario?.aplicacaoid"
+      [routerLink]="['/vitrine']" routerLinkActive="active">
+      <span class="nav-icon">◈</span> Vitrine
+    </a>
 
     <!-- Admin (colapsável) -->
     <div class="nav-separator" *ngIf="usuario?.acessoTotal"></div>
@@ -57,6 +61,12 @@
         </a>
         <a class="nav-item nav-item-sub" [routerLink]="['/modulos-admin']" routerLinkActive="active">
           <span class="nav-icon">▪</span> Módulos
+        </a>
+        <a class="nav-item nav-item-sub" [routerLink]="['/segmentos']" routerLinkActive="active">
+          <span class="nav-icon">◈</span> Segmentos
+        </a>
+        <a class="nav-item nav-item-sub" [routerLink]="['/vitrine-admin']" routerLinkActive="active">
+          <span class="nav-icon">◈</span> Vitrine
         </a>
       </div>
 

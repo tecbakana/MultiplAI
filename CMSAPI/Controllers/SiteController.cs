@@ -11,11 +11,13 @@ namespace CMSAPI.Controllers
     {
         private readonly ISiteRepositorio _repo;
         private readonly IAplicacaoRepositorio _aplicacaoRepo;
+        private readonly IVitrineRepositorio _vitrineRepo;
 
-        public SiteController(ISiteRepositorio repo, IAplicacaoRepositorio aplicacaoRepo)
+        public SiteController(ISiteRepositorio repo, IAplicacaoRepositorio aplicacaoRepo, IVitrineRepositorio vitrineRepo)
         {
             _repo = repo;
             _aplicacaoRepo = aplicacaoRepo;
+            _vitrineRepo = vitrineRepo;
         }
 
         [AllowAnonymous]
@@ -36,11 +38,13 @@ namespace CMSAPI.Controllers
             return app == null ? NotFound() : await BuildSiteData(app.Aplicacaoid!, app.Nome, app.Url, app.Header);
         }
 
-        private  async Task<IActionResult> BuildSiteData(string aplicacaoid, string? nome, string? url, string? header)
+        private async Task<IActionResult> BuildSiteData(string aplicacaoid, string? nome, string? url, string? header)
         {
             var areas = await _repo.ListaAreasAsync(aplicacaoid);
+            var snapshot = await _vitrineRepo.BuscaSnapshotAsync(aplicacaoid);
 
-            var areasResult = areas.Select(area =>
+            var areasResult = new List<object>();
+            foreach (var area in areas)
             {
                 var blocos = new List<object>();
                 if (!string.IsNullOrEmpty(area.Layout) && area.Layout != "{\"blocos\":[]}")
@@ -54,17 +58,18 @@ namespace CMSAPI.Controllers
                             var configRaw = b.GetProperty("config").GetRawText();
                             var config = JsonDocument.Parse(configRaw).RootElement;
                             var coluna = b.TryGetProperty("coluna", out var colunaEl) ? colunaEl.GetString() : null;
-                            var dados = EnriquecerBloco(tipo, config, aplicacaoid);
+                            var dados = await EnriquecerBloco(tipo, config, aplicacaoid);
                             blocos.Add(new { tipo, config = JsonSerializer.Deserialize<object>(configRaw), coluna, dados });
                         }
                     }
-                    catch
+                    catch (JsonException)
                     {
-                       throw new Exception($"Erro ao processar layout da área '{area.Areaid}'. Verifique se o JSON está correto.");
+                        throw new Exception($"Erro ao processar layout da área '{area.Areaid}'. Verifique se o JSON está correto.");
                     }
                 }
-                return new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos };
-            }).ToList();
+                var areaSnapshot = area.Tipo == "home" ? snapshot : null;
+                areasResult.Add(new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos, HtmlSnapshot = areaSnapshot });
+            }
 
             return Ok(new { Aplicacaoid = aplicacaoid, Nome = nome, Url = url, Header = header, areas = areasResult });
         }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using CMSXData.Models;
 using ICMSX;
 
 namespace CMSAPI.Controllers;
@@ -25,52 +24,42 @@ public class AreasController : Controller
         return Ok(await _repo.ListaAsync(filtro));
     }
 
-    public class NovaAreaDto
+    [HttpGet("{aplicacaoId}/home")]
+    public async Task<IActionResult> GetHome(string aplicacaoId)
     {
-        public string? Nome { get; set; }
-        public string? Url { get; set; }
-        public string? Descricao { get; set; }
-        public string? Areaidpai { get; set; }
-        public int? Posicao { get; set; }
-        public int? Tipoarea { get; set; }
-        public string? Aplicacaoid { get; set; }
+        var (acessoTotal, claimAppId) = UserContext();
+        if (!acessoTotal && claimAppId != aplicacaoId) return Forbid();
+        return Ok(await _repo.BuscaHomeAsync(aplicacaoId));
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] NovaAreaDto dto)
+    public async Task<IActionResult> Post([FromBody] AreaInput input, [FromQuery] string? aplicacaoid = null)
     {
         var (acessoTotal, claimAppId) = UserContext();
-        var item = new Area
-        {
-            Areaid      = Guid.NewGuid().ToString(),
-            Nome        = dto.Nome,
-            Url         = dto.Url,
-            Descricao   = dto.Descricao,
-            Areaidpai   = dto.Areaidpai,
-            Posicao     = dto.Posicao,
-            Tipoarea    = dto.Tipoarea,
-            Aplicacaoid = acessoTotal ? dto.Aplicacaoid : claimAppId,
-            Datainicial = DateTime.UtcNow
-        };
-        await _repo.CriarAsync(item);
-        return Ok(item);
+        var appId = acessoTotal ? aplicacaoid : claimAppId;
+
+        if (input.Tipo == "home" && appId != null && await _repo.ExisteHomeAsync(appId))
+            return Conflict("Já existe uma área home para esta aplicação.");
+
+        var id = await _repo.CriarAsync(input, appId!);
+        return Ok(new { areaid = id });
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(string id, [FromBody] NovaAreaDto dto)
+    public async Task<IActionResult> Put(string id, [FromBody] AreaInput dto)
     {
         var (acessoTotal, claimAppId) = UserContext();
         var item = await _repo.BuscaPorIdAsync(id);
         if (item == null) return NotFound();
         if (!acessoTotal && item.Aplicacaoid != claimAppId) return Forbid();
-        item.Nome      = dto.Nome;
-        item.Url       = dto.Url;
-        item.Descricao = dto.Descricao;
-        item.Areaidpai = dto.Areaidpai;
-        item.Posicao   = dto.Posicao;
-        item.Tipoarea  = dto.Tipoarea;
-        await _repo.AtualizarAsync(item);
-        return Ok(item);
+
+        if (dto.Tipo == "home" && item.Aplicacaoid != null &&
+            await _repo.ExisteHomeAsync(item.Aplicacaoid, excluirAreaId: id))
+            return Conflict("Já existe uma área home para esta aplicação.");
+
+        var atualizado = await _repo.AtualizarAsync(id, dto);
+        if (!atualizado) return NotFound();
+        return Ok();
     }
 
     [HttpDelete("{id}")]

@@ -64,7 +64,9 @@ public class PublicTokensController : Controller
             Aplicacaoid    = appId,
             Ativo          = true,
             Datainclusao   = DateTime.UtcNow,
-            Datavencimento = dto?.Datavencimento
+            Datavencimento = dto?.Datavencimento is DateTime dv
+                ? DateTime.SpecifyKind(dv, DateTimeKind.Utc)
+                : null
         };
 
         await _repo.CriarAsync(token);

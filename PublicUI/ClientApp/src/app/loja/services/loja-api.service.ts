@@ -41,7 +41,7 @@ export interface ClienteLoja {
 }
 
 export interface NovoPedido {
-  aplicacaoid?: string;
+  token: string;
   numeropedido: string;
   clientenome: string;
   clienteemail: string;

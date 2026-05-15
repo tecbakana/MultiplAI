@@ -1,10 +1,11 @@
 using CMSAPIPublica.Services;
-using CMSXData.Models;
 using ICMSX;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
+using static ICMSX.IClienteLojaRepositorio;
+using static ICMSX.ILojaRepositorio;
 
 namespace CMSAPIPublica.Controllers;
 
@@ -74,15 +75,7 @@ public class LojaPublicaController(
         if (auth is null)
             return StatusCode(502, new { message = "Falha ao registrar cliente na Salematic." });
 
-        dynamic connProps = new System.Dynamic.ExpandoObject();
-        connProps.banco = "SqlServer";
-        connProps.parms = 3;
-        await clienteLojaRepo.MakeConnectionAsync(connProps);
-        await clienteLojaRepo.CriaClienteLojaAsync(new ClienteLoja
-        {
-            Aplicacaoid        = aplicacaoid,
-            SalematicClienteId = auth.ClienteId
-        });
+        await clienteLojaRepo.CriaClienteLojaAsync(new CriaClienteLojaInput(aplicacaoid, auth.ClienteId));
 
         return Ok(auth);
     }
@@ -127,20 +120,24 @@ public class LojaPublicaController(
     [HttpPost("pedidos")]
     public async Task<IActionResult> CriarPedido([FromBody] CriarPedidoLojaRequest req)
     {
+        if (string.IsNullOrEmpty(req.Token))
+            return BadRequest(new { message = "token é obrigatório." });
+
+        var aplicacaoid = await lojaRepo.ResolvePublicTokenAsync(req.Token);
+        if (aplicacaoid == null)
+            return BadRequest(new { message = "Token inválido ou expirado." });
+
         if (string.IsNullOrEmpty(req.Numeropedido) || string.IsNullOrEmpty(req.Clienteemail))
             return BadRequest(new { message = "numeropedido e clienteemail são obrigatórios." });
 
-        var pedido = new Pedido
-        {
-            Aplicacaoid     = req.Aplicacaoid,
-            Numeropedido    = req.Numeropedido,
-            Clientenome     = req.Clientenome,
-            Clienteemail    = req.Clienteemail,
-            Valorpedido     = req.Valorpedido,
-            MetodoPagamento = req.MetodoPagamento
-        };
-
-        await lojaRepo.CriaPedidoAsync(pedido);
+        var pedido = await lojaRepo.CriaPedidoAsync(new CriarPedidoLojaInput(
+            aplicacaoid,
+            req.Numeropedido,
+            req.Clientenome,
+            req.Clienteemail,
+            req.Valorpedido,
+            req.MetodoPagamento
+        ));
 
         try
         {
@@ -200,7 +197,6 @@ public class LojaPublicaController(
         var pedidos = (await lojaRepo.ListaPedidosPorClienteAsync(clienteEmail))
             .Select(p => new {
                 p.Pedidoid,
-                p.Aplicacaoid,
                 p.Numeropedido,
                 p.Clientenome,
                 p.Clienteemail,

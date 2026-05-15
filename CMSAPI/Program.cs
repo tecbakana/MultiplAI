@@ -87,27 +87,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience            = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-    })
-    .AddJwtBearer("Salematic", options =>
-    {
-        var salematicKey = builder.Configuration["SalematicJwt:Key"]!;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
-            ValidateLifetime         = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer              = builder.Configuration["SalematicJwt:Issuer"],
-            ValidAudience            = builder.Configuration["SalematicJwt:Audience"],
-            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(salematicKey))
-        };
     });
 builder.Services.AddAuthorization();
-
-builder.Services.AddHttpClient<ISalematicHttpService, SalematicHttpService>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["Salematic:BaseUrl"]!);
-});
 
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IMarketHubHttpService, MarketHubHttpService>(client =>

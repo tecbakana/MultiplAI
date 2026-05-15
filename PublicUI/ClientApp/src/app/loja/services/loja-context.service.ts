@@ -36,7 +36,7 @@ export class LojaContextService {
 
   initFromSlug(slug: string): Observable<LojaCtx> {
     this._slug = slug; // disponível imediatamente, sem depender da API
-    return this.http.get<LojaCtx>(`${this.baseUrl}api/loja/resolve?slug=${slug}`).pipe(
+    return this.http.get<LojaCtx>(`${this.baseUrl}api/publico/loja/resolve?slug=${slug}`).pipe(
       tap(ctx => this._ctx.next({...ctx,slug}))
     );
   }

@@ -1,0 +1,140 @@
+<div class="page-header">
+  <h2>Vitrine</h2>
+  <span *ngIf="configurada?.publicado" class="badge-publicado">Publicada</span>
+</div>
+
+<div *ngIf="carregando" class="loading-state">Carregando templates...</div>
+
+<div class="vitrine-editor" *ngIf="!carregando">
+
+  <!-- Coluna esquerda: galeria de templates -->
+  <div class="vitrine-col vitrine-gallery">
+    <h3>Templates disponíveis</h3>
+    <div *ngIf="templates.length === 0" class="empty-state">Nenhum template disponível para esta aplicação.</div>
+    <div
+      class="template-card"
+      *ngFor="let t of templates"
+      [class.selected]="templateSelecionado?.vitrineTemplateId === t.vitrineTemplateId"
+      (click)="selecionarTemplate(t)">
+      <div class="template-thumb">
+        <img *ngIf="t.thumbnailUrl" [src]="t.thumbnailUrl" [alt]="t.nome">
+        <div *ngIf="!t.thumbnailUrl" class="template-thumb-placeholder">◈</div>
+      </div>
+      <div class="template-info">
+        <div class="template-nome">{{ t.nome }}</div>
+        <div *ngIf="t.descricao" class="template-desc">{{ t.descricao }}</div>
+        <div *ngIf="t.segmentoTenantId" class="template-segmento">{{ t.segmentoTenantId }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coluna central: preview -->
+  <div class="vitrine-col vitrine-preview">
+    <div class="preview-toolbar">
+      <button class="btn" (click)="previsualizarAsync()" [disabled]="!templateSelecionado">
+        Pré-visualizar
+      </button>
+      <button class="btn btn-secondary" (click)="salvarRascunho()" [disabled]="!templateSelecionado || salvando">
+        {{ salvando ? 'Salvando...' : 'Salvar rascunho' }}
+      </button>
+      <button class="btn btn-primary" (click)="publicar()" [disabled]="!templateSelecionado || publicando">
+        {{ publicando ? 'Publicando...' : 'Publicar' }}
+      </button>
+    </div>
+
+    <div class="preview-area">
+      <iframe
+        *ngIf="previewSrc"
+        [src]="previewSrc"
+        class="vitrine-iframe">
+      </iframe>
+      <div *ngIf="!previewSrc" class="preview-empty">
+        <div *ngIf="!templateSelecionado">Selecione um template para começar.</div>
+        <div *ngIf="templateSelecionado">Clique em <strong>Pré-visualizar</strong> para ver o resultado.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coluna direita: customização -->
+  <div class="vitrine-col vitrine-customizacao">
+    <h3>Customização</h3>
+    <div *ngIf="!templateSelecionado" class="empty-state">Selecione um template.</div>
+
+    <div *ngIf="templateSelecionado">
+      <div class="varivel-campo" *ngFor="let v of variaveis">
+        <label class="campo-label">{{ v.label }}</label>
+
+        <input *ngIf="v.tipo === 'color'" type="color"
+          [(ngModel)]="valores[v.chave]"
+          class="campo-color">
+
+        <input *ngIf="v.tipo === 'text'" type="text"
+          [(ngModel)]="valores[v.chave]"
+          [placeholder]="v.padrao || ''"
+          class="campo-input">
+
+        <input *ngIf="v.tipo === 'number'" type="number"
+          [(ngModel)]="valores[v.chave]"
+          [placeholder]="v.padrao || '8'"
+          min="1" max="50"
+          class="campo-input">
+
+        <input *ngIf="v.tipo === 'image'" type="url"
+          [(ngModel)]="valores[v.chave]"
+          placeholder="URL da imagem"
+          class="campo-input">
+
+        <select *ngIf="v.tipo === 'font'" [(ngModel)]="valores[v.chave]" class="campo-select">
+          <option *ngFor="let f of fontes" [value]="f">{{ f }}</option>
+        </select>
+      </div>
+
+      <div *ngIf="variaveis.length === 0" class="empty-state">
+        Este template não possui variáveis customizáveis.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .badge-publicado { background: #2d6a4f; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+  .vitrine-editor { display: grid; grid-template-columns: 240px 1fr 260px; gap: 16px; height: calc(100vh - 140px); }
+  .vitrine-col { display: flex; flex-direction: column; overflow: hidden; }
+  .vitrine-col h3 { font-size: 13px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .05em; margin: 0 0 12px; }
+
+  /* Gallery */
+  .vitrine-gallery { overflow-y: auto; gap: 10px; }
+  .template-card { border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; overflow: hidden; transition: border-color .15s; }
+  .template-card:hover { border-color: #6366f1; }
+  .template-card.selected { border-color: #6366f1; background: #f5f3ff; }
+  .template-thumb { height: 80px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .template-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .template-thumb-placeholder { font-size: 28px; color: #d1d5db; }
+  .template-info { padding: 8px 10px; }
+  .template-nome { font-weight: 600; font-size: 13px; }
+  .template-desc { font-size: 11px; color: #6b7280; margin-top: 2px; }
+  .template-segmento { font-size: 10px; color: #6366f1; margin-top: 4px; }
+
+  /* Preview */
+  .vitrine-preview { display: flex; flex-direction: column; }
+  .preview-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+  .preview-area { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #f9fafb; }
+  .vitrine-iframe { width: 100%; height: 100%; border: none; }
+  .preview-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af; font-size: 14px; }
+
+  /* Customização */
+  .vitrine-customizacao { overflow-y: auto; }
+  .varivel-campo { margin-bottom: 14px; }
+  .campo-label { display: block; font-size: 12px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+  .campo-input, .campo-select { width: 100%; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box; }
+  .campo-color { width: 48px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; }
+
+  /* Buttons */
+  .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; font-size: 13px; cursor: pointer; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .btn-secondary { background: #f3f4f6; }
+  .loading-state, .empty-state { color: #9ca3af; font-size: 14px; padding: 16px 0; text-align: center; }
+</style>

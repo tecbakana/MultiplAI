@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { AdminContextService } from '../admin-context.service';
 
 @Component({ templateUrl: './area.component.html' })
@@ -9,7 +10,12 @@ export class AreaComponent implements OnInit {
   modoEdicao = false;
   private usuario: any;
 
-  constructor(private http: HttpClient, @Inject('BASE_URL') private baseUrl: string, private adminCtx: AdminContextService) {}
+  constructor(
+    private http: HttpClient,
+    @Inject('BASE_URL') private baseUrl: string,
+    private adminCtx: AdminContextService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
@@ -36,15 +42,19 @@ export class AreaComponent implements OnInit {
     return pai ? pai.nome : areaidpai;
   }
 
-  // Areas that can be selected as parent (exclude self when editing)
   opcoesPai(): any[] {
     if (!this.selecionado?.areaid) return this.lista;
     return this.lista.filter(a => a.areaid !== this.selecionado.areaid);
   }
 
+  jaTemHome(): boolean {
+    return this.lista.some(a => a.tipo === 'home' && a.areaid !== this.selecionado?.areaid);
+  }
+
   novo() {
     this.selecionado = {
       nome: '', url: '', descricao: '', areaidpai: null, posicao: null, tipoarea: null,
+      tipo: 'pagina',
       aplicacaoid: this.usuario.aplicacaoid
     };
     this.modoEdicao = true;
@@ -55,10 +65,10 @@ export class AreaComponent implements OnInit {
   salvar() {
     if (this.selecionado.areaid) {
       this.http.put(this.baseUrl + 'areas/' + this.selecionado.areaid, this.selecionado)
-        .subscribe(() => { this.modoEdicao = false; this.carregar(); });
+        .subscribe({ next: () => { this.modoEdicao = false; this.carregar(); }, error: e => alert(e.error || 'Erro ao salvar') });
     } else {
       this.http.post(this.baseUrl + 'areas', this.selecionado)
-        .subscribe(() => { this.modoEdicao = false; this.carregar(); });
+        .subscribe({ next: () => { this.modoEdicao = false; this.carregar(); }, error: e => alert(e.error || 'Erro ao salvar') });
     }
   }
 
@@ -68,4 +78,12 @@ export class AreaComponent implements OnInit {
   }
 
   cancelar() { this.modoEdicao = false; this.selecionado = null; }
+
+  navegarParaEditor(item: any) {
+    if (item.tipo === 'home') {
+      this.router.navigate(['/vitrine', item.areaid]);
+    } else {
+      this.router.navigate(['/page-builder-v2', item.areaid]);
+    }
+  }
 }

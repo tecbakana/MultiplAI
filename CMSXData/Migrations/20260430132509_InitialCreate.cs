@@ -16,35 +16,35 @@ namespace CMSXData.Migrations
                 name: "aplicacao",
                 columns: table => new
                 {
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: true),
-                    Url = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    DataInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DataFinal = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    IdUsuarioInicio = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: true),
-                    IdUsuarioFim = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: true),
-                    PagSeguroToken = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
-                    LayoutChoose = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    Posicao = table.Column<int>(type: "integer", nullable: true),
-                    mailUser = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    mailPassword = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    mailServer = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
-                    mailPort = table.Column<int>(type: "integer", nullable: true),
-                    isSecure = table.Column<byte>(type: "smallint", nullable: true),
-                    pageFacebook = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    pageLinkedin = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    pageInstagram = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    pageTwitter = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    pagePinterest = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    pageFlicker = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    logotipo = table.Column<byte[]>(type: "bytea", nullable: true),
-                    googleAdSense = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    header = table.Column<string>(type: "character varying(245)", maxLength: 245, nullable: true),
-                    isActive = table.Column<bool>(type: "boolean", nullable: true),
-                    Telefone = table.Column<string>(type: "text", nullable: true),
-                    Endereco = table.Column<string>(type: "text", nullable: true),
-                    Descricao = table.Column<string>(type: "text", nullable: true),
-                    IsDemo = table.Column<bool>(type: "boolean", nullable: false)
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 400, nullable: true),
+                    Url = table.Column<string>(maxLength: 20, nullable: true),
+                    DataInicio = table.Column<DateTime>(nullable: true),
+                    DataFinal = table.Column<DateTime>(nullable: true),
+                    IdUsuarioInicio = table.Column<string>(maxLength: 36, nullable: true),
+                    IdUsuarioFim = table.Column<string>(maxLength: 36, nullable: true),
+                    PagSeguroToken = table.Column<string>(maxLength: 120, nullable: true),
+                    LayoutChoose = table.Column<string>(maxLength: 150, nullable: true),
+                    Posicao = table.Column<int>(nullable: true),
+                    mailUser = table.Column<string>(maxLength: 150, nullable: true),
+                    mailPassword = table.Column<string>(maxLength: 45, nullable: true),
+                    mailServer = table.Column<string>(maxLength: 80, nullable: true),
+                    mailPort = table.Column<int>(nullable: true),
+                    isSecure = table.Column<byte>(nullable: true),
+                    pageFacebook = table.Column<string>(maxLength: 255, nullable: true),
+                    pageLinkedin = table.Column<string>(maxLength: 255, nullable: true),
+                    pageInstagram = table.Column<string>(maxLength: 255, nullable: true),
+                    pageTwitter = table.Column<string>(maxLength: 255, nullable: true),
+                    pagePinterest = table.Column<string>(maxLength: 255, nullable: true),
+                    pageFlicker = table.Column<string>(maxLength: 255, nullable: true),
+                    logotipo = table.Column<byte[]>(nullable: true),
+                    googleAdSense = table.Column<string>(maxLength: 500, nullable: true),
+                    header = table.Column<string>(maxLength: 245, nullable: true),
+                    isActive = table.Column<bool>(nullable: true),
+                    Telefone = table.Column<string>(nullable: true),
+                    Endereco = table.Column<string>(nullable: true),
+                    Descricao = table.Column<string>(nullable: true),
+                    IsDemo = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -55,26 +55,26 @@ namespace CMSXData.Migrations
                 name: "areas",
                 columns: table => new
                 {
-                    AreaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Nome = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
-                    Url = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    AreaIdPai = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    DataInicial = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DataFinal = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Imagem = table.Column<byte>(type: "smallint", nullable: true),
-                    MenuLateral = table.Column<byte>(type: "smallint", nullable: true),
-                    MenuSplash = table.Column<byte>(type: "smallint", nullable: true),
-                    MenuCentral = table.Column<byte>(type: "smallint", nullable: true),
-                    posicao = table.Column<int>(type: "integer", nullable: true),
-                    MenuFixo = table.Column<byte>(type: "smallint", nullable: true),
-                    ListaSimples = table.Column<byte>(type: "smallint", nullable: true),
-                    ListaSplash = table.Column<byte>(type: "smallint", nullable: true),
-                    ListaBanner = table.Column<byte>(type: "smallint", nullable: true),
-                    TipoArea = table.Column<int>(type: "integer", nullable: true),
-                    layout = table.Column<string>(type: "text", nullable: true),
-                    PageBuilderVersion = table.Column<string>(type: "text", nullable: true)
+                    AreaId = table.Column<string>(maxLength: 64, nullable: false),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: true),
+                    Nome = table.Column<string>(maxLength: 80, nullable: true),
+                    Url = table.Column<string>(maxLength: 300, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    AreaIdPai = table.Column<string>(maxLength: 64, nullable: true),
+                    DataInicial = table.Column<DateTime>(nullable: true),
+                    DataFinal = table.Column<DateTime>(nullable: true),
+                    Imagem = table.Column<byte>(nullable: true),
+                    MenuLateral = table.Column<byte>(nullable: true),
+                    MenuSplash = table.Column<byte>(nullable: true),
+                    MenuCentral = table.Column<byte>(nullable: true),
+                    posicao = table.Column<int>(nullable: true),
+                    MenuFixo = table.Column<byte>(nullable: true),
+                    ListaSimples = table.Column<byte>(nullable: true),
+                    ListaSplash = table.Column<byte>(nullable: true),
+                    ListaBanner = table.Column<byte>(nullable: true),
+                    TipoArea = table.Column<int>(nullable: true),
+                    layout = table.Column<string>(nullable: true),
+                    PageBuilderVersion = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -85,11 +85,11 @@ namespace CMSXData.Migrations
                 name: "arquivo",
                 columns: table => new
                 {
-                    ArquivoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AreaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    ConteudoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Nome = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    TipoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    ArquivoId = table.Column<string>(maxLength: 64, nullable: false),
+                    AreaId = table.Column<string>(maxLength: 64, nullable: true),
+                    ConteudoId = table.Column<string>(maxLength: 64, nullable: true),
+                    Nome = table.Column<string>(maxLength: 64, nullable: true),
+                    TipoId = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -100,13 +100,13 @@ namespace CMSXData.Migrations
                 name: "atributo",
                 columns: table => new
                 {
-                    AtributoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Nome = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: false),
-                    ProdutoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    ParentAtributoId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Ordem = table.Column<int>(type: "integer", nullable: true),
-                    ValorAdicional = table.Column<decimal>(type: "numeric", nullable: true)
+                    AtributoId = table.Column<Guid>(nullable: false),
+                    Nome = table.Column<string>(maxLength: 45, nullable: false),
+                    Descricao = table.Column<string>(maxLength: 45, nullable: false),
+                    ProdutoId = table.Column<string>(maxLength: 64, nullable: true),
+                    ParentAtributoId = table.Column<Guid>(nullable: true),
+                    Ordem = table.Column<int>(nullable: true),
+                    ValorAdicional = table.Column<decimal>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -122,10 +122,10 @@ namespace CMSXData.Migrations
                 name: "cambio",
                 columns: table => new
                 {
-                    CambioGroupId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    DataCotacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    MoedasXml = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Tipo = table.Column<byte>(type: "smallint", nullable: true)
+                    CambioGroupId = table.Column<string>(maxLength: 64, nullable: false),
+                    DataCotacao = table.Column<DateTime>(nullable: true),
+                    MoedasXml = table.Column<string>(maxLength: 1000, nullable: true),
+                    Tipo = table.Column<byte>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -136,12 +136,12 @@ namespace CMSXData.Migrations
                 name: "categoria",
                 columns: table => new
                 {
-                    CategoriaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    TipoCategoria = table.Column<int>(type: "integer", nullable: true),
-                    CategoriaIdPai = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    CategoriaId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 200, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 1000, nullable: true),
+                    TipoCategoria = table.Column<int>(nullable: true),
+                    CategoriaIdPai = table.Column<string>(maxLength: 64, nullable: true),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -152,14 +152,14 @@ namespace CMSXData.Migrations
                 name: "ciaaerea",
                 columns: table => new
                 {
-                    CiaAereaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                    Logotipo = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    Descricao_Longa = table.Column<string>(type: "text", nullable: true),
-                    Ativo = table.Column<byte>(type: "smallint", nullable: true),
-                    TipoNac = table.Column<byte>(type: "smallint", nullable: true),
-                    TipoInt = table.Column<byte>(type: "smallint", nullable: true),
-                    webticket_str = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: true)
+                    CiaAereaId = table.Column<string>(maxLength: 64, nullable: false),
+                    Descricao = table.Column<string>(maxLength: 4000, nullable: true),
+                    Logotipo = table.Column<string>(maxLength: 300, nullable: true),
+                    Descricao_Longa = table.Column<string>(nullable: true),
+                    Ativo = table.Column<byte>(nullable: true),
+                    TipoNac = table.Column<byte>(nullable: true),
+                    TipoInt = table.Column<byte>(nullable: true),
+                    webticket_str = table.Column<string>(maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -170,14 +170,14 @@ namespace CMSXData.Migrations
                 name: "conteudo",
                 columns: table => new
                 {
-                    ConteudoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AreaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Autor = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
-                    Titulo = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
-                    Texto = table.Column<string>(type: "text", nullable: true),
-                    DataInclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DataFinal = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CategoriaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    ConteudoId = table.Column<string>(maxLength: 64, nullable: false),
+                    AreaId = table.Column<string>(maxLength: 64, nullable: true),
+                    Autor = table.Column<string>(maxLength: 80, nullable: true),
+                    Titulo = table.Column<string>(maxLength: 80, nullable: true),
+                    Texto = table.Column<string>(nullable: true),
+                    DataInclusao = table.Column<DateTime>(nullable: true),
+                    DataFinal = table.Column<DateTime>(nullable: true),
+                    CategoriaId = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -188,9 +188,9 @@ namespace CMSXData.Migrations
                 name: "conteudovalor",
                 columns: table => new
                 {
-                    ConteudoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    UnidadeId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Valor = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: true)
+                    ConteudoId = table.Column<string>(maxLength: 64, nullable: false),
+                    UnidadeId = table.Column<Guid>(nullable: true),
+                    Valor = table.Column<decimal>(precision: 10, scale: 2, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -201,11 +201,11 @@ namespace CMSXData.Migrations
                 name: "dict_blocos",
                 columns: table => new
                 {
-                    tipobloco = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    icone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    schema_config = table.Column<string>(type: "text", nullable: false)
+                    tipobloco = table.Column<string>(maxLength: 50, nullable: false),
+                    nome = table.Column<string>(maxLength: 100, nullable: false),
+                    descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    icone = table.Column<string>(maxLength: 50, nullable: true),
+                    schema_config = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -216,9 +216,9 @@ namespace CMSXData.Migrations
                 name: "dict_socialmedia",
                 columns: table => new
                 {
-                    SocialMediaId = table.Column<int>(type: "integer", nullable: false),
-                    SocialMediaName = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    SocialMediaUrl = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true)
+                    SocialMediaId = table.Column<int>(nullable: false),
+                    SocialMediaName = table.Column<string>(maxLength: 45, nullable: true),
+                    SocialMediaUrl = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -229,10 +229,10 @@ namespace CMSXData.Migrations
                 name: "dict_templates",
                 columns: table => new
                 {
-                    idTemplate = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    viewRelacionada = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true)
+                    idTemplate = table.Column<string>(maxLength: 100, nullable: false),
+                    Nome = table.Column<string>(maxLength: 255, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    viewRelacionada = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -243,9 +243,9 @@ namespace CMSXData.Migrations
                 name: "dictareas",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false),
-                    nome = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
-                    tipo = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(nullable: false),
+                    nome = table.Column<string>(maxLength: 12, nullable: true),
+                    tipo = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -256,13 +256,13 @@ namespace CMSXData.Migrations
                 name: "faq",
                 columns: table => new
                 {
-                    faqid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    formularioid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    pergunta = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    resposta = table.Column<string>(type: "text", nullable: false),
-                    ordem = table.Column<int>(type: "integer", nullable: false),
-                    ativo = table.Column<bool>(type: "boolean", nullable: false),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    faqid = table.Column<string>(maxLength: 64, nullable: false),
+                    formularioid = table.Column<string>(maxLength: 64, nullable: false),
+                    pergunta = table.Column<string>(maxLength: 500, nullable: false),
+                    resposta = table.Column<string>(nullable: false),
+                    ordem = table.Column<int>(nullable: false),
+                    ativo = table.Column<bool>(nullable: false),
+                    datainclusao = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -273,13 +273,13 @@ namespace CMSXData.Migrations
                 name: "formulario",
                 columns: table => new
                 {
-                    formularioid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    nome = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    valor = table.Column<string>(type: "character varying(8000)", maxLength: 8000, nullable: true),
-                    ativo = table.Column<bool>(type: "boolean", nullable: true),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    areaid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    categoriaid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    formularioid = table.Column<string>(maxLength: 64, nullable: false),
+                    nome = table.Column<string>(maxLength: 255, nullable: false),
+                    valor = table.Column<string>(maxLength: 8000, nullable: true),
+                    ativo = table.Column<bool>(nullable: true),
+                    datainclusao = table.Column<DateTime>(nullable: true),
+                    areaid = table.Column<string>(maxLength: 64, nullable: true),
+                    categoriaid = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -290,15 +290,15 @@ namespace CMSXData.Migrations
                 name: "formularionew",
                 columns: table => new
                 {
-                    IdForm = table.Column<int>(type: "integer", nullable: false)
+                    IdForm = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Tipo = table.Column<int>(type: "integer", nullable: true),
-                    Email = table.Column<string>(type: "character varying(155)", maxLength: 155, nullable: true),
-                    Telefone = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
-                    Texto = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Ativo = table.Column<int>(type: "integer", nullable: true),
-                    formularioid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    Nome = table.Column<string>(maxLength: 100, nullable: true),
+                    Tipo = table.Column<int>(nullable: true),
+                    Email = table.Column<string>(maxLength: 155, nullable: true),
+                    Telefone = table.Column<string>(maxLength: 15, nullable: true),
+                    Texto = table.Column<string>(maxLength: 255, nullable: true),
+                    Ativo = table.Column<int>(nullable: true),
+                    formularioid = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -309,10 +309,10 @@ namespace CMSXData.Migrations
                 name: "grupo",
                 columns: table => new
                 {
-                    GrupoId = table.Column<string>(type: "text", nullable: false),
-                    Nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    AcessoTotal = table.Column<bool>(type: "boolean", nullable: false)
+                    GrupoId = table.Column<string>(nullable: false),
+                    Nome = table.Column<string>(maxLength: 100, nullable: false),
+                    Descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    AcessoTotal = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -323,11 +323,11 @@ namespace CMSXData.Migrations
                 name: "ia_cache",
                 columns: table => new
                 {
-                    cacheid = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
-                    hash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    resultado = table.Column<string>(type: "text", nullable: false),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    datavencimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    cacheid = table.Column<string>(maxLength: 36, nullable: false),
+                    hash = table.Column<string>(maxLength: 64, nullable: false),
+                    resultado = table.Column<string>(nullable: false),
+                    datainclusao = table.Column<DateTime>(nullable: false),
+                    datavencimento = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -338,11 +338,11 @@ namespace CMSXData.Migrations
                 name: "ia_config",
                 columns: table => new
                 {
-                    aplicacaoid = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    provedor = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    apikey = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    modelo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    limite_diario = table.Column<int>(type: "integer", nullable: true)
+                    aplicacaoid = table.Column<string>(maxLength: 50, nullable: false),
+                    provedor = table.Column<string>(maxLength: 20, nullable: true),
+                    apikey = table.Column<string>(maxLength: 500, nullable: true),
+                    modelo = table.Column<string>(maxLength: 100, nullable: true),
+                    limite_diario = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -353,10 +353,10 @@ namespace CMSXData.Migrations
                 name: "ia_uso",
                 columns: table => new
                 {
-                    usoid = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: false),
-                    aplicacaoid = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    data = table.Column<DateTime>(type: "date", nullable: false),
-                    contador = table.Column<int>(type: "integer", nullable: false)
+                    usoid = table.Column<string>(maxLength: 36, nullable: false),
+                    aplicacaoid = table.Column<string>(maxLength: 50, nullable: false),
+                    data = table.Column<DateTime>(nullable: false),
+                    contador = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -367,15 +367,15 @@ namespace CMSXData.Migrations
                 name: "imagem",
                 columns: table => new
                 {
-                    ImagemId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Url = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    Largura = table.Column<int>(type: "integer", nullable: true),
-                    Altura = table.Column<int>(type: "integer", nullable: true),
-                    AreaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    ConteudoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    ParentId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    TipoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    ImagemId = table.Column<string>(maxLength: 64, nullable: false),
+                    Url = table.Column<string>(maxLength: 300, nullable: true),
+                    Largura = table.Column<int>(nullable: true),
+                    Altura = table.Column<int>(nullable: true),
+                    AreaId = table.Column<string>(maxLength: 64, nullable: true),
+                    ConteudoId = table.Column<string>(maxLength: 64, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    ParentId = table.Column<string>(maxLength: 64, nullable: false),
+                    TipoId = table.Column<string>(maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -386,10 +386,10 @@ namespace CMSXData.Migrations
                 name: "infofoto",
                 columns: table => new
                 {
-                    FotoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    CategoriaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    FotoUrl = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
+                    FotoId = table.Column<string>(maxLength: 64, nullable: false),
+                    CategoriaId = table.Column<string>(maxLength: 64, nullable: false),
+                    FotoUrl = table.Column<string>(maxLength: 300, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -400,13 +400,13 @@ namespace CMSXData.Migrations
                 name: "informativo",
                 columns: table => new
                 {
-                    InfoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Titulo = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true),
-                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Texto = table.Column<string>(type: "text", nullable: true),
-                    Foto = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Ativo = table.Column<byte>(type: "smallint", nullable: true),
-                    TipoEnvio = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true)
+                    InfoId = table.Column<string>(maxLength: 64, nullable: false),
+                    Titulo = table.Column<string>(maxLength: 300, nullable: true),
+                    Data = table.Column<DateTime>(nullable: true),
+                    Texto = table.Column<string>(nullable: true),
+                    Foto = table.Column<string>(maxLength: 64, nullable: true),
+                    Ativo = table.Column<byte>(nullable: true),
+                    TipoEnvio = table.Column<string>(maxLength: 64, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -417,13 +417,13 @@ namespace CMSXData.Migrations
                 name: "layout_template",
                 columns: table => new
                 {
-                    templateid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    tipo = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    layout = table.Column<string>(type: "text", nullable: true),
-                    padrao = table.Column<bool>(type: "boolean", nullable: false),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    templateid = table.Column<string>(maxLength: 64, nullable: false),
+                    nome = table.Column<string>(maxLength: 100, nullable: false),
+                    descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    tipo = table.Column<string>(maxLength: 50, nullable: true),
+                    layout = table.Column<string>(nullable: true),
+                    padrao = table.Column<bool>(nullable: false),
+                    datainclusao = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -434,14 +434,14 @@ namespace CMSXData.Migrations
                 name: "modelocomposto",
                 columns: table => new
                 {
-                    ModeloCompostoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Aplicacaoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Produtoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    ValorUnitario = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    ConfiguracaoHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Usos = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    Datacriacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    ModeloCompostoId = table.Column<Guid>(nullable: false),
+                    Aplicacaoid = table.Column<string>(maxLength: 64, nullable: false),
+                    Produtoid = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 500, nullable: false),
+                    ValorUnitario = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    ConfiguracaoHash = table.Column<string>(maxLength: 64, nullable: false),
+                    Usos = table.Column<int>(nullable: false, defaultValue: 1),
+                    Datacriacao = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -452,10 +452,10 @@ namespace CMSXData.Migrations
                 name: "modulo",
                 columns: table => new
                 {
-                    ModuloId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: true),
-                    Url = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: true),
-                    Posicao = table.Column<int>(type: "integer", nullable: true)
+                    ModuloId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 400, nullable: true),
+                    Url = table.Column<string>(maxLength: 400, nullable: true),
+                    Posicao = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -466,9 +466,9 @@ namespace CMSXData.Migrations
                 name: "moduloconf",
                 columns: table => new
                 {
-                    ModuloConfId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(800)", maxLength: 800, nullable: true),
-                    Nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
+                    ModuloConfId = table.Column<string>(maxLength: 64, nullable: false),
+                    Descricao = table.Column<string>(maxLength: 800, nullable: true),
+                    Nome = table.Column<string>(maxLength: 200, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -479,9 +479,9 @@ namespace CMSXData.Migrations
                 name: "moeda",
                 columns: table => new
                 {
-                    MoedaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
-                    Sigla = table.Column<string>(type: "character(34)", fixedLength: true, maxLength: 34, nullable: true)
+                    MoedaId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 80, nullable: false),
+                    Sigla = table.Column<string>(fixedLength: true, maxLength: 34, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -492,15 +492,15 @@ namespace CMSXData.Migrations
                 name: "newsletter",
                 columns: table => new
                 {
-                    NewsId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Titulo = table.Column<string>(type: "character varying(3000)", maxLength: 3000, nullable: true),
-                    Autor = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
-                    Data = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Frente = table.Column<byte>(type: "smallint", nullable: true),
-                    Texto = table.Column<string>(type: "text", nullable: true),
-                    Foto = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true),
-                    CategoriaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    Ativo = table.Column<byte>(type: "smallint", nullable: true)
+                    NewsId = table.Column<string>(maxLength: 64, nullable: false),
+                    Titulo = table.Column<string>(maxLength: 3000, nullable: true),
+                    Autor = table.Column<string>(maxLength: 1000, nullable: true),
+                    Data = table.Column<DateTime>(nullable: true),
+                    Frente = table.Column<byte>(nullable: true),
+                    Texto = table.Column<string>(nullable: true),
+                    Foto = table.Column<string>(maxLength: 4000, nullable: true),
+                    CategoriaId = table.Column<string>(maxLength: 64, nullable: true),
+                    Ativo = table.Column<byte>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -511,17 +511,17 @@ namespace CMSXData.Migrations
                 name: "orcamentocabecalho",
                 columns: table => new
                 {
-                    orcamentoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    aplicacaoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    telefone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    descricaoservico = table.Column<string>(type: "text", nullable: true),
-                    valorestimado = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
-                    prazo = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    nomevendedor = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    aprovado = table.Column<bool>(type: "boolean", nullable: false),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
+                    orcamentoid = table.Column<Guid>(nullable: false),
+                    aplicacaoid = table.Column<string>(maxLength: 64, nullable: false),
+                    nome = table.Column<string>(maxLength: 200, nullable: false),
+                    email = table.Column<string>(maxLength: 200, nullable: true),
+                    telefone = table.Column<string>(maxLength: 50, nullable: true),
+                    descricaoservico = table.Column<string>(nullable: true),
+                    valorestimado = table.Column<decimal>(precision: 12, scale: 2, nullable: true),
+                    prazo = table.Column<string>(maxLength: 200, nullable: true),
+                    nomevendedor = table.Column<string>(maxLength: 200, nullable: true),
+                    aprovado = table.Column<bool>(nullable: false),
+                    datainclusao = table.Column<DateTime>(nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -532,15 +532,15 @@ namespace CMSXData.Migrations
                 name: "pedido",
                 columns: table => new
                 {
-                    pedidoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    aplicacaoid = table.Column<string>(type: "character varying(36)", maxLength: 36, nullable: true),
-                    numeropedido = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    clientenome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    clienteemail = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    valorpedido = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
-                    statusatual = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    metodopagamento = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
+                    pedidoid = table.Column<Guid>(nullable: false),
+                    aplicacaoid = table.Column<string>(maxLength: 36, nullable: true),
+                    numeropedido = table.Column<string>(maxLength: 100, nullable: true),
+                    clientenome = table.Column<string>(maxLength: 200, nullable: true),
+                    clienteemail = table.Column<string>(maxLength: 200, nullable: true),
+                    valorpedido = table.Column<decimal>(precision: 12, scale: 2, nullable: true),
+                    statusatual = table.Column<string>(maxLength: 50, nullable: true),
+                    metodopagamento = table.Column<string>(maxLength: 50, nullable: true),
+                    datainclusao = table.Column<DateTime>(nullable: true, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -551,23 +551,23 @@ namespace CMSXData.Migrations
                 name: "produto",
                 columns: table => new
                 {
-                    ProdutoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    sku = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(130)", maxLength: 130, nullable: true),
-                    Descricao = table.Column<string>(type: "text", nullable: true),
-                    Valor = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
-                    Tipo = table.Column<int>(type: "integer", nullable: true),
-                    Destaque = table.Column<int>(type: "integer", nullable: true),
-                    DataInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DataFinal = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CategoriaId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    PagSeguroKey = table.Column<string>(type: "character varying(800)", maxLength: 800, nullable: true),
-                    DetalheTecnico = table.Column<string>(type: "text", nullable: true),
-                    DescricaCurta = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    produtocol = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    SalematicProdutoid = table.Column<int>(type: "integer", nullable: true),
-                    UnidadeVenda = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true)
+                    ProdutoId = table.Column<string>(maxLength: 64, nullable: false),
+                    sku = table.Column<string>(maxLength: 45, nullable: false),
+                    Nome = table.Column<string>(maxLength: 130, nullable: true),
+                    Descricao = table.Column<string>(nullable: true),
+                    Valor = table.Column<decimal>(precision: 18, scale: 2, nullable: true),
+                    Tipo = table.Column<int>(nullable: true),
+                    Destaque = table.Column<int>(nullable: true),
+                    DataInicio = table.Column<DateTime>(nullable: true),
+                    DataFinal = table.Column<DateTime>(nullable: true),
+                    CategoriaId = table.Column<string>(maxLength: 64, nullable: true),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: true),
+                    PagSeguroKey = table.Column<string>(maxLength: 800, nullable: true),
+                    DetalheTecnico = table.Column<string>(nullable: true),
+                    DescricaCurta = table.Column<string>(maxLength: 150, nullable: true),
+                    produtocol = table.Column<string>(maxLength: 45, nullable: true),
+                    SalematicProdutoid = table.Column<int>(nullable: true),
+                    UnidadeVenda = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -579,12 +579,12 @@ namespace CMSXData.Migrations
                 name: "publictoken",
                 columns: table => new
                 {
-                    publictokenid = table.Column<Guid>(type: "uuid", nullable: false),
-                    token = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    aplicacaoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    ativo = table.Column<bool>(type: "boolean", nullable: false),
-                    datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    datavencimento = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    publictokenid = table.Column<Guid>(nullable: false),
+                    token = table.Column<string>(maxLength: 100, nullable: false),
+                    aplicacaoid = table.Column<string>(maxLength: 64, nullable: false),
+                    ativo = table.Column<bool>(nullable: false),
+                    datainclusao = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    datavencimento = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -595,9 +595,9 @@ namespace CMSXData.Migrations
                 name: "refatributoxopcao",
                 columns: table => new
                 {
-                    relacaoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    atributoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    opcaoid = table.Column<Guid>(type: "uuid", nullable: false)
+                    relacaoid = table.Column<Guid>(nullable: false),
+                    atributoid = table.Column<Guid>(nullable: false),
+                    opcaoid = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -608,9 +608,9 @@ namespace CMSXData.Migrations
                 name: "relatributoxproduto",
                 columns: table => new
                 {
-                    Relacaoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    Atributoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProdutoId = table.Column<Guid>(type: "uuid", nullable: false)
+                    Relacaoid = table.Column<Guid>(nullable: false),
+                    Atributoid = table.Column<Guid>(nullable: false),
+                    ProdutoId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -621,10 +621,10 @@ namespace CMSXData.Migrations
                 name: "relimagemconteudo",
                 columns: table => new
                 {
-                    relid = table.Column<int>(type: "integer", nullable: false)
+                    relid = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    imagemid = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    parentid = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true)
+                    imagemid = table.Column<string>(maxLength: 45, nullable: true),
+                    parentid = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -635,9 +635,9 @@ namespace CMSXData.Migrations
                 name: "relmoduloaplicacao",
                 columns: table => new
                 {
-                    RelacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    ModuloId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    RelacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    ModuloId = table.Column<string>(maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -648,11 +648,11 @@ namespace CMSXData.Migrations
                 name: "relmoduloconfaplicacao",
                 columns: table => new
                 {
-                    RelacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    ModuloConfId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    DataInclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    DataFinalizacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    RelacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    ModuloConfId = table.Column<string>(maxLength: 64, nullable: false),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    DataInclusao = table.Column<DateTime>(nullable: false),
+                    DataFinalizacao = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -663,9 +663,9 @@ namespace CMSXData.Migrations
                 name: "relmodulousuario",
                 columns: table => new
                 {
-                    RelacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    ModuloId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    UsuarioId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    RelacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    ModuloId = table.Column<string>(maxLength: 64, nullable: false),
+                    UsuarioId = table.Column<string>(maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -676,9 +676,9 @@ namespace CMSXData.Migrations
                 name: "relusuarioaplicacao",
                 columns: table => new
                 {
-                    RelacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AplicacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    UsuarioId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    RelacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    AplicacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    UsuarioId = table.Column<string>(maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -689,9 +689,9 @@ namespace CMSXData.Migrations
                 name: "relusuariogrupo",
                 columns: table => new
                 {
-                    RelacaoId = table.Column<string>(type: "text", nullable: false),
-                    UsuarioId = table.Column<string>(type: "text", nullable: false),
-                    GrupoId = table.Column<string>(type: "text", nullable: false)
+                    RelacaoId = table.Column<string>(nullable: false),
+                    UsuarioId = table.Column<string>(nullable: false),
+                    GrupoId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -702,10 +702,10 @@ namespace CMSXData.Migrations
                 name: "socialmedia",
                 columns: table => new
                 {
-                    SocialMediaId = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: false),
-                    AplicacaoId = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    SocialMediaTypeId = table.Column<int>(type: "integer", nullable: true),
-                    SocialMediaLink = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
+                    SocialMediaId = table.Column<string>(maxLength: 45, nullable: false),
+                    AplicacaoId = table.Column<string>(maxLength: 45, nullable: true),
+                    SocialMediaTypeId = table.Column<int>(nullable: true),
+                    SocialMediaLink = table.Column<string>(maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -716,12 +716,12 @@ namespace CMSXData.Migrations
                 name: "templates",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
+                    id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Nome = table.Column<string>(type: "character varying(155)", maxLength: 155, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
-                    Url = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: true),
-                    Ativo = table.Column<bool>(type: "boolean", nullable: true)
+                    Nome = table.Column<string>(maxLength: 155, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 255, nullable: true),
+                    Url = table.Column<string>(maxLength: 80, nullable: true),
+                    Ativo = table.Column<bool>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -732,9 +732,9 @@ namespace CMSXData.Migrations
                 name: "tipocotacao",
                 columns: table => new
                 {
-                    TipoCotacaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true)
+                    TipoCotacaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 200, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 200, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -745,8 +745,8 @@ namespace CMSXData.Migrations
                 name: "tipoenvio",
                 columns: table => new
                 {
-                    TipoEnvioId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    TipoEnvioDesc = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: true)
+                    TipoEnvioId = table.Column<string>(maxLength: 64, nullable: false),
+                    TipoEnvioDesc = table.Column<string>(maxLength: 300, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -757,9 +757,9 @@ namespace CMSXData.Migrations
                 name: "unidades",
                 columns: table => new
                 {
-                    UnidadeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Nome = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true),
-                    Sigla = table.Column<string>(type: "character varying(45)", maxLength: 45, nullable: true)
+                    UnidadeId = table.Column<Guid>(nullable: false),
+                    Nome = table.Column<string>(maxLength: 45, nullable: true),
+                    Sigla = table.Column<string>(maxLength: 45, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -770,13 +770,13 @@ namespace CMSXData.Migrations
                 name: "usuario",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Nome = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    Sobrenome = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    Apelido = table.Column<string>(type: "character varying(6)", maxLength: 6, nullable: true),
-                    Senha = table.Column<string>(type: "character varying(12)", maxLength: 12, nullable: true),
-                    Ativo = table.Column<byte>(type: "smallint", nullable: true),
-                    DataInclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    UserId = table.Column<string>(maxLength: 64, nullable: false),
+                    Nome = table.Column<string>(maxLength: 300, nullable: false),
+                    Sobrenome = table.Column<string>(maxLength: 300, nullable: false),
+                    Apelido = table.Column<string>(maxLength: 6, nullable: true),
+                    Senha = table.Column<string>(maxLength: 12, nullable: true),
+                    Ativo = table.Column<byte>(nullable: true),
+                    DataInclusao = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -787,13 +787,13 @@ namespace CMSXData.Migrations
                 name: "opcao",
                 columns: table => new
                 {
-                    OpcaoId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    AtributoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Qtd = table.Column<int>(type: "integer", nullable: false),
-                    Nome = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Descricao = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    Estoque = table.Column<int>(type: "integer", nullable: true),
-                    ValorAdicional = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true)
+                    OpcaoId = table.Column<string>(maxLength: 64, nullable: false),
+                    AtributoId = table.Column<Guid>(nullable: false),
+                    Qtd = table.Column<int>(nullable: false),
+                    Nome = table.Column<string>(maxLength: 500, nullable: true),
+                    Descricao = table.Column<string>(maxLength: 500, nullable: true),
+                    Estoque = table.Column<int>(nullable: true),
+                    ValorAdicional = table.Column<decimal>(precision: 18, scale: 2, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -810,10 +810,10 @@ namespace CMSXData.Migrations
                 name: "modeloselecao",
                 columns: table => new
                 {
-                    ModeloSelecaoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModeloCompostoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Atributoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    Opcaoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false)
+                    ModeloSelecaoId = table.Column<Guid>(nullable: false),
+                    ModeloCompostoId = table.Column<Guid>(nullable: false),
+                    Atributoid = table.Column<Guid>(nullable: false),
+                    Opcaoid = table.Column<string>(maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -830,12 +830,12 @@ namespace CMSXData.Migrations
                 name: "orcamentodetalhe",
                 columns: table => new
                 {
-                    orcamentodetalheid = table.Column<Guid>(type: "uuid", nullable: false),
-                    orcamentoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    descricao = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    quantidade = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    valor = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
-                    ativo = table.Column<bool>(type: "boolean", nullable: false)
+                    orcamentodetalheid = table.Column<Guid>(nullable: false),
+                    orcamentoid = table.Column<Guid>(nullable: false),
+                    descricao = table.Column<string>(maxLength: 500, nullable: false),
+                    quantidade = table.Column<decimal>(precision: 10, scale: 2, nullable: false),
+                    valor = table.Column<decimal>(precision: 12, scale: 2, nullable: true),
+                    ativo = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -852,11 +852,11 @@ namespace CMSXData.Migrations
                 name: "statuspedido",
                 columns: table => new
                 {
-                    statuspedidoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    pedidoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    descricao = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    datahora = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    statuspedidoid = table.Column<Guid>(nullable: false),
+                    pedidoid = table.Column<Guid>(nullable: false),
+                    status = table.Column<string>(maxLength: 50, nullable: true),
+                    descricao = table.Column<string>(maxLength: 500, nullable: true),
+                    datahora = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -873,16 +873,16 @@ namespace CMSXData.Migrations
                 name: "orcamentodetalhecomposto",
                 columns: table => new
                 {
-                    OrcamentoDetalheCompostoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    orcamentoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    Produtoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    Quantidade = table.Column<decimal>(type: "numeric(10,2)", precision: 10, scale: 2, nullable: false),
-                    ValorBase = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    ValorTotal = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
-                    ConfiguracaoJson = table.Column<string>(type: "text", nullable: false),
-                    Versao = table.Column<int>(type: "integer", nullable: false, defaultValue: 1),
-                    Atual = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
-                    Datainclusao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    OrcamentoDetalheCompostoId = table.Column<Guid>(nullable: false),
+                    orcamentoid = table.Column<Guid>(nullable: false),
+                    Produtoid = table.Column<string>(maxLength: 64, nullable: false),
+                    Quantidade = table.Column<decimal>(precision: 10, scale: 2, nullable: false),
+                    ValorBase = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    ValorTotal = table.Column<decimal>(precision: 18, scale: 2, nullable: false),
+                    ConfiguracaoJson = table.Column<string>(nullable: false),
+                    Versao = table.Column<int>(nullable: false, defaultValue: 1),
+                    Atual = table.Column<bool>(nullable: false, defaultValue: true),
+                    Datainclusao = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -905,11 +905,11 @@ namespace CMSXData.Migrations
                 name: "selecao",
                 columns: table => new
                 {
-                    SelecaoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    OrcamentoDetalheCompostoId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Atributoid = table.Column<Guid>(type: "uuid", nullable: false),
-                    Opcaoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    ValorAdicional = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m)
+                    SelecaoId = table.Column<Guid>(nullable: false),
+                    OrcamentoDetalheCompostoId = table.Column<Guid>(nullable: false),
+                    Atributoid = table.Column<Guid>(nullable: false),
+                    Opcaoid = table.Column<string>(maxLength: 64, nullable: false),
+                    ValorAdicional = table.Column<decimal>(precision: 18, scale: 2, nullable: false, defaultValue: 0m)
                 },
                 constraints: table =>
                 {
