@@ -334,16 +334,17 @@ public class VitrineRepositorio : BaseRepositorio, IVitrineRepositorio
             resultado = Regex.Replace(
                 resultado,
                 $@"(data-vitrine-texto=""{Regex.Escape(chave)}""[^>]*)>([^<]*)<",
-                $@"$1>{valorTexto}<",
+                m => m.Groups[1].Value + ">" + valorTexto + "<",
                 RegexOptions.IgnoreCase);
 
             if (Uri.TryCreate(valor, UriKind.Absolute, out var uri) &&
                 (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
             {
+                var valorUrl = valor;
                 resultado = Regex.Replace(
                     resultado,
                     $@"(data-vitrine-imagem=""{Regex.Escape(chave)}"")([^>]*)(src=""[^""]*"")?",
-                    $@"$1$2 src=""{valor}""",
+                    m => m.Groups[1].Value + m.Groups[2].Value + $@" src=""{valorUrl}""",
                     RegexOptions.IgnoreCase);
             }
         }
