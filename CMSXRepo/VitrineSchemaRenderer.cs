@@ -8,12 +8,12 @@ internal static class VitrineSchemaRenderer
 {
     public static async Task<string> RenderAsync(
         VitrineConfig config, string aplicacaoId, ISiteRepositorio siteRepo,
-        string? cssContent = null)
+        string? cssContent = null, string? publicToken = null)
     {
         var sb = new StringBuilder();
         sb.Append(GerarHead(config.Tema, cssContent));
         sb.Append("<body>");
-        sb.Append(await GerarNavAsync(aplicacaoId, siteRepo));
+        sb.Append(await GerarNavAsync(aplicacaoId, siteRepo, publicToken));
         sb.Append("<main>");
         foreach (var secao in config.Secoes)
             sb.Append(await GerarSecaoAsync(secao, aplicacaoId, siteRepo));
@@ -105,16 +105,21 @@ internal static class VitrineSchemaRenderer
 
     // ── Nav / Rodapé (estruturais) ────────────────────────────────────────
 
-    private static async Task<string> GerarNavAsync(string aplicacaoId, ISiteRepositorio siteRepo)
+    private static async Task<string> GerarNavAsync(
+        string aplicacaoId, ISiteRepositorio siteRepo, string? publicToken = null)
     {
         var areas = await siteRepo.ListaAreasMenuAsync(aplicacaoId);
         var links = string.Concat(areas
             .Where(a => !string.IsNullOrEmpty(a.Nome) && !string.IsNullOrEmpty(a.Url))
             .Select(a => $"<a class=\"v-nav__link\" href=\"/{WebUtility.HtmlEncode(a.Url!)}\">{WebUtility.HtmlEncode(a.Nome!)}</a>"));
 
+        var logoHtml = !string.IsNullOrEmpty(publicToken)
+            ? $"<img class=\"v-nav__logo\" src=\"/api/publico/{publicToken}/logo\" alt=\"Logo\" />"
+            : "<span class=\"v-nav__logo\"></span>";
+
         return $"<nav class=\"v-nav v-nav--topo\">" +
                $"<div class=\"v-container v-nav__inner\">" +
-               $"<span class=\"v-nav__logo\"></span>" +
+               $"{logoHtml}" +
                $"<div class=\"v-nav__links\">{links}</div>" +
                $"</div></nav>";
     }

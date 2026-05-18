@@ -12,7 +12,12 @@ namespace CMSXRepo;
 
 public class VitrineRepositorio : BaseRepositorio, IVitrineRepositorio
 {
-    public VitrineRepositorio(CmsxDbContext db) : base(db) { }
+    private readonly IPublicTokenRepositorio _publicTokenRepo;
+
+    public VitrineRepositorio(CmsxDbContext db, IPublicTokenRepositorio publicTokenRepo) : base(db)
+    {
+        _publicTokenRepo = publicTokenRepo;
+    }
 
     public async Task<IEnumerable<VitrineTemplateResumo>> ListaTemplatesAsync() =>
         await _db.VitrineTemplates
@@ -556,7 +561,9 @@ public class VitrineRepositorio : BaseRepositorio, IVitrineRepositorio
             .FirstOrDefaultAsync();
         if (string.IsNullOrEmpty(aplicacaoId)) return null;
 
-        return await VitrineSchemaRenderer.RenderAsync(config, aplicacaoId, siteRepo, cssContent);
+        var publicToken = (await _publicTokenRepo.BuscaPorAplicacaoAsync(aplicacaoId))?.Token;
+
+        return await VitrineSchemaRenderer.RenderAsync(config, aplicacaoId, siteRepo, cssContent, publicToken);
     }
 
     // ─────────────────────────────────────────────────────────────────────

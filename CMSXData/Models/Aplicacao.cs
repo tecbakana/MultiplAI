@@ -65,4 +65,6 @@ public partial class Aplicacao
 
     // Indica tenant de demonstração (dados resetados a cada login)
     public bool IsDemo { get; set; }
+
+    public string? LogoContentType { get; set; }
 }

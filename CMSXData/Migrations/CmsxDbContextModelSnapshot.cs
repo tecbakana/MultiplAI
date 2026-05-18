@@ -74,6 +74,9 @@ namespace CMSXData.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("LayoutChoose");
 
+                    b.Property<string>("LogoContentType")
+                        .HasColumnType("text");
+
                     b.Property<byte[]>("Lotipo")
                         .HasColumnType("bytea")
                         .HasColumnName("logotipo");

@@ -11,4 +11,6 @@ public interface IAplicacaoRepositorio
     Task AtualizarAsync(Aplicacao aplicacao);
     Task AlterarStatusAsync(Aplicacao aplicacao, bool ativo);
     Task RemoverAsync(Aplicacao aplicacao);
+    Task SalvarLogoAsync(string aplicacaoId, byte[] bytes, string contentType);
+    Task<(byte[]? Bytes, string? ContentType)> BuscaLogoAsync(string aplicacaoId);
 }

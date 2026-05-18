@@ -51,6 +51,7 @@ export class VitrineComponent implements OnInit {
   opcoes: any = { tipos: [], estilos: [], paletas: [] };
   usarVisualCanonico = false;
   temAreaCanonica = false;
+  temLogo = false;
   gerarTipo = '';
   gerarEstilo = '';
   gerarPaleta = '';
@@ -70,6 +71,11 @@ export class VitrineComponent implements OnInit {
     this.carregando = true;
 
     this.http.get<any>('assets/vitrine-opcoes.json').subscribe(o => this.opcoes = o);
+
+    this.http.get(this.baseUrl + 'aplicacaos/logo', { responseType: 'blob' }).subscribe({
+      next: () => { this.temLogo = true; },
+      error: () => { this.temLogo = false; }
+    });
 
     this.http.get<VitrineAreaConfigResumo>(this.baseUrl + 'vitrine/area/' + this.areaId + '/configurada').subscribe({
       next: config => {

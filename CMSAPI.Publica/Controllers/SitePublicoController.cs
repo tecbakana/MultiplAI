@@ -84,6 +84,17 @@ public class SitePublicoController(
         return Ok(new SitePublicoResponse(app.Nome, app.Url, app.Header, areasResult));
     }
 
+    [HttpGet("{token}/logo")]
+    public async Task<IActionResult> GetLogo(string token)
+    {
+        var aplicacaoid = await tokenRepo.ResolveAsync(token);
+        if (aplicacaoid == null) return NotFound();
+        var (bytes, contentType) = await aplicacaoRepo.BuscaLogoAsync(aplicacaoid);
+        if (bytes is null) return NotFound();
+        Response.Headers.CacheControl = "public, max-age=3600";
+        return File(bytes, contentType!);
+    }
+
     private async Task<object?> EnriquecerAsync(string tipo, JsonElement config, string aplicacaoid)
     {
         switch (tipo)

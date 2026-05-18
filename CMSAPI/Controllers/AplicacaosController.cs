@@ -170,4 +170,32 @@ public class AplicacaosController : Controller
         await _repo.RemoverAsync(item);
         return Ok();
     }
+
+    [HttpPost("logo")]
+    public async Task<IActionResult> UploadLogo(IFormFile arquivo)
+    {
+        var (_, claimAppId) = UserContext();
+        if (string.IsNullOrEmpty(claimAppId)) return Forbid();
+        if (arquivo is null || arquivo.Length == 0)
+            return BadRequest(new { message = "Nenhum arquivo enviado." });
+        string[] tiposPermitidos = ["image/png", "image/jpeg", "image/svg+xml", "image/webp"];
+        if (!tiposPermitidos.Contains(arquivo.ContentType))
+            return BadRequest(new { message = "Tipo não permitido. Use PNG, JPG, WebP ou SVG." });
+        if (arquivo.Length > 204800)
+            return BadRequest(new { message = "Arquivo muito grande. Limite: 200 KB." });
+        using var ms = new MemoryStream();
+        await arquivo.CopyToAsync(ms);
+        await _repo.SalvarLogoAsync(claimAppId, ms.ToArray(), arquivo.ContentType);
+        return Ok();
+    }
+
+    [HttpGet("logo")]
+    public async Task<IActionResult> GetLogo()
+    {
+        var (_, claimAppId) = UserContext();
+        if (string.IsNullOrEmpty(claimAppId)) return Forbid();
+        var (bytes, contentType) = await _repo.BuscaLogoAsync(claimAppId);
+        if (bytes is null) return NotFound();
+        return File(bytes, contentType!);
+    }
 }
