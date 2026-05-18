@@ -273,6 +273,30 @@ namespace CMSXData.Migrations
                         .HasColumnType("character varying(300)")
                         .HasColumnName("Url");
 
+                    b.Property<Guid?>("VitrineTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("VitrineTemplateId");
+
+                    b.Property<string>("VitrineValoresJson")
+                        .HasColumnType("text")
+                        .HasColumnName("VitrineValoresJson");
+
+                    b.Property<string>("VitrineHtmlSnapshot")
+                        .HasColumnType("text")
+                        .HasColumnName("VitrineHtmlSnapshot");
+
+                    b.Property<bool>("VitrinePublicado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("VitrinePublicado");
+
+                    b.Property<bool>("CanonicalArea")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("CanonicalArea");
+
                     b.HasKey("Areaid")
                         .HasName("PK_areas");
 

@@ -9,7 +9,8 @@ public record AreaInput(
     string? Areaidpai,
     int? Posicao,
     int? Tipoarea,
-    string Tipo);
+    string Tipo,
+    bool CanonicalArea = false);
 
 public interface IAreasRepositorio
 {

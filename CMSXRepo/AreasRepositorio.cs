@@ -39,6 +39,7 @@ public class AreasRepositorio : BaseRepositorio, IAreasRepositorio
             Tipoarea    = input.Tipoarea,
             Tipo        = input.Tipo,
             Aplicacaoid = aplicacaoid,
+            CanonicalArea = input.CanonicalArea,
             Datainicial = DateTime.UtcNow,
             PageBuilderVersion = "area"
         };

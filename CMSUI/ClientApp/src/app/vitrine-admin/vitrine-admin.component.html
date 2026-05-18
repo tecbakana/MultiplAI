@@ -48,14 +48,63 @@
         <div class="card mb-3">
           <div class="card-body">
             <h5 class="card-title mb-3">Geração via IA</h5>
+
             <div class="mb-3">
-              <label class="form-label">Prompt</label>
-              <textarea class="form-control" rows="5" [(ngModel)]="promptIA"
-                placeholder="Ex: Landing page para restaurante japonês sofisticado, com seção de cardápio e reservas"></textarea>
+              <label class="form-label small text-muted">Tipo de página</label>
+              <div class="d-flex flex-wrap gap-2">
+                <button *ngFor="let t of tiposDisponiveis" class="btn btn-sm"
+                  [class.btn-dark]="tipoSelecionado === t.val"
+                  [class.btn-outline-secondary]="tipoSelecionado !== t.val"
+                  (click)="tipoSelecionado = t.val">{{ t.label }}</button>
+              </div>
             </div>
-            <button class="btn btn-primary" (click)="gerarViaIA()" [disabled]="gerando || !promptIA.trim()">
-              {{ gerando ? 'Gerando...' : 'Gerar' }}
-            </button>
+
+            <div class="mb-3">
+              <label class="form-label small text-muted">Estilo visual</label>
+              <div class="d-flex flex-wrap gap-2">
+                <button *ngFor="let e of estilosDisponiveis" class="btn btn-sm"
+                  [class.btn-dark]="estiloSelecionado === e.val"
+                  [class.btn-outline-secondary]="estiloSelecionado !== e.val"
+                  (click)="estiloSelecionado = e.val">{{ e.label }}</button>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small text-muted">Paleta</label>
+              <div class="d-flex flex-wrap gap-2">
+                <button *ngFor="let p of paletasDisponiveis" class="btn btn-sm"
+                  [class.btn-dark]="paletaSelecionada === p.val"
+                  [class.btn-outline-secondary]="paletaSelecionada !== p.val"
+                  (click)="paletaSelecionada = p.val">{{ p.label }}</button>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small text-muted">Contexto / produto <span class="text-muted">(opcional)</span></label>
+              <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="contextoLivre"
+                placeholder="ex: restaurante japonês com seção de cardápio e reservas"></textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small text-muted">Modelo de IA</label>
+              <select class="form-select form-select-sm" [(ngModel)]="provedor">
+                <option value="gemini">Gemini (recomendado para HTML longo)</option>
+                <option value="anthropic">Anthropic Claude</option>
+              </select>
+            </div>
+
+            <div class="mb-2" style="height:2px;background:#dee2e6;border-radius:2px;overflow:hidden" [style.display]="gerando ? '' : 'none'">
+              <div [style.width]="loadingProgress + '%'" style="height:100%;background:#212529;transition:width 0.4s"></div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" (click)="gerarViaIA()" [disabled]="gerando">
+                {{ gerando ? 'Gerando...' : 'Gerar' }}
+              </button>
+              <button *ngIf="htmlGerado" class="btn btn-outline-secondary" (click)="gerarViaIA(true)" [disabled]="gerando">
+                Variação
+              </button>
+            </div>
           </div>
         </div>
 

@@ -57,9 +57,19 @@ public class VitrineAdminController : Controller
               .vitrine-produto, .vitrine-produto-img, .vitrine-produto-nome, .vitrine-produto-desc, .vitrine-produto-preco
               .vitrine-conteudo, .vitrine-conteudo-titulo, .vitrine-conteudo-resumo, .vitrine-conteudo-data
               .vitrine-categoria
+
+            REGRA OBRIGATÓRIA — SLOTS:
+            Todo HTML gerado DEVE conter zonas editáveis declaradas com o atributo data-vitrine-slot="nome".
+            Exemplo de declaração: <section class="hero"><div data-vitrine-slot="hero-titulo"></div></section>
+            Regras:
+            1. Mínimo de 3 slots por layout
+            2. Nomes em kebab-case descritivos: hero-titulo, hero-subtitulo, hero-cta, sobre-texto, produtos-grid, rodape-contato
+            3. O elemento com data-vitrine-slot deve ter conteúdo padrão HTML (placeholder) dentro — será substituído em runtime
+            4. Slots são obrigatórios mesmo que o layout seja simples
+            Sem slots declarados o HTML será rejeitado.
             """;
 
-        var agente = _agentFactory.Criar();
+        var agente = _agentFactory.Criar(provedor: input.Provedor);
         string html;
 
         if (!string.IsNullOrWhiteSpace(input.ImagemBase64))

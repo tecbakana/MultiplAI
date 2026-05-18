@@ -47,6 +47,10 @@ export class AreaComponent implements OnInit {
     return this.lista.filter(a => a.areaid !== this.selecionado.areaid);
   }
 
+  get temAreas(): boolean {
+    return this.lista.length > 0;
+  }
+
   jaTemHome(): boolean {
     return this.lista.some(a => a.tipo === 'home' && a.areaid !== this.selecionado?.areaid);
   }
@@ -67,7 +71,17 @@ export class AreaComponent implements OnInit {
       this.http.put(this.baseUrl + 'areas/' + this.selecionado.areaid, this.selecionado)
         .subscribe({ next: () => { this.modoEdicao = false; this.carregar(); }, error: e => alert(e.error || 'Erro ao salvar') });
     } else {
-      this.http.post(this.baseUrl + 'areas', this.selecionado)
+      const body = {
+        nome: this.selecionado.nome,
+        url: this.selecionado.url,
+        descricao: this.selecionado.descricao,
+        areaidpai: this.selecionado.areaidpai,
+        posicao: this.selecionado.posicao,
+        tipoarea: this.selecionado.tipoarea,
+        tipo: this.selecionado.tipo,
+        canonicalArea: !this.temAreas
+      };
+      this.http.post(this.baseUrl + 'areas', body)
         .subscribe({ next: () => { this.modoEdicao = false; this.carregar(); }, error: e => alert(e.error || 'Erro ao salvar') });
     }
   }
@@ -80,10 +94,6 @@ export class AreaComponent implements OnInit {
   cancelar() { this.modoEdicao = false; this.selecionado = null; }
 
   navegarParaEditor(item: any) {
-    if (item.tipo === 'home') {
-      this.router.navigate(['/vitrine', item.areaid]);
-    } else {
-      this.router.navigate(['/page-builder-v2', item.areaid]);
-    }
+    this.router.navigate(['/vitrine', item.areaid]);
   }
 }

@@ -33,7 +33,34 @@ export class VitrineAdminComponent implements OnInit {
   editandoId: string | null = null;
   salvando = false;
 
-  promptIA = '';
+  readonly tiposDisponiveis = [
+    { val: 'landing page', label: 'Landing page' },
+    { val: 'página de produto', label: 'Produto' },
+    { val: 'portfólio', label: 'Portfólio' },
+    { val: 'dashboard', label: 'Dashboard' },
+    { val: 'formulário de cadastro', label: 'Formulário' }
+  ];
+  readonly estilosDisponiveis = [
+    { val: 'minimalista', label: 'Minimalista' },
+    { val: 'moderno e bold', label: 'Moderno / bold' },
+    { val: 'corporativo', label: 'Corporativo' },
+    { val: 'editorial', label: 'Editorial' },
+    { val: 'glassmorphism sutil', label: 'Glass' }
+  ];
+  readonly paletasDisponiveis = [
+    { val: 'tons neutros, branco e cinza', label: 'Neutro' },
+    { val: 'azul profissional', label: 'Azul' },
+    { val: 'verde e teal', label: 'Verde / teal' },
+    { val: 'dark mode', label: 'Dark mode' },
+    { val: 'roxo e gradiente sutil', label: 'Roxo' }
+  ];
+
+  tipoSelecionado = 'landing page';
+  estiloSelecionado = 'minimalista';
+  paletaSelecionada = 'tons neutros, branco e cinza';
+  contextoLivre = '';
+  provedor: 'gemini' | 'anthropic' = 'gemini';
+  loadingProgress = 0;
   gerando = false;
   htmlGerado = '';
   variaveisGeradas = '';
@@ -51,7 +78,7 @@ export class VitrineAdminComponent implements OnInit {
 
   ngOnInit() {
     this.carregar();
-    this.http.get<SegmentoTenant[]>(this.baseUrl + 'Segmentos').subscribe({
+    this.http.get<SegmentoTenant[]>(this.baseUrl + 'segmentos').subscribe({
       next: r => { this.segmentos = r; },
       error: () => {}
     });
@@ -111,29 +138,44 @@ export class VitrineAdminComponent implements OnInit {
   }
 
   abrirGerador() {
-    this.promptIA = '';
+    this.contextoLivre = '';
     this.htmlGerado = '';
     this.variaveisGeradas = '';
     this.previewSrc = null;
+    this.loadingProgress = 0;
     this.modo = 'gerar';
   }
 
-  gerarViaIA() {
-    if (!this.promptIA.trim()) return;
+  gerarViaIA(variacao = false) {
     this.gerando = true;
     this.htmlGerado = '';
     this.previewSrc = null;
+    this.loadingProgress = 0;
+
+    setTimeout(() => { if (this.gerando) this.loadingProgress = 60; }, 200);
+    setTimeout(() => { if (this.gerando) this.loadingProgress = 85; }, 2000);
+
+    const prompt = [
+      `Gere um layout HTML completo e autocontido para uma ${this.tipoSelecionado}.`,
+      `Estilo visual: ${this.estiloSelecionado}`,
+      `Paleta de cores: ${this.paletaSelecionada}`,
+      this.contextoLivre ? `Contexto: ${this.contextoLivre}` : '',
+      variacao ? 'Gere uma variação estruturalmente diferente da anterior.' : ''
+    ].filter(Boolean).join('\n');
+
     this.http.post<{ htmlCss: string; variaveisJson: string }>(
       this.baseUrl + 'admin/vitrine/templates/gerar',
-      { prompt: this.promptIA, imagemBase64: null, segmentoTenantId: null }
+      { prompt, imagemBase64: null, segmentoTenantId: null, provedor: this.provedor }
     ).subscribe({
       next: r => {
+        this.loadingProgress = 100;
+        setTimeout(() => { this.loadingProgress = 0; }, 400);
         this.htmlGerado = r.htmlCss;
         this.variaveisGeradas = r.variaveisJson;
         this._setPreview(r.htmlCss);
         this.gerando = false;
       },
-      error: () => { this.gerando = false; }
+      error: () => { this.loadingProgress = 0; this.gerando = false; }
     });
   }
 

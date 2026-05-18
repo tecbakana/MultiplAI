@@ -70,6 +70,7 @@ builder.Services.AddCMSXRepo();
 builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IAgentIAFactory, AgentIAFactory>();
+builder.Services.AddScoped<IVitrineGeracaoService, VitrineGeracaoService>();
 // builder.Services.AddHostedService<PedidosServiceBusConsumer>(); // ServiceBus desabilitado — namespace excluído
 builder.Services.AddScoped<IEventPublisher, PedidoServiceBusPublisher>();
 

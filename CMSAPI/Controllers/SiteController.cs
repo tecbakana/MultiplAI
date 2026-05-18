@@ -67,8 +67,10 @@ namespace CMSAPI.Controllers
                         throw new Exception($"Erro ao processar layout da área '{area.Areaid}'. Verifique se o JSON está correto.");
                     }
                 }
-                var areaSnapshot = area.Tipo == "home" ? snapshot : null;
-                areasResult.Add(new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos, HtmlSnapshot = areaSnapshot });
+                var areaSnapshot = area.VitrinePublicado && !string.IsNullOrEmpty(area.VitrineHtmlSnapshot)
+                    ? area.VitrineHtmlSnapshot
+                    : (area.Tipo == "home" ? snapshot : null);
+                areasResult.Add(new { area.Areaid, area.Nome, area.Url, TemLayout = blocos.Count > 0, blocos, HtmlSnapshot = areaSnapshot, canonicalArea = area.CanonicalArea });
             }
 
             return Ok(new { Aplicacaoid = aplicacaoid, Nome = nome, Url = url, Header = header, areas = areasResult });

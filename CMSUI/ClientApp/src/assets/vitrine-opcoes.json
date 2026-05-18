@@ -1,0 +1,23 @@
+{
+  "tipos": [
+    { "valor": "landing", "label": "Landing Page" },
+    { "valor": "institucional", "label": "Página Institucional" },
+    { "valor": "catalogo", "label": "Catálogo / Loja" },
+    { "valor": "blog", "label": "Blog / Portal" },
+    { "valor": "servicos", "label": "Serviços / Captação" }
+  ],
+  "estilos": [
+    { "valor": "moderno", "label": "Moderno" },
+    { "valor": "minimalista", "label": "Minimalista" },
+    { "valor": "bold", "label": "Bold / Agressivo" },
+    { "valor": "classico", "label": "Clássico / Elegante" },
+    { "valor": "corporativo", "label": "Corporativo" }
+  ],
+  "paletas": [
+    { "valor": "dark", "label": "Tema Escuro" },
+    { "valor": "light", "label": "Tema Claro" },
+    { "valor": "colorido", "label": "Colorido / Vibrante" },
+    { "valor": "neutro", "label": "Neutro / Monocromático" },
+    { "valor": "pastel", "label": "Pastel / Suave" }
+  ]
+}

@@ -19,6 +19,8 @@ export class SiteComponent implements OnInit, OnDestroy {
   private _timerInterval: any = null;
   private _contadores: Map<string, any> = new Map();
   private _vitrineLink: HTMLLinkElement | null = null;
+  private _vitrineRootStyle: HTMLStyleElement | null = null;
+  private _vitrineNavConfig: { corFundo: string; corTexto: string } | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -47,6 +49,7 @@ export class SiteComponent implements OnInit, OnDestroy {
       next: r => {
         this.site = r;
         this.carregando = false;
+        this._atualizarVitrineNavConfig();
         if (!this.areaAtualUrl) {
           const areas: any[] = r.areas ?? [];
 
@@ -85,29 +88,63 @@ export class SiteComponent implements OnInit, OnDestroy {
   getAreaHtml(): SafeHtml | null {
     const html = this.getAreaAtual()?.htmlSnapshot;
     if (!html) return null;
-    return this.sanitizer.bypassSecurityTrustHtml(this._injetarCssVitrine(html));
+    return this.sanitizer.bypassSecurityTrustHtml(this._injetarCssVitrine(this._removerNavDoSnapshot(html)));
+  }
+
+  private _atualizarVitrineNavConfig(): void {
+    const areas: any[] = this.site?.areas ?? [];
+    const canonica = areas.find((a: any) => a.canonicalArea) ?? areas.find((a: any) => a.htmlSnapshot);
+    if (!canonica) { this._vitrineNavConfig = null; return; }
+    const match = (canonica.htmlSnapshot as string).match(/<style>:root\{([^}]+)\}/i);
+    if (!match) { this._vitrineNavConfig = null; return; }
+    const vars = match[1];
+    const corFundo = vars.match(/--v-cor-fundo:([^;]+)/)?.[1]?.trim() ?? '';
+    const corTexto = vars.match(/--v-cor-texto:([^;]+)/)?.[1]?.trim() ?? '';
+    this._vitrineNavConfig = { corFundo, corTexto };
+  }
+
+  private _removerNavDoSnapshot(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    div.querySelectorAll('nav').forEach(el => el.remove());
+    return div.innerHTML;
   }
 
   private _injetarCssVitrine(html: string): string {
-    const match = html.match(/<link[^>]+href="(\/vitrine\/css\/[^"]+)"[^>]*>/i);
-    if (!match) return html;
-    if (!this._vitrineLink) {
-      const link: HTMLLinkElement = this.renderer.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = match[1];
-      this.renderer.appendChild(document.head, link);
-      this._vitrineLink = link;
+    const linkMatch = html.match(/<link[^>]+href="(\/vitrine\/css\/[^"]+)"[^>]*>/i);
+    if (linkMatch) {
+      if (!this._vitrineLink) {
+        const link: HTMLLinkElement = this.renderer.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = linkMatch[1];
+        this.renderer.appendChild(document.head, link);
+        this._vitrineLink = link;
+      }
+      html = html.replace(linkMatch[0], '');
     }
-    return html.replace(match[0], '');
+
+    const rootMatch = html.match(/<style>(:root\{[^}]+\})<\/style>/i);
+    if (rootMatch) {
+      if (!this._vitrineRootStyle) {
+        const style: HTMLStyleElement = this.renderer.createElement('style');
+        style.textContent = rootMatch[1];
+        this.renderer.appendChild(document.head, style);
+        this._vitrineRootStyle = style;
+      }
+      html = html.replace(rootMatch[0], '');
+    }
+
+    return html;
   }
 
   getMenuNavegacao(): any[] {
-    // Extrai todos os blocos menu-navegacao de todas as áreas (usado como global)
     for (const area of (this.site?.areas ?? [])) {
       const menu = (area.blocos ?? []).find((b: any) => b.tipo === 'menu-navegacao');
       if (menu) return [menu];
     }
-    return [];
+    const areas = (this.site?.areas ?? []).filter((a: any) => a.temLayout || a.htmlSnapshot);
+    if (areas.length < 2) return [];
+    return [{ config: { cor_fundo: this._vitrineNavConfig?.corFundo ?? '', cor_texto: this._vitrineNavConfig?.corTexto ?? '' }, dados: areas.map((a: any) => ({ areaid: a.areaid, nome: a.nome, url: a.url })) }];
   }
 
   getBlocosConteudo(): any[] {
@@ -214,5 +251,6 @@ export class SiteComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this._timerInterval) clearInterval(this._timerInterval);
     if (this._vitrineLink) this.renderer.removeChild(document.head, this._vitrineLink);
+    if (this._vitrineRootStyle) this.renderer.removeChild(document.head, this._vitrineRootStyle);
   }
 }

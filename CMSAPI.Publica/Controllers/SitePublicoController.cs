@@ -44,7 +44,12 @@ public class SitePublicoController(
             return NotFound(new { message = "Aplicação não encontrada." });
 
         var areas = await siteRepo.ListaAreasAsync(aplicacaoid);
-        var snapshot = await vitrineRepo.BuscaSnapshotAsync(aplicacaoid);
+
+        var areaIds = areas
+            .Where(a => !string.IsNullOrEmpty(a.Areaid))
+            .Select(a => a.Areaid!)
+            .ToList();
+        var snapshots = await vitrineRepo.BuscaSnapshotsPorAreasAsync(areaIds);
 
         var areasResult = new List<AreaPublicoResponse>();
         foreach (var area in areas)
@@ -72,7 +77,7 @@ public class SitePublicoController(
                 }
             }
 
-            var areaSnapshot = area.Tipo == "home" ? snapshot : null;
+            var areaSnapshot = area.Areaid != null && snapshots.TryGetValue(area.Areaid, out var snap) ? snap : null;
             areasResult.Add(new AreaPublicoResponse(area.Areaid, area.Nome, area.Url, blocos.Count > 0, blocos, areaSnapshot));
         }
 

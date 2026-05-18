@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace CMSXRepo;
 
@@ -308,6 +309,257 @@ public class VitrineRepositorio : BaseRepositorio, IVitrineRepositorio
             sb.Append($"<a class=\"vitrine-categoria\" href=\"/s/{aplicacaoId}/{cat.Cateriaid}\">{WebUtility.HtmlEncode(cat.Nome ?? "")}</a>");
         return sb.ToString();
     }
+
+    public async ValueTask<VitrineAreaConfigResumo?> BuscaAreaConfigAsync(string areaId)
+    {
+        var area = await _db.Areas
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Areaid == areaId);
+        if (area is null) return null;
+
+        VitrineTemplate? template = null;
+        if (area.VitrineTemplateId is not null)
+            template = await _db.VitrineTemplates
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.VitrineTemplateId == area.VitrineTemplateId);
+
+        return new VitrineAreaConfigResumo(
+            area.VitrineTemplateId,
+            template?.HtmlCss,
+            template?.VariaveisJson,
+            area.VitrineValoresJson,
+            area.VitrinePublicado);
+    }
+
+    public async Task SalvarAreaConfigAsync(string areaId, VitrineAreaConfigInput input)
+    {
+        var area = await _db.Areas
+            .FirstOrDefaultAsync(a => a.Areaid == areaId)
+            ?? throw new InvalidOperationException($"Area '{areaId}' não encontrada.");
+
+        area.VitrineTemplateId = input.VitrineTemplateId;
+        area.VitrineValoresJson = input.ValoresJson;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<bool> PublicarAreaAsync(string areaId, string htmlSnapshot)
+    {
+        var area = await _db.Areas
+            .FirstOrDefaultAsync(a => a.Areaid == areaId);
+        if (area is null) return false;
+
+        area.VitrineHtmlSnapshot = htmlSnapshot;
+        area.VitrinePublicado = true;
+
+        if (!area.CanonicalArea && !string.IsNullOrEmpty(area.Aplicacaoid))
+        {
+            var jaTemCanonica = await _db.Areas
+                .AsNoTracking()
+                .AnyAsync(a => a.Aplicacaoid == area.Aplicacaoid && a.CanonicalArea);
+            if (!jaTemCanonica)
+                area.CanonicalArea = true;
+        }
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<string?> BuscaAreaSnapshotAsync(string areaId) =>
+        await _db.Areas
+            .AsNoTracking()
+            .Where(a => a.Areaid == areaId && a.VitrinePublicado)
+            .Select(a => a.VitrineHtmlSnapshot)
+            .FirstOrDefaultAsync();
+
+    public async Task<Dictionary<string, string?>> BuscaSnapshotsPorAreasAsync(IEnumerable<string> areaIds)
+    {
+        var ids = areaIds.ToList();
+        return await _db.Areas
+            .AsNoTracking()
+            .Where(a => a.Areaid != null && ids.Contains(a.Areaid) && a.VitrinePublicado)
+            .ToDictionaryAsync(a => a.Areaid!, a => (string?)a.VitrineHtmlSnapshot);
+    }
+
+    public async Task<string?> RenderAreaAsync(string areaId, ISiteRepositorio siteRepo)
+    {
+        var area = await _db.Areas
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Areaid == areaId);
+        if (area is null || area.VitrineTemplateId is null) return null;
+
+        var template = await _db.VitrineTemplates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.VitrineTemplateId == area.VitrineTemplateId);
+        if (template is null) return null;
+
+        JsonElement root;
+        try { root = JsonSerializer.Deserialize<JsonElement>(area.VitrineValoresJson ?? "{}"); }
+        catch { return template.HtmlCss; }
+
+        var variaveis = new Dictionary<string, string>();
+        if (root.TryGetProperty("variaveis", out var variaveisEl) && variaveisEl.ValueKind == JsonValueKind.Object)
+            foreach (var p in variaveisEl.EnumerateObject())
+                if (p.Value.ValueKind == JsonValueKind.String)
+                    variaveis[p.Name] = p.Value.GetString() ?? "";
+
+        var slots = new Dictionary<string, JsonElement>();
+        if (root.TryGetProperty("slots", out var slotsEl) && slotsEl.ValueKind == JsonValueKind.Object)
+            foreach (var p in slotsEl.EnumerateObject())
+                slots[p.Name] = p.Value;
+
+        var html = template.HtmlCss;
+
+        if (variaveis.Count > 0)
+        {
+            var cssVars = string.Join("; ", variaveis.Select(kvp => $"--{kvp.Key}: {kvp.Value}"));
+            var style = $"<style>:root {{ {cssVars}; }}</style>";
+            var headClose = html.IndexOf("</head>", StringComparison.OrdinalIgnoreCase);
+            html = headClose >= 0 ? html.Insert(headClose, style) : style + html;
+        }
+
+        html = Regex.Replace(
+            html,
+            @"(<(\w+)[^>]+data-vitrine-slot=""([^""]+)""[^>]*>)([\s\S]*?)(</\2>)",
+            m =>
+            {
+                var slotName = m.Groups[3].Value;
+                if (!slots.TryGetValue(slotName, out var blocosEl)) return m.Value;
+                return m.Groups[1].Value + RenderBlocos(blocosEl) + m.Groups[5].Value;
+            },
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
+        // --- Processar data-vitrine-bloco (dados dinâmicos do banco) ---
+        var aplicacaoId = area.Aplicacaoid ?? "";
+
+        Dictionary<string, string?> varValores;
+        try { varValores = JsonSerializer.Deserialize<Dictionary<string, string?>>(area.VitrineValoresJson ?? "{}") ?? []; }
+        catch { varValores = []; }
+
+        var blocoMatches = Regex.Matches(
+            html,
+            @"(<[^>]*data-vitrine-bloco=""([\w-]+)""[^>]*>)([\s\S]*?)(</[\w]+>)",
+            RegexOptions.IgnoreCase).Cast<Match>().ToList();
+
+        for (int i = blocoMatches.Count - 1; i >= 0; i--)
+        {
+            var m = blocoMatches[i];
+            var tipoBloco = m.Groups[2].Value;
+            var innerGroup = m.Groups[3];
+            var inner = await GerarHtmlBlocoAsync(tipoBloco, varValores, aplicacaoId, siteRepo);
+            if (inner is null) continue;
+            html = html[..innerGroup.Index] + inner + html[(innerGroup.Index + innerGroup.Length)..];
+        }
+
+        return html;
+    }
+
+    private static string RenderBlocos(JsonElement blocosEl)
+    {
+        if (blocosEl.ValueKind != JsonValueKind.Array) return "";
+
+        var sb = new StringBuilder();
+        var ordered = blocosEl.EnumerateArray()
+            .Select(b => (
+                ordem: b.TryGetProperty("ordem", out var o) && o.ValueKind == JsonValueKind.Number ? o.GetInt32() : 0,
+                bloco: b))
+            .OrderBy(x => x.ordem);
+
+        foreach (var (_, bloco) in ordered)
+        {
+            if (!bloco.TryGetProperty("tipo", out var tipoEl)) continue;
+            if (!bloco.TryGetProperty("config", out var config)) continue;
+            var tipo = tipoEl.GetString() ?? "";
+            sb.Append(tipo switch
+            {
+                "texto"  => RenderBlocoTexto(config),
+                "imagem" => RenderBlocoImagem(config),
+                "cta"    => RenderBlocoCta(config),
+                "lista"  => RenderBlocoLista(config),
+                _        => ""
+            });
+        }
+        return sb.ToString();
+    }
+
+    private static string RenderBlocoTexto(JsonElement config)
+    {
+        var texto = config.TryGetProperty("texto", out var t) ? t.GetString() ?? "" : "";
+        var tag = config.TryGetProperty("tag", out var tg) ? tg.GetString() ?? "p" : "p";
+        tag = tag is "h1" or "h2" or "h3" or "p" ? tag : "p";
+        return $"<{tag}>{WebUtility.HtmlEncode(texto)}</{tag}>";
+    }
+
+    private static string RenderBlocoImagem(JsonElement config)
+    {
+        var url = config.TryGetProperty("url", out var u) ? u.GetString() ?? "" : "";
+        var alt = config.TryGetProperty("alt", out var a) ? a.GetString() ?? "" : "";
+        return $"<img src=\"{WebUtility.HtmlEncode(url)}\" alt=\"{WebUtility.HtmlEncode(alt)}\" style=\"max-width:100%;height:auto\">";
+    }
+
+    private static string RenderBlocoCta(JsonElement config)
+    {
+        var texto = config.TryGetProperty("texto", out var t) ? t.GetString() ?? "" : "";
+        var url = config.TryGetProperty("url", out var u) ? u.GetString() ?? "#" : "#";
+        var variante = config.TryGetProperty("variante", out var v) ? v.GetString() ?? "primario" : "primario";
+        variante = variante is "primario" or "secundario" or "outline" ? variante : "primario";
+        return $"<a href=\"{WebUtility.HtmlEncode(url)}\" class=\"vitrine-btn vitrine-btn--{variante}\">{WebUtility.HtmlEncode(texto)}</a>";
+    }
+
+    private static string RenderBlocoLista(JsonElement config)
+    {
+        if (!config.TryGetProperty("itens", out var itensEl) || itensEl.ValueKind != JsonValueKind.Array)
+            return "";
+        var sb = new StringBuilder("<ul class=\"vitrine-lista\">");
+        foreach (var item in itensEl.EnumerateArray())
+        {
+            var texto = item.ValueKind == JsonValueKind.String ? item.GetString() ?? "" : "";
+            sb.Append($"<li>{WebUtility.HtmlEncode(texto)}</li>");
+        }
+        sb.Append("</ul>");
+        return sb.ToString();
+    }
+
+    // ── Schema-driven (nova engine) ───────────────────────────────────────
+
+    public async Task SalvarAreaSchemaAsync(string areaId, VitrineConfig config)
+    {
+        var area = await _db.Areas.FirstOrDefaultAsync(a => a.Areaid == areaId)
+            ?? throw new InvalidOperationException($"Area '{areaId}' não encontrada.");
+
+        area.VitrineValoresJson = JsonSerializer.Serialize(config, VitrineJsonOptions.Padrao);
+        await _db.SaveChangesAsync();
+    }
+
+    public async ValueTask<VitrineConfig?> BuscaAreaSchemaAsync(string areaId)
+    {
+        var json = await _db.Areas
+            .AsNoTracking()
+            .Where(a => a.Areaid == areaId)
+            .Select(a => a.VitrineValoresJson)
+            .FirstOrDefaultAsync();
+
+        if (json is null) return null;
+
+        try { return JsonSerializer.Deserialize<VitrineConfig>(json, VitrineJsonOptions.Padrao); }
+        catch { return null; }
+    }
+
+    public async Task<string?> RenderAreaSchemaAsync(string areaId, ISiteRepositorio siteRepo, string? cssContent = null)
+    {
+        var config = await BuscaAreaSchemaAsync(areaId);
+        if (config is null) return null;
+
+        var aplicacaoId = await _db.Areas
+            .AsNoTracking()
+            .Where(a => a.Areaid == areaId)
+            .Select(a => a.Aplicacaoid)
+            .FirstOrDefaultAsync();
+        if (string.IsNullOrEmpty(aplicacaoId)) return null;
+
+        return await VitrineSchemaRenderer.RenderAsync(config, aplicacaoId, siteRepo, cssContent);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
 
     private static string AplicarValores(string htmlCss, string valoresJson)
     {
