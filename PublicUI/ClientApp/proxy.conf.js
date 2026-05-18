@@ -1,7 +1,7 @@
 const { env } = require('process');
 
-// CMSAPI.Publica roda em http://localhost:13230
-const target = env.CMSAPI_PUBLICA_URL || 'http://localhost:13230';
+// CMSAPI.Publica roda em http://localhost:7230
+const target = env.CMSAPI_PUBLICA_URL || 'http://localhost:7230';
 
 const PROXY_CONFIG = [
   {

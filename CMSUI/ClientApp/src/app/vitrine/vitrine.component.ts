@@ -48,26 +48,12 @@ export class VitrineComponent implements OnInit {
   previewSrc: SafeResourceUrl | null = null;
   areasSite: AreaSite[] = [];
 
-  readonly tiposDisponiveis = [
-    { val: 'landing', label: 'Landing' },
-    { val: 'institucional', label: 'Institucional' },
-    { val: 'catalogo', label: 'Catálogo' },
-    { val: 'portfolio', label: 'Portfólio' }
-  ];
-  readonly estilosDisponiveis = [
-    { val: 'moderno', label: 'Moderno' },
-    { val: 'minimalista', label: 'Minimalista' },
-    { val: 'bold', label: 'Bold' }
-  ];
-  readonly paletasDisponiveis = [
-    { val: 'dark', label: 'Dark' },
-    { val: 'pastel', label: 'Pastel' },
-    { val: 'corporativo', label: 'Corporativo' }
-  ];
-
-  tipoSelecionado = '';
-  estiloSelecionado = '';
-  paletaSelecionada = '';
+  opcoes: any = { tipos: [], estilos: [], paletas: [] };
+  usarVisualCanonico = false;
+  temAreaCanonica = false;
+  gerarTipo = '';
+  gerarEstilo = '';
+  gerarPaleta = '';
 
   private _blobUrl: string | null = null;
 
@@ -82,6 +68,9 @@ export class VitrineComponent implements OnInit {
   ngOnInit() {
     this.areaId = this.route.snapshot.paramMap.get('areaid') ?? '';
     this.carregando = true;
+
+    this.http.get<any>('assets/vitrine-opcoes.json').subscribe(o => this.opcoes = o);
+
     this.http.get<VitrineAreaConfigResumo>(this.baseUrl + 'vitrine/area/' + this.areaId + '/configurada').subscribe({
       next: config => {
         this.areaConfig = config;
@@ -105,7 +94,10 @@ export class VitrineComponent implements OnInit {
     const aplicacaoid = usuario.aplicacaoid as string | undefined;
     if (aplicacaoid) {
       this.vitrineService.getSiteAreas(aplicacaoid).subscribe({
-        next: areas => { this.areasSite = areas; },
+        next: areas => {
+          this.areasSite = areas;
+          this.temAreaCanonica = areas.some(a => a.canonicalArea === true && a.areaid !== this.areaId);
+        },
         error: () => {}
       });
     }
@@ -233,12 +225,13 @@ export class VitrineComponent implements OnInit {
     this.gerando = true;
     this.erroGeracao = null;
 
-    this._buildTemaCanonicoJson().subscribe(temaCanonicoJson => {
+    const temaObs = this.usarVisualCanonico ? this._buildTemaCanonicoJson() : of(null);
+    temaObs.subscribe(temaCanonicoJson => {
       this.vitrineService.gerarArea(this.areaId, {
         prompt: this.prompt,
-        tipo: this.tipoSelecionado || undefined,
-        estilo: this.estiloSelecionado || undefined,
-        paleta: this.paletaSelecionada || undefined,
+        tipo: this.gerarTipo || undefined,
+        estilo: this.gerarEstilo || undefined,
+        paleta: this.gerarPaleta || undefined,
         temaCanonicoJson: temaCanonicoJson || undefined
       }).subscribe({
         next: () => {

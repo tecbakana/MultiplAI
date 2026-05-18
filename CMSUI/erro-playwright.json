@@ -1,0 +1,330 @@
+{
+  "config": {
+    "configFile": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\playwright.config.ts",
+    "rootDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 3
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 3
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "T:/Developer/RepositorioTrabalho/tecbakana/cmsx/CMSUI/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 6,
+    "webServer": {
+      "command": "dotnet run",
+      "url": "http://localhost:5050",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "vitrine.spec.ts",
+      "file": "vitrine.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "test",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 6018,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40",
+                    "location": {
+                      "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                      "column": 40,
+                      "line": 6
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 4 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:44455/s/ceartperson/produtos'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 5 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Esta p├ígina ainda n├úo tem'\u001b[39m))\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 6 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Home'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 7 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                        "column": 40,
+                        "line": 6
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n\n  4 |   await page.goto('http://localhost:44455/s/ceartperson/produtos');\n  5 |   await expect(page.getByText('Esta p├ígina ainda n├úo tem')).not.toBeVisible();\n> 6 |   await expect(page.getByText('Home')).toBeVisible();\n    |                                        ^\n  7 | });\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-17T15:55:19.852Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-chromium\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-chromium\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-chromium\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                    "column": 40,
+                    "line": 6
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "10b9ff1c4f04f4f29070-e27d1e55d4a5c1d7832e",
+          "file": "vitrine.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "test",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "firefox",
+              "projectName": "firefox",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 1,
+                  "status": "failed",
+                  "duration": 9006,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40",
+                    "location": {
+                      "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                      "column": 40,
+                      "line": 6
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 4 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:44455/s/ceartperson/produtos'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 5 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Esta p├ígina ainda n├úo tem'\u001b[39m))\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 6 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Home'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 7 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                        "column": 40,
+                        "line": 6
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n\n  4 |   await page.goto('http://localhost:44455/s/ceartperson/produtos');\n  5 |   await expect(page.getByText('Esta p├ígina ainda n├úo tem')).not.toBeVisible();\n> 6 |   await expect(page.getByText('Home')).toBeVisible();\n    |                                        ^\n  7 | });\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-17T15:55:19.919Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-firefox\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-firefox\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-firefox\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                    "column": 40,
+                    "line": 6
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "10b9ff1c4f04f4f29070-ecf23517db8f265ef9d0",
+          "file": "vitrine.spec.ts",
+          "line": 3,
+          "column": 5
+        },
+        {
+          "title": "test",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "webkit",
+              "projectName": "webkit",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 2,
+                  "status": "failed",
+                  "duration": 6411,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40",
+                    "location": {
+                      "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                      "column": 40,
+                      "line": 6
+                    },
+                    "snippet": "\u001b[0m \u001b[90m 4 |\u001b[39m   \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mgoto(\u001b[32m'http://localhost:44455/s/ceartperson/produtos'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 5 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Esta p├ígina ainda n├úo tem'\u001b[39m))\u001b[33m.\u001b[39mnot\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 6 |\u001b[39m   \u001b[36mawait\u001b[39m expect(page\u001b[33m.\u001b[39mgetByText(\u001b[32m'Home'\u001b[39m))\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m   |\u001b[39m                                        \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 7 |\u001b[39m })\u001b[33m;\u001b[39m\u001b[0m"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                        "column": 40,
+                        "line": 6
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText('Home')\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText('Home')\u001b[22m\n\n\n  4 |   await page.goto('http://localhost:44455/s/ceartperson/produtos');\n  5 |   await expect(page.getByText('Esta p├ígina ainda n├úo tem')).not.toBeVisible();\n> 6 |   await expect(page.getByText('Home')).toBeVisible();\n    |                                        ^\n  7 | });\n    at T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts:6:40"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-05-17T15:55:19.892Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-webkit\\test-failed-1.png"
+                    },
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-webkit\\error-context.md"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\test-results\\vitrine-test-webkit\\trace.zip"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "T:\\Developer\\RepositorioTrabalho\\tecbakana\\cmsx\\CMSUI\\tests\\vitrine.spec.ts",
+                    "column": 40,
+                    "line": 6
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "10b9ff1c4f04f4f29070-b7530d5b4731ce913fd7",
+          "file": "vitrine.spec.ts",
+          "line": 3,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-05-17T15:55:18.959Z",
+    "duration": 12280.671,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

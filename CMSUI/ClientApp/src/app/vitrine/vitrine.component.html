@@ -18,34 +18,36 @@
           <span>✦</span> Gerar com IA
         </div>
         <div class="card-body d-flex flex-column gap-2">
-          <label class="form-label mb-0">Tipo de página</label>
-          <div class="d-flex flex-wrap gap-1 mb-1">
-            <button *ngFor="let t of tiposDisponiveis" type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="tipoSelecionado === t.val"
-              [class.btn-outline-secondary]="tipoSelecionado !== t.val"
-              [disabled]="gerando"
-              (click)="tipoSelecionado = tipoSelecionado === t.val ? '' : t.val">{{ t.label }}</button>
+          <!-- Selects de tipo, estilo e paleta -->
+          <div class="row g-2 mb-2">
+            <div class="col-4">
+              <select class="form-select form-select-sm" [(ngModel)]="gerarTipo" [disabled]="usarVisualCanonico || gerando">
+                <option value="">Tipo (automático)</option>
+                <option *ngFor="let o of opcoes.tipos" [value]="o.valor">{{o.label}}</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <select class="form-select form-select-sm" [(ngModel)]="gerarEstilo" [disabled]="usarVisualCanonico || gerando">
+                <option value="">Estilo (automático)</option>
+                <option *ngFor="let o of opcoes.estilos" [value]="o.valor">{{o.label}}</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <select class="form-select form-select-sm" [(ngModel)]="gerarPaleta" [disabled]="usarVisualCanonico || gerando">
+                <option value="">Paleta (automática)</option>
+                <option *ngFor="let o of opcoes.paletas" [value]="o.valor">{{o.label}}</option>
+              </select>
+            </div>
           </div>
 
-          <label class="form-label mb-0">Estilo visual</label>
-          <div class="d-flex flex-wrap gap-1 mb-1">
-            <button *ngFor="let e of estilosDisponiveis" type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="estiloSelecionado === e.val"
-              [class.btn-outline-secondary]="estiloSelecionado !== e.val"
-              [disabled]="gerando"
-              (click)="estiloSelecionado = estiloSelecionado === e.val ? '' : e.val">{{ e.label }}</button>
-          </div>
-
-          <label class="form-label mb-0">Paleta de cores</label>
-          <div class="d-flex flex-wrap gap-1 mb-2">
-            <button *ngFor="let p of paletasDisponiveis" type="button"
-              class="btn btn-sm"
-              [class.btn-primary]="paletaSelecionada === p.val"
-              [class.btn-outline-secondary]="paletaSelecionada !== p.val"
-              [disabled]="gerando"
-              (click)="paletaSelecionada = paletaSelecionada === p.val ? '' : p.val">{{ p.label }}</button>
+          <!-- Checkbox herdar canônico — só aparece se temAreaCanonica -->
+          <div class="form-check mb-2" *ngIf="temAreaCanonica">
+            <input class="form-check-input" type="checkbox" id="usarCanonico"
+              [(ngModel)]="usarVisualCanonico" [disabled]="gerando">
+            <label class="form-check-label small" for="usarCanonico">
+              Usar visual padrão do site
+              <span class="text-muted">(herda cores e tipografia da área principal)</span>
+            </label>
           </div>
 
           <label class="form-label mb-0">Descreva a página que você quer</label>
