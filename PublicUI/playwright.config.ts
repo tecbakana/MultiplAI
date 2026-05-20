@@ -22,7 +22,7 @@ export default defineConfig({
   // Configurações globais para todos os projetos de execução
   use: {
     // URL base para evitar digitar o domínio inteiro em cada test.goto()
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5230',
 
     // Coleta o rastreamento (trace) de falhas. 'on-first-retry' ajuda a debugar no CI
     trace: 'on-first-retry',
@@ -52,11 +52,15 @@ export default defineConfig({
     //   use: { ...devices['Pixel 5'] },
     // },
   ],
-
-  /* Se o seu front-end precisa rodar localmente antes dos testes começarem */
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  use: {
+    // A porta padrão onde o seu app .NET costuma rodar localmente (mude se for outra, ex: 5001 ou 7000)
+    baseURL: 'http://localhost:5000', 
+    trace: 'on-first-retry',
+  },
+  // O Playwright sobe o .NET, que por sua vez gerencia e sobe o Angular no ClientApp
+  webServer: {
+    command: 'dotnet run',
+    url: 'http://localhost:5000',
+    reuseExistingServer: !process.env.CI,
+  },
 });

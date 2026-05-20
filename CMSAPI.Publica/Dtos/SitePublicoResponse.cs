@@ -4,5 +4,6 @@ public record SitePublicoResponse(
     string? Nome,
     string? Url,
     string? Header,
-    IEnumerable<AreaPublicoResponse> Areas
+    IEnumerable<AreaPublicoResponse> Areas,
+    string? LogoUrl
 );

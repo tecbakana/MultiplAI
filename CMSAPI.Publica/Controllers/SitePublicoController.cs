@@ -81,7 +81,11 @@ public class SitePublicoController(
             areasResult.Add(new AreaPublicoResponse(area.Areaid, area.Nome, area.Url, blocos.Count > 0, blocos, areaSnapshot));
         }
 
-        return Ok(new SitePublicoResponse(app.Nome, app.Url, app.Header, areasResult));
+        var (logoBytes, logoContentType) = await aplicacaoRepo.BuscaLogoAsync(aplicacaoid);
+        var logoUrl = (logoBytes is { Length: > 0 } && logoContentType is not null)
+            ? $"/api/publico/{token}/logo" : null;
+
+        return Ok(new SitePublicoResponse(app.Nome, app.Url, app.Header, areasResult, logoUrl));
     }
 
     [HttpGet("{token}/logo")]
@@ -90,9 +94,9 @@ public class SitePublicoController(
         var aplicacaoid = await tokenRepo.ResolveAsync(token);
         if (aplicacaoid == null) return NotFound();
         var (bytes, contentType) = await aplicacaoRepo.BuscaLogoAsync(aplicacaoid);
-        if (bytes is null) return NotFound();
+        if (bytes is null || contentType is null) return NotFound();
         Response.Headers.CacheControl = "public, max-age=3600";
-        return File(bytes, contentType!);
+        return File(bytes, contentType);
     }
 
     private async Task<object?> EnriquecerAsync(string tipo, JsonElement config, string aplicacaoid)

@@ -5,9 +5,30 @@
     <span *ngIf="areaConfig?.publicado" class="badge bg-success">Publicada</span>
   </div>
 
-  <div *ngIf="carregando" class="text-muted py-4 text-center">Carregando...</div>
+  <!-- Seletor de área (quando nenhuma área foi selecionada) -->
+  <div *ngIf="!areaId">
+    <div *ngIf="carregando" class="text-muted py-4 text-center">Carregando áreas...</div>
+    <div *ngIf="!carregando && areasSite.length === 0" class="text-muted py-4 text-center">
+      Nenhuma área cadastrada.
+    </div>
+    <div *ngIf="!carregando && areasSite.length > 0" class="row g-3">
+      <div *ngFor="let area of areasSite" class="col-12 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm" style="cursor:pointer" (click)="selecionarArea(area.areaid)">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between">
+              <h6 class="card-title mb-0">{{ area.nome }}</h6>
+              <span *ngIf="area.canonicalArea" class="badge bg-primary ms-2" title="Área canônica">Canônica</span>
+            </div>
+            <small class="text-muted">/{{ area.url }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <div *ngIf="!carregando" class="row g-3">
+  <div *ngIf="carregando && areaId" class="text-muted py-4 text-center">Carregando...</div>
+
+  <div *ngIf="!carregando && areaId" class="row g-3">
 
     <!-- Coluna esquerda -->
     <div class="col-md-5 d-flex flex-column gap-3">
@@ -71,6 +92,15 @@
               [disabled]="publicando">
               {{ publicando ? 'Publicando...' : 'Publicar' }}
             </button>
+          </div>
+
+          <div *ngIf="areaConfig?.publicado && areaConfig?.valoresJson && !previewSrc" class="border-top pt-2 mt-1">
+            <div class="d-flex align-items-center justify-content-between">
+              <small class="text-muted">Layout já publicado</small>
+              <button class="btn btn-outline-success btn-sm" (click)="publicarDireto()" [disabled]="publicando">
+                {{ publicando ? 'Publicando...' : 'Re-publicar layout atual' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>

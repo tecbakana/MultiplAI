@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { VitrineAdminService, AreaSite, VitrineAreaConfigResumo } from '../vitrine-admin/vitrine-admin.service';
@@ -63,13 +63,32 @@ export class VitrineComponent implements OnInit {
     @Inject('BASE_URL') private baseUrl: string,
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
+    private router: Router,
     private vitrineService: VitrineAdminService
   ) {}
 
   ngOnInit() {
     this.areaId = this.route.snapshot.paramMap.get('areaid') ?? '';
-    this.carregando = true;
 
+    const usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
+    const aplicacaoid = usuario.aplicacaoid as string | undefined;
+    if (aplicacaoid) {
+      this.vitrineService.getSiteAreas(aplicacaoid).subscribe({
+        next: areas => {
+          this.areasSite = areas;
+          this.temAreaCanonica = areas.some(a => a.canonicalArea === true && a.areaid !== this.areaId);
+          this.carregando = false;
+        },
+        error: () => { this.carregando = false; }
+      });
+    }
+
+    if (!this.areaId) {
+      this.carregando = true;
+      return;
+    }
+
+    this.carregando = true;
     this.http.get<any>('assets/vitrine-opcoes.json').subscribe(o => this.opcoes = o);
 
     this.http.get(this.baseUrl + 'aplicacaos/logo', { responseType: 'blob' }).subscribe({
@@ -91,22 +110,20 @@ export class VitrineComponent implements OnInit {
         if (config.templateHtmlCss) {
           this.slotNomes = this.extrairSlots(config.templateHtmlCss);
         }
+        if (config.valoresJson) {
+          this.http.get(this.baseUrl + 'vitrine/area/' + this.areaId + '/render', { responseType: 'text' }).subscribe({
+            next: html => this.definirPreview(html),
+            error: () => {}
+          });
+        }
         this.carregarTemplates(config.vitrineTemplateId);
       },
       error: () => { this.carregando = false; }
     });
+  }
 
-    const usuario = JSON.parse(sessionStorage.getItem('usuario') || '{}');
-    const aplicacaoid = usuario.aplicacaoid as string | undefined;
-    if (aplicacaoid) {
-      this.vitrineService.getSiteAreas(aplicacaoid).subscribe({
-        next: areas => {
-          this.areasSite = areas;
-          this.temAreaCanonica = areas.some(a => a.canonicalArea === true && a.areaid !== this.areaId);
-        },
-        error: () => {}
-      });
-    }
+  selecionarArea(areaid: string) {
+    this.router.navigate(['/vitrine', areaid]);
   }
 
   carregarTemplates(templateAtualId: string | null) {

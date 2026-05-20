@@ -50,7 +50,7 @@ public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
     {
         var app = await _db.Aplicacaos.FirstOrDefaultAsync(a => a.Aplicacaoid == aplicacaoId);
         if (app is null) return;
-        app.Lotipo = bytes;
+        app.Logotipo = bytes;
         app.LogoContentType = contentType;
         await _db.SaveChangesAsync();
     }
@@ -60,8 +60,8 @@ public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
         var app = await _db.Aplicacaos
             .AsNoTracking()
             .Where(a => a.Aplicacaoid == aplicacaoId)
-            .Select(a => new { a.Lotipo, a.LogoContentType })
+            .Select(a => new { a.Logotipo, a.LogoContentType })
             .FirstOrDefaultAsync();
-        return (app?.Lotipo, app?.LogoContentType);
+        return (app?.Logotipo, app?.LogoContentType);
     }
 }

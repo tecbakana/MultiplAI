@@ -110,7 +110,7 @@ public partial class CmsxDbContext : DbContext
             entity.Property(e => e.Isactive).HasColumnName("isActive");
             entity.Property(e => e.Issecure).HasColumnName("isSecure");
             entity.Property(e => e.Layoutchoose).HasMaxLength(150).HasColumnName("LayoutChoose");
-            entity.Property(e => e.Lotipo).HasColumnName("logotipo");
+            entity.Property(e => e.Logotipo).HasColumnName("logotipo");
             entity.Property(e => e.Mailpassword).HasMaxLength(45).HasColumnName("mailPassword");
             entity.Property(e => e.Mailport).HasColumnName("mailPort");
             entity.Property(e => e.Mailserver).HasMaxLength(80).HasColumnName("mailServer");

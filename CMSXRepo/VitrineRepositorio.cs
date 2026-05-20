@@ -561,9 +561,17 @@ public class VitrineRepositorio : BaseRepositorio, IVitrineRepositorio
             .FirstOrDefaultAsync();
         if (string.IsNullOrEmpty(aplicacaoId)) return null;
 
-        var publicToken = (await _publicTokenRepo.BuscaPorAplicacaoAsync(aplicacaoId))?.Token;
+        var app = await _db.Aplicacaos
+            .AsNoTracking()
+            .Where(a => a.Aplicacaoid == aplicacaoId)
+            .Select(a => new { a.Logotipo, a.LogoContentType, a.Url })
+            .FirstOrDefaultAsync();
 
-        return await VitrineSchemaRenderer.RenderAsync(config, aplicacaoId, siteRepo, cssContent, publicToken);
+        var logoSrc = app?.Logotipo is { Length: > 0 } && app.LogoContentType is not null
+            ? $"data:{app.LogoContentType};base64,{Convert.ToBase64String(app.Logotipo)}"
+            : null;
+
+        return await VitrineSchemaRenderer.RenderAsync(config, aplicacaoId, siteRepo, cssContent, logoSrc, app?.Url);
     }
 
     // ─────────────────────────────────────────────────────────────────────

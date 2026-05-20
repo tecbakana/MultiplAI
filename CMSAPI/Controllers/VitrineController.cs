@@ -45,10 +45,17 @@ public class VitrineController : Controller
         var app = await _aplicacaoRepo.BuscaPorIdAsync(appId);
         if (app?.Url is null) return null;
 
+        var (logoBytes, logoContentType) = await _aplicacaoRepo.BuscaLogoAsync(appId);
+        var logoHtml = logoBytes is { Length: > 0 } && logoContentType is not null
+            ? $"<img class=\"v-nav__logo\" src=\"data:{logoContentType};base64,{Convert.ToBase64String(logoBytes)}\" alt=\"Logo\" />"
+            : "";
+
         var areas = await _siteRepo.ListaAreasMenuAsync(appId);
-        return string.Concat(areas
+        var links = string.Concat(areas
             .Where(a => !string.IsNullOrEmpty(a.Url) && !string.IsNullOrEmpty(a.Nome))
-            .Select(a => $"<a href=\"/s/{app.Url}/{System.Net.WebUtility.HtmlEncode(a.Url)}\">{System.Net.WebUtility.HtmlEncode(a.Nome)}</a>"));
+            .Select(a => $"<a href=\"/s/{app.Url}/{WebUtility.HtmlEncode(a.Url)}\">{WebUtility.HtmlEncode(a.Nome)}</a>"));
+
+        return logoHtml + links;
     }
 
     [HttpGet("templates")]

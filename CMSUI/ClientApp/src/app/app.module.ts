@@ -89,6 +89,7 @@ import { VitrineAdminComponent } from './vitrine-admin/vitrine-admin.component';
       { path: 'modulos-admin', component: ModuloComponent, canActivate: [AuthGuard] },
       { path: 'segmentos', component: SegmentoComponent, canActivate: [AuthGuard] },
       { path: 'vitrine-admin', component: VitrineAdminComponent, canActivate: [AuthGuard] },
+      { path: 'vitrine', component: VitrineComponent, canActivate: [AuthGuard] },
       { path: 'vitrine/:areaid', component: VitrineComponent, canActivate: [AuthGuard] },
       { path: 'vinculosmodulo', component: VinculoModuloComponent, canActivate: [AuthGuard] },
       { path: 'pedidos', component: PedidoComponent, canActivate: [AuthGuard] },
@@ -97,10 +98,8 @@ import { VitrineAdminComponent } from './vitrine-admin/vitrine-admin.component';
       { path: 'marketplace', loadChildren: () => import('./marketplace/marketplace.module').then(m => m.MarketplaceModule), canActivate: [AuthGuard] },
       { path: 'page-builder', component: PageBuilderComponent, canActivate: [AuthGuard] },
       { path: 'page-builder-v2', loadChildren: () => import('./page-builder-v2/page-builder-v2.module').then(m => m.PageBuilderV2Module), canActivate: [AuthGuard] },
-      { path: 's/:slug', component: SiteComponent },
-      { path: 's/:slug/:area', component: SiteComponent },
-      { path: 'preview/:id', component: SiteComponent },
-      { path: 'preview/:id/:area', component: SiteComponent },
+      { path: 'preview/:id', component: SiteComponent, canActivate: [AuthGuard] },
+      { path: 'preview/:id/:area', component: SiteComponent, canActivate: [AuthGuard] },
       { path: '**', component: EmConstrucaoComponent }
     ])
   ],

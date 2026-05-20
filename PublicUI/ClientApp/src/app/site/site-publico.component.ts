@@ -11,13 +11,16 @@ export class SitePublicoComponent implements OnInit, OnDestroy {
   areaAtualUrl = '';
   slug = '';
   token = '';
+  logoUrl: string | null = null;
   currentYear = new Date().getFullYear();
 
   private _timerInterval: any = null;
+  private _logoObjectUrl: string | null = null;
   private _contadores: Map<string, any> = new Map();
   private _linhasCachedArea = '';
   private _linhas: { blocos: any[]; fullBleed: boolean }[] = [];
   private _vitrineLink: HTMLLinkElement | null = null;
+  private _vitrineNavConfig: { corFundo: string; corTexto: string } | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -34,6 +37,7 @@ export class SitePublicoComponent implements OnInit, OnDestroy {
     this.http.get<{ token: string }>(`/api/publico/site/resolve?slug=${encodeURIComponent(this.slug)}`).subscribe({
       next: r => {
         this.token = r.token;
+        this._carregarLogo();
         this.http.get<any>(`/api/publico/${this.token}/site`).subscribe({
           next: site => {
             this.site = site;
@@ -68,11 +72,28 @@ export class SitePublicoComponent implements OnInit, OnDestroy {
   getAreaHtml(): SafeHtml | null {
     const html = this.getAreaAtual()?.htmlSnapshot;
     if (!html) return null;
-    return this.sanitizer.bypassSecurityTrustHtml(this._injetarCssVitrine(html));
+    this._atualizarVitrineNavConfig(html);
+    return this.sanitizer.bypassSecurityTrustHtml(this._injetarCssVitrine(this._removerNavDoSnapshot(html)));
+  }
+
+  private _atualizarVitrineNavConfig(html: string): void {
+    const match = html.match(/<style>:root\{([^}]+)\}/i);
+    if (!match) { this._vitrineNavConfig = null; return; }
+    const vars = match[1];
+    const corFundo = vars.match(/--v-cor-fundo:([^;]+)/)?.[1]?.trim() ?? '';
+    const corTexto = vars.match(/--v-cor-texto:([^;]+)/)?.[1]?.trim() ?? '';
+    this._vitrineNavConfig = { corFundo, corTexto };
+  }
+
+  private _removerNavDoSnapshot(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    div.querySelectorAll('nav').forEach(el => el.remove());
+    return div.innerHTML;
   }
 
   private _injetarCssVitrine(html: string): string {
-    const match = html.match(/<link[^>]+href="(\/vitrine\/css\/[^"]+)"[^>]*>/i);
+    const match = html.match(/<link[^>]+href="(\/vitrine\/(?:css\/[^"]+|design-system\.css))"[^>]*>/i);
     if (!match) return html;
     if (!this._vitrineLink) {
       const link: HTMLLinkElement = this.renderer.createElement('link');
@@ -89,7 +110,20 @@ export class SitePublicoComponent implements OnInit, OnDestroy {
       const menu = (area.blocos ?? []).find((b: any) => b.tipo === 'menu-navegacao');
       if (menu) return [menu];
     }
-    return [];
+    const areas = (this.site?.areas ?? []).filter((a: any) => a.temLayout || a.htmlSnapshot);
+    if (areas.length < 2) return [];
+    return [{ config: { cor_fundo: this._vitrineNavConfig?.corFundo ?? '', cor_texto: this._vitrineNavConfig?.corTexto ?? '' }, dados: areas.map((a: any) => ({ areaid: a.areaid, nome: a.nome, url: a.url })) }];
+  }
+
+  private _carregarLogo(): void {
+    this.http.get(`/api/publico/${this.token}/logo?t=${Date.now()}`, { responseType: 'blob' }).subscribe({
+      next: blob => {
+        if (this._logoObjectUrl) URL.revokeObjectURL(this._logoObjectUrl);
+        this._logoObjectUrl = URL.createObjectURL(blob);
+        this.logoUrl = this._logoObjectUrl;
+      },
+      error: () => { this.logoUrl = null; }
+    });
   }
 
   getBlocosConteudo(): any[] {
@@ -187,5 +221,6 @@ export class SitePublicoComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this._timerInterval) clearInterval(this._timerInterval);
     if (this._vitrineLink) this.renderer.removeChild(document.head, this._vitrineLink);
+    if (this._logoObjectUrl) URL.revokeObjectURL(this._logoObjectUrl);
   }
 }

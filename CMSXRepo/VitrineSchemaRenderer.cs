@@ -8,12 +8,12 @@ internal static class VitrineSchemaRenderer
 {
     public static async Task<string> RenderAsync(
         VitrineConfig config, string aplicacaoId, ISiteRepositorio siteRepo,
-        string? cssContent = null, string? publicToken = null)
+        string? cssContent = null, string? logoSrc = null, string? slug = null)
     {
         var sb = new StringBuilder();
         sb.Append(GerarHead(config.Tema, cssContent));
         sb.Append("<body>");
-        sb.Append(await GerarNavAsync(aplicacaoId, siteRepo, publicToken));
+        sb.Append(await GerarNavAsync(aplicacaoId, siteRepo, logoSrc, slug));
         sb.Append("<main>");
         foreach (var secao in config.Secoes)
             sb.Append(await GerarSecaoAsync(secao, aplicacaoId, siteRepo));
@@ -106,16 +106,22 @@ internal static class VitrineSchemaRenderer
     // ── Nav / Rodapé (estruturais) ────────────────────────────────────────
 
     private static async Task<string> GerarNavAsync(
-        string aplicacaoId, ISiteRepositorio siteRepo, string? publicToken = null)
+        string aplicacaoId, ISiteRepositorio siteRepo, string? logoSrc = null, string? slug = null)
     {
         var areas = await siteRepo.ListaAreasMenuAsync(aplicacaoId);
         var links = string.Concat(areas
             .Where(a => !string.IsNullOrEmpty(a.Nome) && !string.IsNullOrEmpty(a.Url))
-            .Select(a => $"<a class=\"v-nav__link\" href=\"/{WebUtility.HtmlEncode(a.Url!)}\">{WebUtility.HtmlEncode(a.Nome!)}</a>"));
+            .Select(a =>
+            {
+                var href = slug is not null
+                    ? $"/s/{WebUtility.HtmlEncode(slug)}/{WebUtility.HtmlEncode(a.Url!)}"
+                    : $"/{WebUtility.HtmlEncode(a.Url!)}";
+                return $"<a class=\"v-nav__link\" href=\"{href}\">{WebUtility.HtmlEncode(a.Nome!)}</a>";
+            }));
 
-        var logoHtml = !string.IsNullOrEmpty(publicToken)
-            ? $"<img class=\"v-nav__logo\" src=\"/api/publico/{publicToken}/logo\" alt=\"Logo\" />"
-            : "<span class=\"v-nav__logo\"></span>";
+        var logoHtml = !string.IsNullOrEmpty(logoSrc)
+            ? $"<img class=\"v-nav__logo\" src=\"{logoSrc}\" alt=\"Logo\" />"
+            : "<span class=\"v-nav__logo\" data-vitrine-logo></span>";
 
         return $"<nav class=\"v-nav v-nav--topo\">" +
                $"<div class=\"v-container v-nav__inner\">" +

@@ -45,7 +45,7 @@ public partial class Aplicacao
 
     public string? Pageflicker { get; set; }
 
-    public byte[]? Lotipo { get; set; }
+    public byte[]? Logotipo { get; set; }
 
     public string? Ogleadsense { get; set; }
 

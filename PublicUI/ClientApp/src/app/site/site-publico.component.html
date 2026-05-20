@@ -15,8 +15,7 @@
   <!-- Header customizado (HTML livre) -->
   <div *ngIf="site.header" [innerHTML]="site.header"></div>
 
-  <!-- ── Menu de navegação global (apenas quando não há vitrine ativa) ── -->
-  <ng-container *ngIf="!getAreaHtml()">
+  <!-- ── Menu de navegação global ── -->
   <ng-container *ngFor="let bloco of getMenuNavegacao()">
     <nav class="navbar navbar-expand-md sticky-top"
       [style.background-color]="bloco.config.cor_fundo || '#1a1a2e'"
@@ -24,10 +23,10 @@
       <div class="container">
         <span class="navbar-brand fw-bold" [style.color]="bloco.config.cor_texto || '#ffffff'"
           style="cursor:pointer" (click)="navegarArea(site.areas[0]?.url)">
-          <img *ngIf="bloco.config.logo" [src]="bloco.config.logo"
+          <img *ngIf="logoUrl" [src]="logoUrl"
             [alt]="bloco.config.titulo || site.nome"
-            [style.height]="bloco.config.logo_altura || '40px'" style="object-fit:contain">
-          <ng-container *ngIf="!bloco.config.logo">{{ bloco.config.titulo || site.nome }}</ng-container>
+            [style.height]="bloco.config.logo_altura || '40px'" style="object-fit:contain" />
+          <ng-container *ngIf="!logoUrl">{{ bloco.config.titulo || site.nome }}</ng-container>
         </span>
         <div class="navbar-nav flex-row flex-wrap gap-3">
           <a *ngFor="let area of bloco.dados" class="nav-link"
@@ -41,7 +40,6 @@
       </div>
     </nav>
   </ng-container>
-  </ng-container><!-- /!getAreaHtml() menu -->
 
   <!-- ── Vitrine Snapshot (área home publicada) ── -->
   <div *ngIf="getAreaHtml() as html" [innerHTML]="html"></div>
