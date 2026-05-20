@@ -15,13 +15,20 @@ public class OrcamentoRepositorio : BaseRepositorio, IOrcamentoRepositorio
             .OrderByDescending(o => o.Datainclusao)
             .ToListAsync();
 
-    public async Task<OrcamentoCabecalho?> BuscaPorIdAsync(Guid id) =>
-        await _db.OrcamentoCabecalhos
+    public async Task<OrcamentoCabecalho?> BuscaPorIdAsync(Guid id, string? aplicacaoid = null)
+    {
+        var query = _db.OrcamentoCabecalhos
             .AsNoTracking()
             .Include(o => o.OrcamentoDetalhes)
             .Include(o => o.OrcamentoDetalheCompostos)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(o => o.Orcamentoid == id);
+            .Where(o => o.Orcamentoid == id);
+
+        if (!string.IsNullOrEmpty(aplicacaoid))
+            query = query.Where(o => o.Aplicacaoid == aplicacaoid);
+
+        return await query.FirstOrDefaultAsync();
+    }
 
     public async Task<Guid> CriarAsync(OrcamentoInput input)
     {
@@ -55,24 +62,34 @@ public class OrcamentoRepositorio : BaseRepositorio, IOrcamentoRepositorio
         return cabecalho.Orcamentoid;
     }
 
-    public async Task<bool> ToggleAprovadoAsync(Guid id)
+    public async Task<bool?> ToggleAprovadoAsync(Guid id, string? aplicacaoid = null)
     {
-        var orcamento = await _db.OrcamentoCabecalhos
-            .FirstOrDefaultAsync(o => o.Orcamentoid == id);
-        if (orcamento == null) return false;
+        var query = _db.OrcamentoCabecalhos
+            .Where(o => o.Orcamentoid == id);
+
+        if (!string.IsNullOrEmpty(aplicacaoid))
+            query = query.Where(o => o.Aplicacaoid == aplicacaoid);
+
+        var orcamento = await query.FirstOrDefaultAsync();
+        if (orcamento == null) return null;
 
         orcamento.Aprovado = !orcamento.Aprovado;
         await _db.SaveChangesAsync();
-        return true;
+        return orcamento.Aprovado;
     }
 
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task<bool> RemoveAsync(Guid id, string? aplicacaoid = null)
     {
-        var orcamento = await _db.OrcamentoCabecalhos
+        var query = _db.OrcamentoCabecalhos
             .Include(o => o.OrcamentoDetalhes)
             .Include(o => o.OrcamentoDetalheCompostos)
             .AsSplitQuery()
-            .FirstOrDefaultAsync(o => o.Orcamentoid == id);
+            .Where(o => o.Orcamentoid == id);
+
+        if (!string.IsNullOrEmpty(aplicacaoid))
+            query = query.Where(o => o.Aplicacaoid == aplicacaoid);
+
+        var orcamento = await query.FirstOrDefaultAsync();
         if (orcamento == null) return false;
 
         _db.OrcamentoDetalheCompostos.RemoveRange(orcamento.OrcamentoDetalheCompostos);

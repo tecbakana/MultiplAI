@@ -45,7 +45,7 @@ public partial class Aplicacao
 
     public string? Pageflicker { get; set; }
 
-    public byte[]? Lotipo { get; set; }
+    public byte[]? Logotipo { get; set; }
 
     public string? Ogleadsense { get; set; }
 
@@ -65,4 +65,6 @@ public partial class Aplicacao
 
     // Indica tenant de demonstração (dados resetados a cada login)
     public bool IsDemo { get; set; }
+
+    public string? LogoContentType { get; set; }
 }

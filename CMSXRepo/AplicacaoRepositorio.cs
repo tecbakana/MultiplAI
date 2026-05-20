@@ -45,4 +45,23 @@ public class AplicacaoRepositorio : BaseRepositorio, IAplicacaoRepositorio
         _db.Aplicacaos.Remove(aplicacao);
         await _db.SaveChangesAsync();
     }
+
+    public async Task SalvarLogoAsync(string aplicacaoId, byte[] bytes, string contentType)
+    {
+        var app = await _db.Aplicacaos.FirstOrDefaultAsync(a => a.Aplicacaoid == aplicacaoId);
+        if (app is null) return;
+        app.Logotipo = bytes;
+        app.LogoContentType = contentType;
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<(byte[]? Bytes, string? ContentType)> BuscaLogoAsync(string aplicacaoId)
+    {
+        var app = await _db.Aplicacaos
+            .AsNoTracking()
+            .Where(a => a.Aplicacaoid == aplicacaoId)
+            .Select(a => new { a.Logotipo, a.LogoContentType })
+            .FirstOrDefaultAsync();
+        return (app?.Logotipo, app?.LogoContentType);
+    }
 }

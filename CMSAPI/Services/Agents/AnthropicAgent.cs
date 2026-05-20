@@ -44,6 +44,30 @@ public class AnthropicAgent : IAgentIA
             .GetString()!;
     }
 
+    public async Task<string> GerarComSistemaAsync(string systemPrompt, string userPrompt)
+    {
+        var http = _httpFactory.CreateClient();
+        http.DefaultRequestHeaders.Add("x-api-key", _apiKey);
+        http.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+
+        var body = new
+        {
+            model = _model,
+            max_tokens = 4096,
+            system = systemPrompt,
+            messages = new[] { new { role = "user", content = userPrompt } }
+        };
+
+        var response = await http.PostAsJsonAsync(_url, body);
+        response.EnsureSuccessStatusCode();
+
+        var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return result
+            .GetProperty("content")[0]
+            .GetProperty("text")
+            .GetString()!;
+    }
+
     public async Task<string> GerarComImagemAsync(byte[] imageBytes, string mimeType, string prompt)
     {
         var http = _httpFactory.CreateClient();

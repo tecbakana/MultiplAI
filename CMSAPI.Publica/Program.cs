@@ -104,6 +104,7 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
 }
 
+app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("Publica");
 app.UseRateLimiter();

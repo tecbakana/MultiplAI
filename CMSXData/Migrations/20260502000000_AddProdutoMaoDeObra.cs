@@ -15,13 +15,13 @@ namespace CMSXData.Migrations
                 name: "produto_mao_de_obra",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    produtoid = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
-                    tipo = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
-                    descricao = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    capacidade_dia = table.Column<int>(type: "integer", nullable: true),
-                    valor_dia = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
-                    valor_milheiro = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true)
+                    id = table.Column<Guid>(nullable: false),
+                    produtoid = table.Column<string>(maxLength: 64, nullable: false),
+                    tipo = table.Column<string>(maxLength: 30, nullable: false),
+                    descricao = table.Column<string>(maxLength: 200, nullable: false),
+                    capacidade_dia = table.Column<int>(nullable: true),
+                    valor_dia = table.Column<decimal>(precision: 12, scale: 2, nullable: true),
+                    valor_milheiro = table.Column<decimal>(precision: 12, scale: 2, nullable: true)
                 },
                 constraints: table =>
                 {

@@ -30,6 +30,10 @@
         <a class="nav-link" [class.active]="aba==='maodeobra'" href="#"
           (click)="aba='maodeobra'; $event.preventDefault()">Mão de Obra</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" [class.active]="aba==='modelos'" href="#"
+          (click)="aba='modelos'; $event.preventDefault()">Modelos</a>
+      </li>
     </ul>
 
     <!-- ── Aba Geral ─────────────────────────────────────────────── -->
@@ -510,6 +514,91 @@
         </table>
 
       </div>
+    </div>
+
+    <!-- ── Aba Modelos ─────────────────────────────────────────────── -->
+    <div *ngIf="aba==='modelos'">
+
+      <!-- Carregar modelo em produto existente -->
+      <div class="card mb-3" *ngIf="selecionado?.produtoid && templates.length > 0">
+        <div class="card-body py-2">
+          <label class="form-label form-label-sm mb-1"><i class="bi bi-folder2-open me-1 text-success"></i>Carregar modelo existente</label>
+          <div class="input-group input-group-sm">
+            <select class="form-select" [(ngModel)]="modeloSelecionadoId">
+              <option value="">Selecione um modelo...</option>
+              <option *ngFor="let t of templates" [value]="t.produtoTemplateid">{{ t.nome }}</option>
+            </select>
+            <button class="btn btn-success" (click)="aplicarModelo()" [disabled]="!modeloSelecionadoId || modeloAplicando">
+              <span *ngIf="modeloAplicando" class="spinner-border spinner-border-sm me-1"></span>
+              Aplicar
+            </button>
+          </div>
+          <small class="text-muted">Cria a árvore de atributos do modelo no produto atual.</small>
+        </div>
+      </div>
+
+      <!-- Criar novo modelo -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-title">Criar modelo a partir de descrição</h6>
+          <div class="mb-2">
+            <label class="form-label form-label-sm">
+              Descreva o produto (componentes, variações, ingredientes...)
+              <span class="text-muted ms-1" style="font-weight:normal">ex: "Pão recheado com massa de farinha, leite, fermento. Recheio: frango ou carne, temperado com sal, alho e azeite."</span>
+            </label>
+            <textarea class="form-control form-control-sm" rows="4" [(ngModel)]="modeloDescricao"
+              placeholder="Descreva a estrutura do produto em linguagem natural..."></textarea>
+          </div>
+          <button class="btn btn-primary btn-sm" (click)="interpretarModelo()" [disabled]="!modeloDescricao.trim() || modeloInterpretando">
+            <span *ngIf="modeloInterpretando" class="spinner-border spinner-border-sm me-1"></span>
+            <i class="bi bi-magic me-1" *ngIf="!modeloInterpretando"></i>Interpretar
+          </button>
+          <div class="text-danger small mt-1" *ngIf="modeloErro">{{ modeloErro }}</div>
+        </div>
+      </div>
+
+      <!-- Preview do JSON interpretado -->
+      <div class="card mb-3 border-success border-opacity-50" *ngIf="modeloPreview">
+        <div class="card-body">
+          <h6 class="card-title text-success"><i class="bi bi-check-circle me-1"></i>Estrutura gerada</h6>
+          <pre class="bg-light p-2 rounded small" style="max-height:300px;overflow-y:auto">{{ modeloPreview | json }}</pre>
+          <div class="row g-2 mt-1 align-items-end">
+            <div class="col">
+              <input class="form-control form-control-sm" [(ngModel)]="modeloNome" placeholder="Nome do modelo (ex: Pão Recheado)">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-sm btn-success" (click)="salvarModelo()" [disabled]="!modeloNome.trim() || modeloSalvando">
+                <span *ngIf="modeloSalvando" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-floppy me-1" *ngIf="!modeloSalvando"></i>Salvar modelo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de modelos salvos -->
+      <div class="card" *ngIf="templates.length > 0">
+        <div class="card-body">
+          <h6 class="card-title">Modelos salvos</h6>
+          <table class="table table-sm align-middle">
+            <thead class="table-light">
+              <tr><th>Nome</th><th>Criado em</th><th style="width:80px"></th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of templates">
+                <td>{{ t.nome }}</td>
+                <td>{{ t.dataCriacao | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <button class="btn btn-outline-danger btn-sm" (click)="removerModelo(t.produtoTemplateid)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </div>

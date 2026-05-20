@@ -52,10 +52,10 @@ public class OrcamentosController : Controller
     public async Task<IActionResult> GetById(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
+        var aplicacaoidFiltro = acessoTotal ? null : claimAppId;
 
-        var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id);
+        var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id, aplicacaoidFiltro);
         if (orcamento == null) return NotFound();
-        if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
 
         var itensCompostos = (await _compostoRepo.ListarAtuaisAsync(orcamento.Orcamentoid))
             .Select(d => new
@@ -99,25 +99,19 @@ public class OrcamentosController : Controller
     public async Task<IActionResult> Aprovar(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
+        var aplicacaoidFiltro = acessoTotal ? null : claimAppId;
 
-        var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id);
-        if (orcamento == null) return NotFound();
-        if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
-
-        await _orcamentoRepo.ToggleAprovadoAsync(id);
-        return Ok(new { Aprovado = !orcamento.Aprovado });
+        var novoEstado = await _orcamentoRepo.ToggleAprovadoAsync(id, aplicacaoidFiltro);
+        return novoEstado.HasValue ? Ok(new { Aprovado = novoEstado.Value }) : NotFound();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var (acessoTotal, claimAppId) = UserContext();
+        var aplicacaoidFiltro = acessoTotal ? null : claimAppId;
 
-        var orcamento = await _orcamentoRepo.BuscaPorIdAsync(id);
-        if (orcamento == null) return NotFound();
-        if (!acessoTotal && orcamento.Aplicacaoid != claimAppId) return Forbid();
-
-        await _orcamentoRepo.RemoveAsync(id);
-        return NoContent();
+        var removido = await _orcamentoRepo.RemoveAsync(id, aplicacaoidFiltro);
+        return removido ? NoContent() : NotFound();
     }
 }

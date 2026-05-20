@@ -43,4 +43,12 @@ public partial class Area
     public string? Layout { get; set; }
 
     public string? PageBuilderVersion { get; set; }
+
+    public string Tipo { get; set; } = "pagina"; // "home" | "pagina"
+
+    public Guid? VitrineTemplateId { get; set; }
+    public string? VitrineValoresJson { get; set; }
+    public string? VitrineHtmlSnapshot { get; set; }
+    public bool VitrinePublicado { get; set; } = false;
+    public bool CanonicalArea { get; set; } = false;
 }

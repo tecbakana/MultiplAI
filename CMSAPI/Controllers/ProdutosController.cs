@@ -17,17 +17,23 @@ namespace CMSAPI.Controllers
         private readonly IAgentIAFactory _agentFactory;
         private readonly IWebHostEnvironment _env;
         private readonly IProdutoMaoDeObraRepositorio _moRepo;
+        private readonly IProdutoTemplateRepositorio _templateRepo;
+        private readonly ISegmentoTenantRepositorio _segmentoRepo;
 
         public ProdutosController(
             IProdutosRepositorio repo,
             IAgentIAFactory agentFactory,
             IWebHostEnvironment env,
-            IProdutoMaoDeObraRepositorio moRepo)
+            IProdutoMaoDeObraRepositorio moRepo,
+            IProdutoTemplateRepositorio templateRepo,
+            ISegmentoTenantRepositorio segmentoRepo)
         {
             _repo = repo;
             _agentFactory = agentFactory;
             _env = env;
             _moRepo = moRepo;
+            _templateRepo = templateRepo;
+            _segmentoRepo = segmentoRepo;
         }
 
         private (bool acessoTotal, string? aplicacaoid) UserContext() =>
@@ -460,6 +466,108 @@ Responda em português do Brasil.";
                 return StatusCode(502, $"Erro ao chamar o agente IA: {ex.Message}");
             }
         }
+
+        // ── Templates de Produto ─────────────────────────────────────────────────
+
+        [HttpGet("templates")]
+        public async Task<IActionResult> GetTemplates()
+        {
+            var (_, appId) = UserContext();
+            if (string.IsNullOrEmpty(appId)) return BadRequest("Token sem aplicacaoid.");
+            var segmentoIds = await _segmentoRepo.ListaSegmentoIdsPorAplicacaoAsync(appId);
+            return Ok(await _templateRepo.ListaComSegmentosAsync(appId, segmentoIds));
+        }
+
+        [HttpGet("templates/{id}")]
+        public async Task<IActionResult> GetTemplateById(string id)
+        {
+            var (_, appId) = UserContext();
+            if (string.IsNullOrEmpty(appId)) return BadRequest("Token sem aplicacaoid.");
+            var t = await _templateRepo.BuscaPorIdAsync(id, appId);
+            return t == null ? NotFound() : Ok(t);
+        }
+
+        [HttpPost("templates/interpretar")]
+        public async Task<IActionResult> InterpretarTemplate([FromBody] ProdutoTemplateGerarInput input)
+        {
+            var (_, appId) = UserContext();
+            if (string.IsNullOrEmpty(appId)) return BadRequest("Token sem aplicacaoid.");
+
+            var agente = _agentFactory.Criar();
+            var raw = await agente.GerarAsync(MontarPromptTemplate(input.Descricao));
+            var json = LimparMarkdown(raw);
+            try { JsonDocument.Parse(json); }
+            catch { return UnprocessableEntity("IA retornou resposta em formato inválido."); }
+            return Ok(new { conteudoJson = json });
+        }
+
+        [HttpPost("templates")]
+        public async Task<IActionResult> PostTemplate([FromBody] ProdutoTemplateInput input)
+        {
+            var (_, appId) = UserContext();
+            if (string.IsNullOrEmpty(appId)) return BadRequest("Token sem aplicacaoid.");
+            var id = await _templateRepo.CriarAsync(input, appId);
+            return Ok(new { produtoTemplateid = id });
+        }
+
+        [HttpDelete("templates/{id}")]
+        public async Task<IActionResult> DeleteTemplate(string id)
+        {
+            var (_, appId) = UserContext();
+            if (string.IsNullOrEmpty(appId)) return BadRequest("Token sem aplicacaoid.");
+            return await _templateRepo.RemoverAsync(id, appId) ? NoContent() : NotFound();
+        }
+
+        [HttpPost("{id}/aplicar-template/{templateId}")]
+        public async Task<IActionResult> AplicarTemplate(string id, string templateId)
+        {
+            var (acessoTotal, appId) = UserContext();
+            var produto = await _repo.BuscaPorIdAsync(id);
+            if (produto == null) return NotFound();
+            if (!acessoTotal && produto.Aplicacaoid != appId) return Forbid();
+
+            var segmentoIds = await _segmentoRepo.ListaSegmentoIdsPorAplicacaoAsync(appId!);
+            var template = await _templateRepo.BuscaAcessivelAsync(templateId, appId!, segmentoIds);
+            if (template == null) return NotFound();
+
+            var aplicado = await _templateRepo.AplicarTemplateAsync(id, template.ConteudoJson);
+            return aplicado ? Ok() : UnprocessableEntity("Template sem atributos para aplicar.");
+        }
+
+        private static string MontarPromptTemplate(string descricao) => $$"""
+            Você é um especialista em catálogo de produtos. Com base na descrição abaixo, gere um template de produto em JSON seguindo EXATAMENTE a estrutura especificada. Retorne APENAS o JSON válido, sem markdown, sem blocos de código, sem nenhum texto adicional.
+
+            DESCRIÇÃO DO PRODUTO:
+            {{descricao}}
+
+            ESTRUTURA OBRIGATÓRIA DO JSON:
+            {
+              "nome": "nome do produto",
+              "descricao": "descrição completa",
+              "descricaoCurta": "resumo em até 100 caracteres",
+              "detalheTecnico": "especificações técnicas relevantes",
+              "valor": 0.00,
+              "unidadeVenda": "UN",
+              "atributos": [
+                {
+                  "nome": "nome do atributo",
+                  "descricao": "descrição",
+                  "ordem": 1,
+                  "valorAdicional": 0.00,
+                  "opcoes": ["opção 1", "opção 2"],
+                  "filhos": []
+                }
+              ]
+            }
+
+            REGRAS:
+            - Gere atributos e opções relevantes para o tipo de produto descrito
+            - Atributos hierárquicos (componentes de um produto composto) usam a propriedade "filhos" com a mesma estrutura
+            - opcoes é um array de strings com os valores possíveis
+            - Valores monetários são decimais (ex: 10.50); use 0.00 quando desconhecido
+            - unidadeVenda deve ser abreviação padrão: UN, KG, M, M2, M3, CX, PCT, L, etc.
+            - Retorne APENAS o JSON, absolutamente nada mais
+            """;
 
         private static string LimparMarkdown(string texto)
         {

@@ -4,7 +4,8 @@ namespace ICMSX;
 
 public interface IClienteLojaRepositorio
 {
-    Task MakeConnectionAsync(dynamic prop);
-    Task CriaClienteLojaAsync(ClienteLoja cliente);
+    Task CriaClienteLojaAsync(CriaClienteLojaInput cliente);
     Task<IEnumerable<ClienteLoja>> ListaClienteLojaAsync();
+
+    public record CriaClienteLojaInput(string Aplicacaoid, int salematicClienteId);
 }

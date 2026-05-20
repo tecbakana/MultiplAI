@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -35,6 +35,15 @@ export class AplicacaoComponent implements OnInit {
   mlConectado = false;
   mlErro = false;
   conectandoMl = false;
+
+  segmentosDisponiveis: any[] = [];
+  meusSegmentos: string[] = [];
+
+  logoUrl: string | null = null;
+  erroLogo: string | null = null;
+  private _logoObjectUrl: string | null = null;
+
+  @ViewChild('logoInput') logoInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private http: HttpClient,
@@ -88,6 +97,7 @@ export class AplicacaoComponent implements OnInit {
     this.configuracoes = [];
     this.marketplaceSelecionado = null;
     if (item.aplicacaoid) this.carregarTokens(item.aplicacaoid);
+    this.carregarLogo();
   }
 
   carregarTokens(aplicacaoid: string) {
@@ -146,6 +156,71 @@ export class AplicacaoComponent implements OnInit {
     this.selecionado = null;
     this.configuracoes = [];
     this.marketplaceSelecionado = null;
+    this.logoUrl = null;
+    this.erroLogo = null;
+    if (this._logoObjectUrl) { URL.revokeObjectURL(this._logoObjectUrl); this._logoObjectUrl = null; }
+  }
+
+  carregarLogo() {
+    this.logoUrl = null;
+    this.erroLogo = null;
+    this.http.get(this.baseUrl + 'aplicacaos/logo', { responseType: 'blob' }).subscribe({
+      next: blob => {
+        if (this._logoObjectUrl) URL.revokeObjectURL(this._logoObjectUrl);
+        this._logoObjectUrl = URL.createObjectURL(blob);
+        this.logoUrl = this._logoObjectUrl;
+      },
+      error: () => { this.logoUrl = null; }
+    });
+  }
+
+  onLogoSelecionada() {
+    const file = this.logoInput?.nativeElement?.files?.[0];
+    if (!file) return;
+    this.erroLogo = null;
+    const tiposPermitidos = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+    if (!tiposPermitidos.includes(file.type)) {
+      this.erroLogo = 'Tipo não permitido. Use PNG, JPG, WebP ou SVG.';
+      return;
+    }
+    if (file.size > 204800) {
+      this.erroLogo = 'Arquivo muito grande. Limite: 200 KB.';
+      return;
+    }
+    const formData = new FormData();
+    formData.append('arquivo', file);
+    this.http.post(this.baseUrl + 'aplicacaos/logo', formData).subscribe({
+      next: () => this.carregarLogo(),
+      error: err => { this.erroLogo = err?.error?.message || 'Erro ao enviar o logo.'; }
+    });
+  }
+
+  abrirAbaSegmentos() {
+    this.abaAtiva = 'segmentos';
+    if (!this.segmentosDisponiveis.length) {
+      this.http.get<any[]>(this.baseUrl + 'segmentos/disponiveis')
+        .subscribe(r => this.segmentosDisponiveis = r);
+    }
+    this.carregarMeusSegmentos();
+  }
+
+  carregarMeusSegmentos() {
+    this.http.get<any[]>(this.baseUrl + 'segmentos/minha-aplicacao')
+      .subscribe(r => this.meusSegmentos = r.map((s: any) => s.segmentoTenantId));
+  }
+
+  temSegmento(id: string): boolean {
+    return this.meusSegmentos.includes(id);
+  }
+
+  toggleSegmento(id: string) {
+    if (this.temSegmento(id)) {
+      this.http.delete(this.baseUrl + `segmentos/minha-aplicacao/${id}`)
+        .subscribe(() => this.meusSegmentos = this.meusSegmentos.filter(s => s !== id));
+    } else {
+      this.http.post(this.baseUrl + `segmentos/minha-aplicacao/${id}`, {})
+        .subscribe(() => this.meusSegmentos = [...this.meusSegmentos, id]);
+    }
   }
 
   abrirAbaMarketplace() {

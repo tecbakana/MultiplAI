@@ -30,11 +30,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("AplicacaoId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicio")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInicio");
 
                     b.Property<string>("Descricao")
@@ -73,6 +73,9 @@ namespace CMSXData.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)")
                         .HasColumnName("LayoutChoose");
+
+                    b.Property<string>("LogoContentType")
+                        .HasColumnType("text");
 
                     b.Property<byte[]>("Lotipo")
                         .HasColumnType("bytea")
@@ -160,6 +163,24 @@ namespace CMSXData.Migrations
                     b.ToTable("aplicacao", (string)null);
                 });
 
+            modelBuilder.Entity("CMSXData.Models.AplicacaoSegmento", b =>
+                {
+                    b.Property<string>("AplicacaoId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("aplicacao_id");
+
+                    b.Property<string>("SegmentoTenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("segmento_tenant_id");
+
+                    b.HasKey("AplicacaoId", "SegmentoTenantId")
+                        .HasName("PK_aplicacao_segmento");
+
+                    b.ToTable("aplicacao_segmento", (string)null);
+                });
+
             modelBuilder.Entity("CMSXData.Models.Area", b =>
                 {
                     b.Property<string>("Areaid")
@@ -178,11 +199,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("AreaIdPai");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicial")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInicial");
 
                     b.Property<string>("Descricao")
@@ -238,6 +259,14 @@ namespace CMSXData.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("posicao");
 
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("pagina")
+                        .HasColumnName("Tipo");
+
                     b.Property<int?>("Tipoarea")
                         .HasColumnType("integer")
                         .HasColumnName("TipoArea");
@@ -246,6 +275,30 @@ namespace CMSXData.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)")
                         .HasColumnName("Url");
+
+                    b.Property<Guid?>("VitrineTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("VitrineTemplateId");
+
+                    b.Property<string>("VitrineValoresJson")
+                        .HasColumnType("text")
+                        .HasColumnName("VitrineValoresJson");
+
+                    b.Property<string>("VitrineHtmlSnapshot")
+                        .HasColumnType("text")
+                        .HasColumnName("VitrineHtmlSnapshot");
+
+                    b.Property<bool>("VitrinePublicado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("VitrinePublicado");
+
+                    b.Property<bool>("CanonicalArea")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("CanonicalArea");
 
                     b.HasKey("Areaid")
                         .HasName("PK_areas");
@@ -294,14 +347,14 @@ namespace CMSXData.Migrations
 
                     b.Property<string>("Descricao")
                         .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("Descricao");
 
                     b.Property<string>("Nome")
                         .IsRequired()
-                        .HasMaxLength(45)
-                        .HasColumnType("character varying(45)")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
                         .HasColumnName("Nome");
 
                     b.Property<int?>("Ordem")
@@ -336,7 +389,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("CambioGroupId");
 
                     b.Property<DateTime?>("Datacotacao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataCotacao");
 
                     b.Property<string>("Moedasxml")
@@ -435,6 +488,33 @@ namespace CMSXData.Migrations
                     b.ToTable("ciaaerea", (string)null);
                 });
 
+            modelBuilder.Entity("CMSXData.Models.ClienteLoja", b =>
+                {
+                    b.Property<string>("ClienteLojaid")
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("clientelojaid");
+
+                    b.Property<string>("Aplicacaoid")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("character varying(36)")
+                        .HasColumnName("aplicacaoid");
+
+                    b.Property<DateTime?>("Datainclusao")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("datainclusao");
+
+                    b.Property<int>("SalematicClienteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("salematicClienteId");
+
+                    b.HasKey("ClienteLojaid")
+                        .HasName("PK_clienteloja");
+
+                    b.ToTable("clienteloja", (string)null);
+                });
+
             modelBuilder.Entity("CMSXData.Models.Conteudo", b =>
                 {
                     b.Property<string>("Conteudoid")
@@ -458,11 +538,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<string>("Texto")
@@ -619,7 +699,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("ativo");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Formularioid")
@@ -676,7 +756,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("categoriaid");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Valor")
@@ -771,11 +851,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("cacheid");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<DateTime>("Datavencimento")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datavencimento");
 
                     b.Property<string>("Hash")
@@ -944,7 +1024,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("Ativo");
 
                     b.Property<DateTime?>("Data")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("Data");
 
                     b.Property<string>("Foto")
@@ -980,7 +1060,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("templateid");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao");
 
                     b.Property<string>("Descricao")
@@ -1034,7 +1114,7 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime>("Datacriacao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("Datacriacao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -1196,7 +1276,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Data")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("Data");
 
                     b.Property<string>("Foto")
@@ -1284,7 +1364,7 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime?>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -1388,7 +1468,7 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("Datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -1457,7 +1537,7 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime?>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -1510,11 +1590,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("CategoriaId");
 
                     b.Property<DateTime?>("Datafinal")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataFinal");
 
                     b.Property<DateTime?>("Datainicio")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInicio");
 
                     b.Property<string>("Descricacurta")
@@ -1614,10 +1694,58 @@ namespace CMSXData.Migrations
                     b.HasKey("Id")
                         .HasName("PK_produto_mao_de_obra");
 
-                    b.HasIndex("Produtoid")
-                        .HasDatabaseName("IX_produto_mao_de_obra_produtoid");
+                    b.HasIndex("Produtoid");
 
                     b.ToTable("produto_mao_de_obra", (string)null);
+                });
+
+            modelBuilder.Entity("CMSXData.Models.ProdutoTemplate", b =>
+                {
+                    b.Property<string>("ProdutoTemplateid")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("produto_template_id");
+
+                    b.Property<string>("Aplicacaoid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("aplicacao_id");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("ConteudoJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("conteudo_json");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("text")
+                        .HasColumnName("descricao");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("SegmentoTenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("segmento_tenant_id");
+
+                    b.HasKey("ProdutoTemplateid")
+                        .HasName("PK_produto_template");
+
+                    b.ToTable("produto_template", (string)null);
                 });
 
             modelBuilder.Entity("CMSXData.Models.PublicToken", b =>
@@ -1639,12 +1767,12 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime>("Datainclusao")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datainclusao")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("Datavencimento")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datavencimento");
 
                     b.Property<string>("Token")
@@ -1772,11 +1900,11 @@ namespace CMSXData.Migrations
                         .HasColumnName("AplicacaoId");
 
                     b.Property<DateTime>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<DateTime>("Datafinalizacao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataFinalizacao");
 
                     b.HasKey("Relacaoid", "Moduloconfid", "Aplicacaoid", "Datainclusao", "Datafinalizacao")
@@ -1851,6 +1979,35 @@ namespace CMSXData.Migrations
                         .HasName("PK_relusuariogrupo");
 
                     b.ToTable("relusuariogrupo", (string)null);
+                });
+
+            modelBuilder.Entity("CMSXData.Models.SegmentoTenant", b =>
+                {
+                    b.Property<string>("SegmentoTenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("segmento_tenant_id");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("text")
+                        .HasColumnName("descricao");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("nome");
+
+                    b.HasKey("SegmentoTenantId")
+                        .HasName("PK_segmento_tenant");
+
+                    b.ToTable("segmento_tenant", (string)null);
                 });
 
             modelBuilder.Entity("CMSXData.Models.Selecao", b =>
@@ -1929,7 +2086,7 @@ namespace CMSXData.Migrations
 
                     b.Property<DateTime>("Datahora")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("datahora")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -2069,7 +2226,7 @@ namespace CMSXData.Migrations
                         .HasColumnName("Ativo");
 
                     b.Property<DateTime?>("Datainclusao")
-                        .HasColumnType("timestamp with time zone")
+                        .HasColumnType("timestamp without time zone")
                         .HasColumnName("DataInclusao");
 
                     b.Property<string>("Nome")
@@ -2093,6 +2250,108 @@ namespace CMSXData.Migrations
                         .HasName("PK_usuario");
 
                     b.ToTable("usuario", (string)null);
+                });
+
+            modelBuilder.Entity("CMSXData.Models.VitrineConfigurada", b =>
+                {
+                    b.Property<Guid>("VitrineConfiguradaId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("vitrine_configurada_id");
+
+                    b.Property<string>("AplicacaoId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("aplicacao_id");
+
+                    b.Property<DateTime>("DataAtualizacao")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("data_atualizacao");
+
+                    b.Property<string>("CssProcessado")
+                        .HasColumnType("text")
+                        .HasColumnName("css_processado");
+
+                    b.Property<string>("HtmlSnapshot")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Publicado")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("publicado");
+
+                    b.Property<string>("ValoresJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("valores_json");
+
+                    b.Property<Guid>("VitrineTemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("vitrine_template_id");
+
+                    b.HasKey("VitrineConfiguradaId")
+                        .HasName("PK_vitrine_configurada");
+
+                    b.HasIndex("AplicacaoId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_vitrine_configurada_aplicacao_id");
+
+                    b.ToTable("vitrine_configurada", (string)null);
+                });
+
+            modelBuilder.Entity("CMSXData.Models.VitrineTemplate", b =>
+                {
+                    b.Property<Guid>("VitrineTemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("vitrine_template_id");
+
+                    b.Property<bool>("Ativo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("ativo");
+
+                    b.Property<DateTime>("DataCriacao")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("data_criacao");
+
+                    b.Property<string>("Descricao")
+                        .HasColumnType("text")
+                        .HasColumnName("descricao");
+
+                    b.Property<string>("HtmlCss")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("html_css");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nome");
+
+                    b.Property<string>("SegmentoTenantId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("segmento_tenant_id");
+
+                    b.Property<string>("ThumbnailUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("thumbnail_url");
+
+                    b.Property<string>("VariaveisJson")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("variaveis_json");
+
+                    b.HasKey("VitrineTemplateId")
+                        .HasName("PK_vitrine_template");
+
+                    b.ToTable("vitrine_template", (string)null);
                 });
 
             modelBuilder.Entity("CMSXData.Models.Atributo", b =>
@@ -2161,12 +2420,25 @@ namespace CMSXData.Migrations
                     b.Navigation("Produto");
                 });
 
+            modelBuilder.Entity("CMSXData.Models.ProdutoMaoDeObra", b =>
+                {
+                    b.HasOne("CMSXData.Models.Produto", "Produto")
+                        .WithMany()
+                        .HasForeignKey("Produtoid")
+                        .HasPrincipalKey("Produtoid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProdutoMaoDeObra_Produto");
+
+                    b.Navigation("Produto");
+                });
+
             modelBuilder.Entity("CMSXData.Models.Selecao", b =>
                 {
                     b.HasOne("CMSXData.Models.Atributo", "Atributo")
                         .WithMany()
                         .HasForeignKey("Atributoid")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("FK_Selecao_Atributo");
 
@@ -2230,19 +2502,6 @@ namespace CMSXData.Migrations
             modelBuilder.Entity("CMSXData.Models.Pedido", b =>
                 {
                     b.Navigation("Statuspedidos");
-                });
-
-            modelBuilder.Entity("CMSXData.Models.ProdutoMaoDeObra", b =>
-                {
-                    b.HasOne("CMSXData.Models.Produto", "Produto")
-                        .WithMany()
-                        .HasForeignKey("Produtoid")
-                        .HasPrincipalKey("Produtoid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_ProdutoMaoDeObra_Produto");
-
-                    b.Navigation("Produto");
                 });
 #pragma warning restore 612, 618
         }

@@ -32,7 +32,39 @@ public class GeminiAgent : IAgentIA
             {
                 new { parts = new[] { new { text = prompt } } }
             },
-            generationConfig = new { temperature = 0.2, maxOutputTokens = 2048 }
+            generationConfig = new { temperature = 0.2, maxOutputTokens = 32768 }
+        };
+
+        var response = await http.PostAsJsonAsync(url, body);
+        var responseText = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"{(int)response.StatusCode} ({response.ReasonPhrase}) — {responseText}");
+
+        var result = JsonDocument.Parse(responseText).RootElement;
+        return result
+            .GetProperty("candidates")[0]
+            .GetProperty("content")
+            .GetProperty("parts")[0]
+            .GetProperty("text")
+            .GetString()!;
+    }
+
+    public async Task<string> GerarComSistemaAsync(string systemPrompt, string userPrompt)
+    {
+        var http = _httpFactory.CreateClient();
+        var url = $"{_baseUrl}/{_model}:generateContent?key={_apiKey}";
+
+        var body = new
+        {
+            systemInstruction = new { parts = new[] { new { text = systemPrompt } } },
+            contents = new[] { new { parts = new[] { new { text = userPrompt } } } },
+            generationConfig = new
+            {
+                temperature = 0.1,
+                maxOutputTokens = 4096,
+                responseMimeType = "application/json"
+            }
         };
 
         var response = await http.PostAsJsonAsync(url, body);

@@ -21,8 +21,16 @@
           <input type="number" class="form-control" [(ngModel)]="selecionado.posicao">
         </div>
         <div class="col-md-2">
-          <label class="form-label">Tipo</label>
-          <input type="number" class="form-control" [(ngModel)]="selecionado.tipoarea">
+          <label class="form-label">Tipo de área</label>
+          <select class="form-select" [(ngModel)]="selecionado.tipo">
+            <option value="pagina">Página</option>
+            <option value="home" [disabled]="jaTemHome()" [title]="jaTemHome() ? 'Já existe uma área home nesta aplicação' : ''">
+              Home Vitrine (única por tenant)
+            </option>
+          </select>
+          <small *ngIf="jaTemHome() && selecionado.tipo !== 'home'" class="text-muted">
+            Já existe uma área home nesta aplicação.
+          </small>
         </div>
         <div class="col-md-6">
           <label class="form-label">Área Pai</label>
@@ -52,6 +60,8 @@
         <td>
           <span *ngIf="item.areaidpai" class="text-muted me-1">↳</span>
           {{item.nome}}
+          <span *ngIf="item.tipo === 'home'" class="badge bg-primary ms-1">Home Vitrine</span>
+          <span *ngIf="item.tipo === 'pagina'" class="badge bg-secondary ms-1">Página</span>
         </td>
         <td><small class="text-muted">{{nomePai(item.areaidpai)}}</small></td>
         <td>{{item.url}}</td>
@@ -60,9 +70,7 @@
         <td>
           <button class="btn btn-outline-primary btn-sm me-1" (click)="editar(item)">Editar</button>
           <button class="btn btn-outline-danger btn-sm me-1" (click)="excluir(item.areaid)">Excluir</button>
-          <a [routerLink]="['/page-builder-v2', item.areaid]" class="btn btn-outline-secondary btn-sm">
-            Experimentar novo Page Builder <span class="badge bg-warning text-dark ms-1">BETA</span>
-          </a>
+          <button class="btn btn-outline-secondary btn-sm" (click)="navegarParaEditor(item)">Editar Vitrine</button>
         </td>
       </tr>
       <tr *ngIf="lista.length === 0">
